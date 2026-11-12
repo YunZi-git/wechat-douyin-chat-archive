@@ -122,7 +122,30 @@ DELETE FROM contacts  WHERE id = 次;
 
 打包产物不含 `data/`、`.venv`、`node_modules`、任何 `.db` 文件。
 
-## 9. 加一个新平台要改什么
+## 9. 语音链路
+
+```
+media_*.db: VoiceInfo(chat_name_id, local_id, svr_id, voice_data)
+   ↓ chat_name_id → Name2Id → talker
+   ↓ (talker, local_id) 建索引，svr_id 对齐 messages.server_id（同 local_id 可能有多条历史记录）
+   ↓ 原始 SILK 落盘 data/media/wechat/<acct>/<shard>/<talker哈希>/<local_id>_<svr_id>.silk
+   ↓ 播放请求 /api/messages/<id>/audio
+   ↓ pilk 解码 → 16k WAV → data/media/voice_cache/<id>.wav（只转一次）
+   ↓ 顺带把真实时长写回 messages.duration
+```
+
+设计取舍：
+
+- **只存 SILK**：11k 条语音约 224 MB；如果同时存 WAV 会再翻一倍。
+- **按需转码**：首次播放 20–60 ms，之后命中缓存 3–5 ms；不播放就不占 CPU。
+- **转写单独一张表** `voice_transcriptions(message_id, engine, status, text, error)`：
+  抖音原生识别、本地 whisper、腾讯云、旧项目回填都写它，同一条消息只留最后一次结果。
+- **搜索会命中转写**：`search_messages` 同时匹配 `messages.text` 和转写文本。
+
+已实现：微信语音落盘 + 播放、旧 `voice_api.jsonl` 回填。
+待实现：本地 faster-whisper、腾讯云一句话识别、批量任务与重试。
+
+## 10. 加一个新平台要改什么
 
 1. 写 `app/importers/<platform>.py`：把平台数据映射成 contact / identity /
    conversation / message 四张表
@@ -133,7 +156,7 @@ DELETE FROM contacts  WHERE id = 次;
 聚合查询、合并、导出都不需要改 —— 它们只依赖统一模型。
 
 
-## 10. 性能取舍（实测 61.8 万条消息 / 285 个会话）
+## 11. 性能取舍（实测 61.8 万条消息 / 285 个会话）
 
 | 场景 | 之前 | 现在 |
 |---|---|---|
@@ -151,7 +174,7 @@ DELETE FROM contacts  WHERE id = 次;
 3. **重复导入靠唯一约束** —— `INSERT OR IGNORE` + `UNIQUE(platform, platform_msg_id)`，
    不需要额外去重逻辑。
 
-## 11. 安全边界
+## 12. 安全边界
 
 这是个本机应用，但它读写的是最敏感的数据，所以边界画得比较紧：
 

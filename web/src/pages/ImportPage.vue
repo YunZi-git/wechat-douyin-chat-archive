@@ -12,6 +12,7 @@ const activeJob = ref(null)
 const activeTitle = ref('')
 const recent = ref([])
 const customDb = ref('')
+const voiceJsonl = ref('')
 
 // 采集用哪个浏览器：系统 Edge 优先，其次 Playwright 的 Chromium
 const browserText = computed(() => {
@@ -59,6 +60,17 @@ async function run(kind, title, arg) {
     activeJob.value = res.job.id
     activeTitle.value = title
     recent.value = (await api.jobs()).items || []
+  } catch (err) {
+    toast(err.message, 'err')
+  }
+}
+
+async function importVoice() {
+  const path = voiceJsonl.value.trim()
+  if (!path) return
+  try {
+    const res = await api.importVoiceJsonl(path)
+    toast(`语音转写已导入：匹配 ${res.matched} / 共 ${res.total} 条`, 'ok')
   } catch (err) {
     toast(err.message, 'err')
   }
@@ -125,6 +137,14 @@ onMounted(refresh)
               <button class="btn sm" @click="run('wechatImportOne', `导入 ${acc.name}`, acc.path)">
                 导入
               </button>
+            </div>
+          </div>
+
+          <div class="field mt12">
+            <label>回填旧版语音转写（voice_api.jsonl，可选）</label>
+            <div class="row" style="gap: 8px">
+              <input v-model="voiceJsonl" class="input" placeholder="选择旧项目的 voice_api.jsonl" />
+              <button class="btn sm" :disabled="!voiceJsonl" @click="importVoice">导入</button>
             </div>
           </div>
 

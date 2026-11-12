@@ -234,7 +234,9 @@ def _where(thread_id: str, platform: str | None) -> tuple[str, list[Any]] | None
 
 
 _MESSAGE_COLUMNS = """m.*, c.title AS conv_title, c.kind AS conv_kind,
-                      c.platform AS conv_platform"""
+                      c.platform AS conv_platform,
+                      (SELECT vt.text FROM voice_transcriptions vt
+                        WHERE vt.message_id = m.id) AS transcript"""
 
 
 def thread_messages(
@@ -409,8 +411,11 @@ def search_messages(
     q = (q or "").strip()
     if not q:
         return {"items": [], "total": 0}
-    where = ["m.text LIKE ? ESCAPE '\\'"]
-    args: list[Any] = [like_pattern(q)]
+    # 转写文本也参与搜索：按语音内容找得到那条语音
+    where = ["(m.text LIKE ? ESCAPE '\\' OR EXISTS ("
+             "SELECT 1 FROM voice_transcriptions vt2"
+             " WHERE vt2.message_id = m.id AND vt2.text LIKE ? ESCAPE '\\'))"]
+    args: list[Any] = [like_pattern(q), like_pattern(q)]
     if platform:
         where.append("m.platform = ?")
         args.append(platform)

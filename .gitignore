@@ -6,6 +6,9 @@ data/
 exports/
 cards/
 
+# demo/ 是脚本生成的合成数据，数据库需要进版本库
+!demo/**/*.db
+
 # ── Python ──
 .venv/
 venv/

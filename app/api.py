@@ -9,6 +9,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from . import contacts as contacts_mod
+from . import voice as voice_mod
 from . import db, jobs, paths, services, settings, threads
 from .exporters import chatlab
 
@@ -53,6 +54,10 @@ class ExportBody(BaseModel):
     thread_id: str
     format: Literal["json", "jsonl", "markdown"] = "jsonl"
     platform: str | None = None
+
+
+class VoiceImportBody(BaseModel):
+    path: str
 
 
 class SettingsBody(BaseModel):
@@ -263,6 +268,67 @@ def job_detail(job_id: str) -> dict[str, Any]:
 @router.post("/jobs/{job_id}/cancel")
 def cancel_job(job_id: str) -> dict[str, Any]:
     return {"ok": jobs.cancel(job_id)}
+
+
+# ── 语音 ────────────────────────────────────────────────────────────
+
+@router.get("/messages/{msg_id}/audio")
+def message_audio(msg_id: int) -> FileResponse:
+    """播放语音。SILK 会按需转成 16k WAV 并缓存，只转一次。"""
+    with db.session(readonly=True) as conn:
+        row = conn.execute(
+            "SELECT id, platform, media_path, duration FROM messages WHERE id=?",
+            (msg_id,),
+        ).fetchone()
+    if not row:
+        raise HTTPException(404, "消息不存在")
+    if not row["media_path"]:
+        raise HTTPException(404, "这条消息没有语音文件")
+    abs_path = voice_mod.resolve_media_path(row["media_path"])
+    if not abs_path:
+        raise HTTPException(404, "语音文件不存在")
+
+    suffix = abs_path.suffix.lower()
+    headers = {"Cache-Control": "public, max-age=31536000, immutable"}
+    # 已经是浏览器能直接播的格式（抖音的 mpeg、演示数据的 wav 等）
+    passthrough = {
+        ".wav": "audio/wav",
+        ".mp3": "audio/mpeg",
+        ".mpeg": "audio/mpeg",
+        ".m4a": "audio/mp4",
+        ".aac": "audio/aac",
+        ".ogg": "audio/ogg",
+    }
+    if suffix in passthrough:
+        if suffix == ".wav" and not row["duration"]:
+            duration = voice_mod.wav_duration(abs_path)
+            if duration:
+                try:
+                    voice_mod.set_duration(msg_id, duration)
+                except Exception:  # noqa: BLE001
+                    pass
+        return FileResponse(abs_path, media_type=passthrough[suffix], headers=headers)
+    if suffix == ".silk":
+        try:
+            wav, duration = voice_mod.transcode_silk(abs_path, str(msg_id))
+        except Exception as exc:  # noqa: BLE001 - 回复具体的失败原因
+            raise HTTPException(500, f"语音转码失败：{exc}") from exc
+        if duration and not row["duration"]:
+            try:
+                voice_mod.set_duration(msg_id, duration)
+            except Exception:  # noqa: BLE001 - 补时长失败不影响播放
+                pass
+        return FileResponse(wav, media_type="audio/wav", headers=headers)
+    raise HTTPException(415, f"不支持的音频格式：{suffix}")
+
+
+@router.post("/voice/import-jsonl")
+def import_voice_jsonl(body: VoiceImportBody) -> dict[str, Any]:
+    """回填旧项目 voice_api.jsonl 里的微信语音转写。"""
+    try:
+        return voice_mod.import_legacy_transcripts(body.path)
+    except FileNotFoundError as exc:
+        raise HTTPException(400, str(exc)) from exc
 
 
 # ── 导出 ────────────────────────────────────────────────────────────

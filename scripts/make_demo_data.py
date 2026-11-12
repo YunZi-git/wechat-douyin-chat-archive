@@ -188,7 +188,7 @@ def build_wechat(out: Path) -> Path:
     for name, has_wx, _has_dy, _uid in PEOPLE:
         if not has_wx:
             continue
-        username = f"wxid_demo{idx:04d}{abs(hash(name)) % 100000:05d}"
+        username = f"wxid_demo{idx:04d}{int(hashlib.md5(name.encode()).hexdigest()[:6], 16) % 100000:05d}"
         wx_usernames[name] = username
         rows.append((idx, username, 0, None, None, 0, 0, name, name))
         idx += 1
@@ -247,6 +247,23 @@ def build_wechat(out: Path) -> Path:
         cur = shard.execute("INSERT INTO Name2Id(user_name, is_session) VALUES (?,1)", (gname,))
         name2id[gname] = cur.lastrowid
 
+    # 语音：微信把 blob 放在 media_*.db 的 VoiceInfo 里
+    media = sqlite3.connect(msg_dir / "media_0.db")
+    media.executescript(
+        """
+        CREATE TABLE Name2Id(rowid INTEGER PRIMARY KEY AUTOINCREMENT, user_name TEXT, is_session INTEGER);
+        CREATE TABLE VoiceInfo(chat_name_id INTEGER, create_time INTEGER, local_id INTEGER,
+            svr_id INTEGER, voice_data BLOB, data_index INTEGER);
+        """
+    )
+    media_n2i: dict[str, int] = {}
+    for username in [SELF_WXID, *wx_usernames.values()]:
+        cur = media.execute("INSERT INTO Name2Id(user_name, is_session) VALUES (?,0)", (username,))
+        media_n2i[username] = cur.lastrowid
+    for gname in group_members:
+        cur = media.execute("INSERT INTO Name2Id(user_name, is_session) VALUES (?,1)", (gname,))
+        media_n2i[gname] = cur.lastrowid
+
     now = int(time.time())
     # 从 90 天前开始，按天推进
     day = now - 90 * 86400
@@ -268,18 +285,30 @@ def build_wechat(out: Path) -> Path:
                 speaker = random.choice([wx_usernames[m] for m in members] + [SELF_WXID])
             local_type = 1
             content: bytes | str = line
-            if i == 3 and conv_key.startswith("private:"):
+            is_voice = i == 1  # 每条会话放一条语音，用来演示播放
+            if is_voice:
+                local_type = 34
+                content = '<msg><voicemsg length="1200" /></msg>'
+            elif i == 3 and conv_key.startswith("private:"):
                 local_type = 3  # 一条图片占位
                 content = b"<msg><img /></msg>"
-            shard.execute(
+            cur = shard.execute(
                 f'INSERT INTO "{table}"(server_id, local_type, real_sender_id, create_time,'
                 " message_content, compress_content, WCDB_CT_message_content)"
                 " VALUES (?,?,?,?,?,NULL,0)",
                 (1000 + i, local_type, name2id[speaker], ts, content),
             )
+            if is_voice and talker in media_n2i:
+                media.execute(
+                    "INSERT INTO VoiceInfo(chat_name_id, create_time, local_id, svr_id,"
+                    " voice_data, data_index) VALUES (?,?,?,0,?,0)",
+                    (media_n2i[talker], ts, cur.lastrowid, make_wav(1.2)),
+                )
             ts += random.randint(90, 3600)
     shard.commit()
     shard.close()
+    media.commit()
+    media.close()
     return account
 
 

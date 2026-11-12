@@ -40,11 +40,15 @@
    truststore（MIT）、Pillow（HPND）、pillow-heif（BSD-3-Clause）。
    浏览器优先使用系统已安装的 Microsoft Edge，不随包分发 Chromium。
 
-5. 前端依赖
+5. 语音解码
+   ------------------------------------------------------------------
+   pilk —— 微信 SILK 语音转 WAV，https://github.com/foyoux/pilk
+
+6. 前端依赖
    ------------------------------------------------------------------
    Vue 3（MIT）、Vite（MIT）、@vitejs/plugin-vue（MIT）。
 
-6. 后端依赖
+7. 后端依赖
    ------------------------------------------------------------------
    FastAPI（MIT）、Starlette（BSD-3-Clause）、Uvicorn（BSD-3-Clause）、
    pywebview（BSD-3-Clause）、pythonnet（MIT）、pydantic（MIT）、

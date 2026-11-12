@@ -18,7 +18,7 @@ from typing import Any, Iterable, Iterator, Sequence
 
 from . import paths
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 4
 
 SCHEMA_SQL = """
 PRAGMA journal_mode=WAL;
@@ -104,6 +104,17 @@ CREATE TABLE IF NOT EXISTS conversation_stats (
     last_kind       TEXT
 );
 
+-- 语音转写结果。抖音的 native 识别、本地 whisper、腾讯云都写这张表；
+-- 同一条消息只保留最后一次结果（重跑即覆盖）。
+CREATE TABLE IF NOT EXISTS voice_transcriptions (
+    message_id INTEGER PRIMARY KEY REFERENCES messages(id) ON DELETE CASCADE,
+    engine     TEXT NOT NULL,              -- legacy | native_douyin | local_whisper | tencent
+    status     TEXT NOT NULL DEFAULT 'success',  -- success | failed | skipped
+    text       TEXT,
+    error      TEXT,
+    updated_at INTEGER NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS import_runs (
     id                 INTEGER PRIMARY KEY AUTOINCREMENT,
     platform           TEXT NOT NULL,
@@ -165,6 +176,8 @@ def init() -> None:
             "SELECT EXISTS(SELECT 1 FROM messages)"
         ).fetchone()[0]
         # 老库升级 / 统计表丢了：补一次物化
+        if version < SCHEMA_VERSION:
+            _migrate(conn, version)
         if has_messages and (version < SCHEMA_VERSION or stats_empty):
             refresh_conversation_stats(conn)
         if version and version < SCHEMA_VERSION:
@@ -298,6 +311,32 @@ def add_message(
          duration, reply_to, seq, extra),
     )
     return cur.rowcount > 0
+
+
+# 非文本消息的占位文案（早期版本把原始 XML 存进了 messages.text）
+NON_TEXT_LABELS = {
+    "image": "[图片]",
+    "voice": "[语音]",
+    "video": "[视频]",
+    "sticker": "[表情]",
+    "card": "[名片]",
+    "location": "[位置]",
+    "call": "[通话]",
+    "revoke": "[撤回了一条消息]",
+    "system": "[系统消息]",
+    "other": "[消息]",
+}
+
+
+def _migrate(conn: sqlite3.Connection, version: int) -> None:
+    """按版本号做数据修正（只跑一次）。"""
+    if version < 4:
+        # v3 之前的导入把 XML/JSON 原文写进了 text，界面上会露馅
+        for kind, label in NON_TEXT_LABELS.items():
+            conn.execute(
+                "UPDATE messages SET text=? WHERE kind=? AND (text LIKE '<%' OR text LIKE '{%')",
+                (label, kind),
+            )
 
 
 def refresh_conversation_stats(

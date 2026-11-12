@@ -25,7 +25,8 @@ import time
 from pathlib import Path
 from typing import Any, Callable
 
-from .. import db
+from .. import db, paths
+from .. import voice as voice_mod
 from ..jobs import JobCancelled
 
 Progress = Callable[[dict[str, Any]], None] | None
@@ -190,6 +191,73 @@ def _iter_message_rows(con: sqlite3.Connection, table: str) -> sqlite3.Cursor:
     )
 
 
+def _extract_voice_files(
+    account_dir: Path,
+    *,
+    progress: Progress = None,
+) -> dict[tuple[str, int], str]:
+    """把 media_*.db 里的语音原样落盘，只存 SILK，不转码。
+
+    返回 ``(talker, local_id) -> 相对 media 目录的路径``。
+    """
+    # (talker, local_id) -> {svr_id: 相对路径}；同一 local_id 可能有多条历史记录
+    mapping: dict[tuple[str, int], dict[int, str]] = {}
+    written = 0
+    msg_dir = account_dir / "message"
+    for media_db in sorted(msg_dir.glob("media_*.db")):
+        try:
+            mcon = sqlite3.connect(f"file:{media_db}?mode=ro", uri=True)
+            mcon.row_factory = sqlite3.Row
+        except sqlite3.Error:
+            continue
+        try:
+            tables = {
+                r["name"] for r in mcon.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table'"
+                )
+            }
+            if "VoiceInfo" not in tables or "Name2Id" not in tables:
+                continue
+            names = {
+                r["rowid"]: r["user_name"]
+                for r in mcon.execute("SELECT rowid, user_name FROM Name2Id")
+            }
+            for row in mcon.execute(
+                "SELECT chat_name_id, local_id, svr_id, voice_data FROM VoiceInfo"
+            ):
+                talker = names.get(row["chat_name_id"])
+                blob = row["voice_data"]
+                local_id = row["local_id"]
+                if not talker or not blob or local_id is None:
+                    continue
+                ext = voice_mod.sniff_extension(bytes(blob))
+                svr_id = int(row["svr_id"] or 0)
+                rel = voice_mod.voice_relative_path(
+                    account_dir.name, media_db.stem, talker,
+                    f"{int(local_id)}_{svr_id}", ext,
+                )
+                target = paths.MEDIA_DIR / rel
+                try:
+                    if not target.is_file() or target.stat().st_size != len(blob):
+                        target.parent.mkdir(parents=True, exist_ok=True)
+                        target.write_bytes(bytes(blob))
+                        written += 1
+                except OSError as exc:
+                    print(f"[warn] 写语音失败 {rel}: {exc}", file=sys.stderr)
+                    continue
+                mapping.setdefault((talker, int(local_id)), {})[svr_id] = rel
+                if progress and len(mapping) % 500 == 0:
+                    progress({
+                        "stage": "微信语音",
+                        "voices": len(mapping),
+                        "written": written,
+                    })
+        finally:
+            mcon.close()
+    print(f"[i] 语音落盘: {len(mapping)} 条（本次新写 {written} 个文件）")
+    return mapping
+
+
 def import_account(
     account_dir: Path | str,
     *,
@@ -234,6 +302,8 @@ def import_account(
         conv_cache: dict[str, int] = {}
         touched: set[int] = set()
         total_seen = 0
+        voices = _extract_voice_files(account_dir, progress=progress)
+        report["voices_found"] = len(voices)
 
         def conv_for(talker: str) -> int:
             nonlocal report
@@ -371,6 +441,13 @@ def import_account(
                             sender = n2i.get(r["real_sender_id"], "") or ""
                             is_self = bool(self_wxid) and sender == self_wxid
                             body = text if kind == "text" else (text or KIND_LABELS.get(kind, ""))
+                            media_rel = None
+                            if kind == "voice":
+                                candidates = voices.get((talker, int(r["local_id"]))) or {}
+                                media_rel = (
+                                    candidates.get(int(r["server_id"] or 0))
+                                    or next(iter(candidates.values()), None)
+                                )
 
                             inserted = db.add_message(
                                 conn,
@@ -383,6 +460,7 @@ def import_account(
                                 ts=int(r["create_time"] or 0),
                                 kind=kind,
                                 text=body,
+                                media_path=media_rel,
                                 seq=int(r["server_id"] or 0) or None,
                                 extra=json.dumps(
                                     {"local_type": local_type, "shard": shard.name},
@@ -393,6 +471,15 @@ def import_account(
                                 report["messages_added"] += 1
                             else:
                                 report["messages_skipped"] += 1
+                                # 之前导入过：把语音路径修正/补上
+                                if media_rel:
+                                    conn.execute(
+                                        "UPDATE messages SET media_path=?"
+                                        " WHERE platform='wechat' AND platform_msg_id=?"
+                                        " AND (media_path IS NULL OR media_path != ?)",
+                                        (media_rel, f"{shard.name}:{table}:{r['local_id']}",
+                                         media_rel),
+                                    )
 
                             if limit_messages and report["messages_added"] >= limit_messages:
                                 break

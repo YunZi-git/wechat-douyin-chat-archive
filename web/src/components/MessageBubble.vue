@@ -18,10 +18,9 @@ const isImage = computed(() => ['image', 'sticker'].includes(m.value.kind))
 const imageSrc = computed(() => m.value.media_url || '')
 const isVoice = computed(() => m.value.kind === 'voice')
 const isVideo = computed(() => m.value.kind === 'video')
-const voiceText = computed(() => {
-  const t = (m.value.text || '').trim()
-  return t.startsWith('[') ? '' : t
-})
+const voiceText = computed(() => (m.value.transcript || '').trim())
+const audioSrc = computed(() => `/api/messages/${m.value.id}/audio`)
+const hasAudio = computed(() => !!m.value.media_url)
 </script>
 
 <template>
@@ -66,12 +65,12 @@ const voiceText = computed(() => {
           <span v-else class="faint">{{ m.text || kindLabel }}</span>
         </template>
 
-        <!-- 语音 -->
+        <!-- 语音：SILK 会在后端按需转 WAV -->
         <template v-else-if="isVoice">
           <div class="voice-line">
             <Icon name="mic" :size="15" />
-            <audio v-if="m.media_url" :src="m.media_url" controls preload="none" />
-            <span v-else class="faint">语音未落地</span>
+            <audio v-if="hasAudio" :src="audioSrc" controls preload="metadata" />
+            <span v-else class="faint">{{ m.transcript ? '语音文件缺失' : '语音未落地' }}</span>
             <span v-if="m.duration" class="voice-dur">{{ m.duration }}″</span>
           </div>
           <div v-if="voiceText" class="voice-text">{{ voiceText }}</div>
