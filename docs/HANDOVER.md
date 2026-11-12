@@ -15,7 +15,7 @@
 - 前端：Vue 3 + Vite（`web/`），构建产物由后端托管
 - 外壳：pywebview 原生窗口（`app/desktop.py`）
 - 外部引擎：微信解密 `engines/siwx`（AGPL）、抖音采集 `engines/douyin`（MIT）
-- 打包：`scripts/build_portable.py` → `release/聊天信息工作台.zip`（80 MB）
+- 打包：`scripts/build_portable.py` → `release/聊天信息工作台.zip`（约 146 MB，含浏览器自动化与本地 ASR）
 
 **现在的状态**：文本 / 合并 / 搜索 / 导出 / 微信语音播放 / 语音识别（腾讯云 + 本地）
 都已可用；微信图片/表情/视频支持**按需解密**，但依赖微信本地缓存仍然存在。
