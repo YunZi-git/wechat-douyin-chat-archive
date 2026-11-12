@@ -178,7 +178,29 @@ voice_transcriptions(message_id, engine, status, text, error)
 
 限制：依赖微信自己的数据目录（缓存/附件）；账号数据被清理后就取不到。
 
-## 12. 加一个新平台要改什么
+## 12. 外观主题
+
+```
+app/data/stylekit_themes.json   151 套归一化后的主题（由脚本生成）
+        │
+app/themes.py                   目录 + 校验
+        │  GET /api/themes
+web/src/lib/themes.js           主题 → CSS 变量（自研，无 UI 框架）
+        │
+document.documentElement.style  --bg/--panel/--border/--text/--accent
+                                --radius/--border-w/--shadow
+```
+
+- 每套主题含：调色板（背景/面板×3/边框/文字×3/强调色）、形状（圆角 px、
+  边框宽度 px、阴影 CSS）、元信息（中文名/英文名/分类/是否深色）。
+- 深浅色由上游的 primary/secondary 亮度推导；半透明配色（玻璃拟态）按深色处理。
+- 边框颜色优先取上游 token（`border-black` / `border-[#xxx]`），否则按背景混色推导。
+- 切换只改变量，不重渲染组件；选择写 `settings.json` + localStorage，
+  `index.html` 首屏脚本先贴变量避免闪烁。
+- 数据来源 [StyleKit](https://github.com/AnxForever/stylekit)（MIT），
+  只取颜色与形状 token，组件和样式表都是自己写的。
+
+## 13. 加一个新平台要改什么
 
 1. 写 `app/importers/<platform>.py`：把平台数据映射成 contact / identity /
    conversation / message 四张表
@@ -189,7 +211,7 @@ voice_transcriptions(message_id, engine, status, text, error)
 聚合查询、合并、导出都不需要改 —— 它们只依赖统一模型。
 
 
-## 13. 性能取舍（实测 61.8 万条消息 / 285 个会话）
+## 14. 性能取舍（实测 61.8 万条消息 / 285 个会话）
 
 | 场景 | 之前 | 现在 |
 |---|---|---|
@@ -207,7 +229,7 @@ voice_transcriptions(message_id, engine, status, text, error)
 3. **重复导入靠唯一约束** —— `INSERT OR IGNORE` + `UNIQUE(platform, platform_msg_id)`，
    不需要额外去重逻辑。
 
-## 14. 安全边界
+## 15. 安全边界
 
 这是个本机应用，但它读写的是最敏感的数据，所以边界画得比较紧：
 

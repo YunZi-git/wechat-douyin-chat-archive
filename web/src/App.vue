@@ -7,6 +7,7 @@ import VoicePage from './pages/VoicePage.vue'
 import MergePage from './pages/MergePage.vue'
 import ImportPage from './pages/ImportPage.vue'
 import ExportPage from './pages/ExportPage.vue'
+import AppearancePage from './pages/AppearancePage.vue'
 import SettingsPage from './pages/SettingsPage.vue'
 
 onMounted(boot)
@@ -21,6 +22,7 @@ onMounted(boot)
     <MergePage v-else-if="store.view === 'merge'" />
     <ImportPage v-else-if="store.view === 'import'" />
     <ExportPage v-else-if="store.view === 'export'" />
+    <AppearancePage v-else-if="store.view === 'appearance'" />
     <SettingsPage v-else-if="store.view === 'settings'" />
 
     <div v-if="!store.booted" class="boot-mask">

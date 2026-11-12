@@ -96,7 +96,7 @@ def test_settings_roundtrip(client):
     assert client.get("/api/settings").json()["page_size"] == 100
 
     bad = client.patch("/api/settings", json={"theme": "neon"})
-    assert bad.status_code == 422
+    assert bad.status_code == 400
 
 
 def test_sources(client):

@@ -18,7 +18,7 @@
 - 打包：`scripts/build_portable.py` → `release/聊天信息工作台.zip`（约 146 MB，含浏览器自动化与本地 ASR）
 
 **现在的状态**：文本 / 合并 / 搜索 / 导出 / 微信语音播放 / 语音识别（腾讯云 + 本地）
-都已可用；微信图片/表情/视频支持**按需解密**，但依赖微信本地缓存仍然存在。
+都已可用；微信图片/表情/视频支持**按需解密**；外观有 155 套（内置 4 + StyleKit 151）。
 
 下一步建议：语音识别的重试/计费体验打磨、微信媒体批量预热、AI 归纳（可选）。
 
@@ -38,6 +38,7 @@
 | 群聊 | ✅ 独立会话展示 | ✅ |
 | 跨平台合并 | ✅ 手动 + 可解绑 | ✅ |
 | 导出 | ✅ ChatLab JSON/JSONL + Markdown | 同左 |
+| 外观 | ✅ 155 套主题（含 StyleKit 151 套），整站换色/圆角/边框/阴影 | 同左 |
 
 ---
 
@@ -62,6 +63,10 @@
 | `app/asr.py` | 腾讯云 / 本地 whisper 识别、批量编排、自动转写 | 引擎都在这 |
 | `app/secrets.py` | `data/secrets.json` 读写、打码视图 | 密钥不落日志 |
 | `app/wechat_media.py` | 微信图片/表情/视频按需解密与缓存 | 依赖微信缓存 |
+| `app/themes.py` | 外观目录（155 套） | 读 app/data/stylekit_themes.json |
+| `web/src/lib/themes.js` | 自研主题引擎：主题对象 → CSS 变量 | 无第三方 UI 库 |
+| `web/src/pages/AppearancePage.vue` | 外观库：搜索 / 分类 / 一键切换 | |
+| `scripts/fetch_stylekit_themes.py` | 把 StyleKit 数据归一化成主题表 | 平时不用跑 |
 | `app/services.py` | 串外部引擎、后台任务编排、重任务串行锁 | |
 | `app/exporters/chatlab.py` | ChatLab / Markdown 导出（流式） | |
 | `app/jobs.py` | 进程内任务表、日志、取消 | `JobCancelled` 在这里 |
@@ -70,7 +75,7 @@
 | `web/src/components/ChatView.vue` | 消息流、会话内搜索、跳转 | |
 | `scripts/make_demo_data.py` | 生成合成演示数据（可 `--import`） | demo 数据全靠它 |
 | `scripts/build_portable.py` | 嵌入式 Python + 依赖 + 启动脚本 | |
-| `tests/` | 94 个 pytest 用例 | 全用合成数据 |
+| `tests/` | 107 个 pytest 用例 | 全用合成数据 |
 
 ---
 
@@ -229,6 +234,10 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 13. **HuggingFace 直连会超时**：本地识别首次下载模型要设 `whisper_endpoint=https://hf-mirror.com`（改完重启）。
 14. **微信媒体依赖本机缓存**：账号目录/缓存被清理后，图片视频解密会失败——这是数据问题，不是代码问题。
 15. **消息表列不完全一致**：`packed_info_data` 只有部分微信 4.x 版本有，导入器已按实际列拼 SQL。
+16. **外观数据是生成物**：`app/data/stylekit_themes.json` 由脚本从 StyleKit 拉取并归一化；
+    上游风格更新时重跑脚本即可，不要手改 JSON。
+17. **主题的深浅是推导出来的**：上游只给 primary/secondary + Tailwind token，
+    半透明配色按深色玻璃处理；换主题后如果觉得对比度不对，改归一化脚本里的推导规则。
 
 ---
 
@@ -299,7 +308,7 @@ git grep -n -I -E "wxid_[a-z0-9]{10,}|sk-[A-Za-z0-9]{20,}|AKID[A-Za-z0-9]{10,}|C
 ## 10. 验收清单（改完代码跑一遍）
 
 ```bash
-.venv\Scripts\python -m pytest -q          # 94 passed
+.venv\Scripts\python -m pytest -q          # 107 passed
 python scripts/build_portable.py --no-build-web   # 能打包
 ```
 
@@ -313,6 +322,7 @@ python scripts/build_portable.py --no-build-web   # 能打包
 6. 设置改主题 / 清理语音缓存
 7. 「语音识别」页能选引擎、开始识别（没有真实密钥时只验证界面与报错）
 8. 微信图片消息点开能显示（本机微信缓存还在时）
+9. 「外观」页能搜索/筛选，点一套（比如 Neo-Brutalist）整站边框、圆角、配色都变
 
 ---
 

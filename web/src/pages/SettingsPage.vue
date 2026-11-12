@@ -1,16 +1,9 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { api } from '../lib/api'
-import { store, toast, applyTheme, applyDensity, refreshStats } from '../lib/store'
+import { store, toast, applyDensity, refreshStats, currentTheme } from '../lib/store'
 import { fmtCount, fmtDateTime, fmtBytes } from '../lib/format'
 import Icon from '../components/Icon.vue'
-
-const THEMES = [
-  { key: 'dark', label: '深色', swatch: ['#0d0f14', '#6c8cff'] },
-  { key: 'light', label: '浅色', swatch: ['#f2f4f8', '#3f6bff'] },
-  { key: 'warm', label: '暖棕', swatch: ['#17120e', '#e0a25c'] },
-  { key: 'purple', label: '紫夜', swatch: ['#100d1a', '#9d7bff'] },
-]
 
 const saving = ref(false)
 const clearing = ref(false)
@@ -113,11 +106,6 @@ async function save(patch) {
   }
 }
 
-async function setTheme(key) {
-  applyTheme(key)
-  await save({ theme: key })
-}
-
 async function setDensity(value) {
   applyDensity(value)
   await save({ density: value })
@@ -163,19 +151,15 @@ onMounted(async () => {
     <div class="section">
       <h2>外观</h2>
       <div class="card">
-        <div class="theme-grid">
-          <button
-            v-for="t in THEMES"
-            :key="t.key"
-            class="theme-card"
-            :class="{ active: store.settings.theme === t.key }"
-            @click="setTheme(t.key)"
-          >
-            <span class="swatch" :style="{ background: t.swatch[0], borderColor: t.swatch[1] }">
-              <i :style="{ background: t.swatch[1] }" />
-            </span>
-            <span>{{ t.label }}</span>
-            <Icon v-if="store.settings.theme === t.key" name="check" :size="14" />
+        <div class="row">
+          <div class="grow">
+            <div style="font-weight: 550">当前外观：{{ currentTheme().name }}</div>
+            <div class="hint">
+              内置 4 套 + StyleKit 151 套；配色、圆角、边框和阴影都会跟着变
+            </div>
+          </div>
+          <button class="btn" @click="store.view = 'appearance'">
+            <Icon name="sparkles" :size="14" /> 浏览外观库
           </button>
         </div>
 
@@ -418,31 +402,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.theme-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
-.theme-card {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 10px 12px;
-  background: var(--panel-2);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  color: var(--text-dim);
-  font-size: 12.5px;
-}
-.theme-card:hover { border-color: var(--text-faint); }
-.theme-card.active { border-color: var(--accent); color: var(--text); }
-.swatch {
-  width: 22px;
-  height: 22px;
-  border-radius: 7px;
-  border: 2px solid;
-  display: grid;
-  place-items: center;
-  flex: none;
-}
-.swatch i { width: 8px; height: 8px; border-radius: 3px; display: block; }
 @media (max-width: 720px) {
-  .theme-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
+  }
 </style>

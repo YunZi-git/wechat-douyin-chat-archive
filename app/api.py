@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 
 from . import contacts as contacts_mod
 from . import asr
+from . import themes as themes_mod
 from . import secrets as secrets_mod
 from . import voice as voice_mod
 from . import wechat_media
@@ -90,7 +91,7 @@ class AsrRunBody(BaseModel):
 
 
 class SettingsBody(BaseModel):
-    theme: Literal["dark", "light", "warm", "purple"] | None = None
+    theme: str | None = None
     density: Literal["comfortable", "compact"] | None = None
     page_size: int | None = Field(default=None, ge=20, le=300)
     timezone_offset: float | None = Field(default=None, ge=-12, le=14)
@@ -206,6 +207,12 @@ def rename_contact(contact_id: int, body: RenameBody) -> dict[str, Any]:
 
 # ── 设置 ────────────────────────────────────────────────────────────
 
+@router.get("/themes")
+def list_themes() -> dict[str, Any]:
+    """151 个 StyleKit 外观 + 4 个内置主题。"""
+    return themes_mod.list_themes()
+
+
 @router.get("/settings")
 def get_settings() -> dict[str, Any]:
     return settings.load()
@@ -214,6 +221,8 @@ def get_settings() -> dict[str, Any]:
 @router.patch("/settings")
 def patch_settings(body: SettingsBody) -> dict[str, Any]:
     patch = {k: v for k, v in body.model_dump().items() if v is not None}
+    if "theme" in patch and not themes_mod.is_valid(patch["theme"]):
+        raise HTTPException(400, f"未知外观：{patch['theme']}")
     return settings.save(patch)
 
 

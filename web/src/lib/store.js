@@ -1,8 +1,14 @@
 import { reactive } from 'vue'
 import { api } from './api'
+import {
+  BUILTIN_THEMES,
+  applyTheme as applyThemeObject,
+  findTheme,
+  restoreThemeFromCache,
+} from './themes'
 
 export const store = reactive({
-  view: 'chats',           // chats | merge | import | export | settings
+  view: 'chats',           // chats | voice | merge | import | export | appearance | settings
   booted: false,
   stats: null,
   settings: {
@@ -10,10 +16,11 @@ export const store = reactive({
     density: 'comfortable',
     page_size: 60,
   },
+  themes: [],              // 内置 4 个 + StyleKit 151 个
+  themeSlug: 'dark',
   toasts: [],
-  // 跨页面跳转：合并页点「查看会话」时用它
   activeThreadId: null,
-  focusSeq: 0,             // 每次强制聚焦自增，让聊天页重新加载
+  focusSeq: 0,
 })
 
 let toastSeed = 0
@@ -27,19 +34,44 @@ export function toast(message, type = '') {
   }, type === 'err' ? 5200 : 2600)
 }
 
-export function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme)
-  store.settings.theme = theme
+export function currentTheme() {
+  return findTheme(store.themes, store.themeSlug) || BUILTIN_THEMES[0]
+}
+
+/** 按 slug 应用外观（不写后端）。 */
+export function applyTheme(slug) {
+  const theme = findTheme(store.themes, slug) || BUILTIN_THEMES[0]
+  applyThemeObject(theme)
+  store.themeSlug = theme.slug
+  store.settings.theme = theme.slug
+  return theme
+}
+
+/** 切换外观并持久化到本机设置。 */
+export async function setTheme(slug) {
+  const theme = applyTheme(slug)
   try {
-    localStorage.setItem('chatwork.theme', theme)
-  } catch {
-    /* 隐私模式忽略 */
+    await api.saveSettings({ theme: theme.slug })
+  } catch (err) {
+    toast(`保存外观失败：${err.message}`, 'err')
   }
+  return theme
 }
 
 export function applyDensity(density) {
   store.settings.density = density
   document.documentElement.setAttribute('data-density', density)
+}
+
+export async function loadThemes() {
+  try {
+    const data = await api.themes()
+    store.themes = [...BUILTIN_THEMES, ...(data.themes || [])]
+  } catch (err) {
+    store.themes = [...BUILTIN_THEMES]
+    toast(`读取外观库失败：${err.message}`, 'err')
+  }
+  return store.themes
 }
 
 export async function refreshStats() {
@@ -52,16 +84,20 @@ export async function refreshStats() {
 
 export async function boot() {
   const view = new URLSearchParams(location.search).get('view')
-  if (['chats', 'voice', 'merge', 'import', 'export', 'settings'].includes(view)) {
+  if (['chats', 'voice', 'merge', 'import', 'export', 'appearance', 'settings'].includes(view)) {
     store.view = view
   }
+  // 先把缓存的调色板贴上，避免首屏闪烁
+  const cached = restoreThemeFromCache()
   try {
-    const [settings] = await Promise.all([api.settings()])
+    await loadThemes()
+    const settings = await api.settings()
     Object.assign(store.settings, settings)
-    applyTheme(settings.theme || 'dark')
+    applyTheme(cached || settings.theme || 'dark')
     applyDensity(settings.density || 'comfortable')
     await refreshStats()
   } catch (err) {
+    applyTheme(cached || 'dark')
     toast(`初始化失败：${err.message}`, 'err')
   } finally {
     store.booted = true

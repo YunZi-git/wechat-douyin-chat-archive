@@ -54,7 +54,15 @@
    ------------------------------------------------------------------
    Vue 3（MIT）、Vite（MIT）、@vitejs/plugin-vue（MIT）。
 
-8. 后端依赖
+8. 外观（151 个设计风格）
+   ------------------------------------------------------------------
+   配色、圆角、边框与阴影数据来自 StyleKit
+   https://www.stylekit.top · https://github.com/AnxForever/stylekit
+   许可证：MIT（见上游 LICENSE）。
+   本项目只取「颜色与形状 token」并重新归一化为 CSS 变量，主题引擎、界面与
+   组件均为自写，未复制其组件代码或样式表。
+
+9. 后端依赖
    ------------------------------------------------------------------
    FastAPI（MIT）、Starlette（BSD-3-Clause）、Uvicorn（BSD-3-Clause）、
    pywebview（BSD-3-Clause）、pythonnet（MIT）、pydantic（MIT）、

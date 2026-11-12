@@ -74,6 +74,7 @@ export const api = {
   rename: (contactId, displayName, note) =>
     patch(`/api/contacts/${contactId}`, { display_name: displayName, note }),
 
+  themes: () => get('/api/themes'),
   settings: () => get('/api/settings'),
   saveSettings: (body) => patch('/api/settings', body),
 

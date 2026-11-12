@@ -96,6 +96,10 @@ def copy_project(dest: Path) -> None:
         "*.db-wal", "*.db-shm", "data", "release", "_scratch", "logs",
     )
     shutil.copytree(ROOT / "app", dest / "app", ignore=ignore)
+    # ignore_patterns("data") 会连 app/data 一起跳过（主题表就在里面），单独补回来
+    app_data = ROOT / "app" / "data"
+    if app_data.is_dir():
+        shutil.copytree(app_data, dest / "app" / "data")
     shutil.copytree(ROOT / "engines", dest / "engines", ignore=ignore)
     shutil.copytree(ROOT / "scripts", dest / "scripts", ignore=ignore)
     shutil.copytree(ROOT / "web" / "dist", dest / "web" / "dist")

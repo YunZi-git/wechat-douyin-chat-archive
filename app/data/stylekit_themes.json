@@ -1,0 +1,5289 @@
+{
+ "license": "MIT",
+ "source": "https://www.stylekit.top",
+ "sourceRepo": "https://github.com/AnxForever/stylekit",
+ "count": 151,
+ "themes": [
+  {
+   "slug": "neo-brutalist",
+   "name": "新野兽派",
+   "nameEn": "Neo-Brutalist",
+   "category": "expressive",
+   "description": "大胆的黑色粗边框、硬边缘阴影、无圆角、高对比度配色。源于建筑野兽派，强调功能与原始美学。",
+   "dark": false,
+   "accents": [
+    "#ff006e",
+    "#ccff00",
+    "#00d9ff",
+    "#ff9500"
+   ],
+   "palette": {
+    "bg": "#ffffff",
+    "bgRail": "#f0f0f0",
+    "panel": "#ffffff",
+    "panel2": "#f2f2f2",
+    "panel3": "#e8e8e8",
+    "border": "#111111",
+    "borderSoft": "#7c7c7c",
+    "borderStrong": "#111111",
+    "text": "#000000",
+    "textDim": "#575757",
+    "textFaint": "#8c8c8c",
+    "accent": "#ff006e",
+    "accentSoft": "rgba(255, 0, 110, 0.16)",
+    "shadow": "4px 4px 0px 0px rgba(0,0,0,1)"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 4
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "editorial",
+   "name": "编辑杂志风",
+   "nameEn": "Editorial",
+   "category": "minimal",
+   "description": "优雅的杂志排版风格，衬线标题、无衬线正文、精致的留白和网格系统。灵感来自高端时尚杂志和报纸排版。暖米色背景、柔和黑文字、精细的透明度层次和动画下划线交互。",
+   "dark": false,
+   "accents": [
+    "#1c1c1c",
+    "#6b7280",
+    "#1c1c1c",
+    "#816d70"
+   ],
+   "palette": {
+    "bg": "#f9f8f6",
+    "bgRail": "#eae9e7",
+    "panel": "#fdfcfc",
+    "panel2": "#edecea",
+    "panel3": "#e3e2e0",
+    "border": "#d6d5d4",
+    "borderSoft": "#e6e5e3",
+    "borderStrong": "#d6d5d4",
+    "text": "#1c1c1c",
+    "textDim": "#676766",
+    "textFaint": "#969594",
+    "accent": "#1c1c1c",
+    "accentSoft": "rgba(28, 28, 28, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "neumorphism",
+   "name": "新拟物派",
+   "nameEn": "Neumorphism",
+   "category": "modern",
+   "description": "柔和的内凹外凸立体效果，通过双重阴影模拟光源，浅色背景配同色系元素，营造精致的立体感。",
+   "dark": false,
+   "accents": [
+    "#6d5dfc",
+    "#ff6b6b",
+    "#4ecdc4",
+    "#ffe66d"
+   ],
+   "palette": {
+    "bg": "#d1d9e6",
+    "bgRail": "#c4ccd8",
+    "panel": "#eef1f6",
+    "panel2": "#c7ceda",
+    "panel3": "#bec5d1",
+    "border": "#b4bbc6",
+    "borderSoft": "#c1c8d4",
+    "borderStrong": "#b4bbc6",
+    "text": "#20242d",
+    "textDim": "#5c626c",
+    "textFaint": "#818893",
+    "accent": "#6d5dfc",
+    "accentSoft": "rgba(109, 93, 252, 0.16)",
+    "shadow": "6px 6px 12px #b8bcc2,-6px -6px 12px #ffffff"
+   },
+   "shape": {
+    "radius": 16,
+    "borderWidth": 0
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "glassmorphism",
+   "name": "玻璃拟态",
+   "nameEn": "Glassmorphism",
+   "category": "modern",
+   "description": "夜航质感的高级毛玻璃。深墨夜景配克制光源，玻璃只借光、不带色：高斯模糊、饱和度增强、受光顶边与噪点颗粒，营造真实玻璃的安静高级感。",
+   "dark": true,
+   "accents": [
+    "#0b1322",
+    "#33517a",
+    "#7c9cc4",
+    "#e4b863"
+   ],
+   "palette": {
+    "bg": "#0b1220",
+    "bgRail": "#090f1a",
+    "panel": "#1a202d",
+    "panel2": "#232a36",
+    "panel3": "#303641",
+    "border": "#ffffff",
+    "borderSoft": "#91949b",
+    "borderStrong": "#ffffff",
+    "text": "#e8eefc",
+    "textDim": "#9da3b1",
+    "textFaint": "#6e7583",
+    "accent": "#e4b863",
+    "accentSoft": "rgba(228, 184, 99, 0.16)",
+    "shadow": "0 8px 24px rgba(3,7,18,0.45),inset 0 1px 0 rgba(255,255,255,0.22),inset 0 -1px 0 rgba(2,6,16,0.3)"
+   },
+   "shape": {
+    "radius": 26,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "bento-grid",
+   "name": "便当盒布局",
+   "nameEn": "Bento Grid",
+   "category": "modern",
+   "description": "灵感源于日式便当盒的不规则网格布局，通过大小不一的卡片组合创造视觉层次，常用于作品集和产品展示。",
+   "dark": false,
+   "accents": [
+    "#3b82f6",
+    "#8b5cf6",
+    "#ec4899",
+    "#f97316"
+   ],
+   "palette": {
+    "bg": "#fafafa",
+    "bgRail": "#ebebeb",
+    "panel": "#fdfdfd",
+    "panel2": "#eeeeee",
+    "panel3": "#e4e4e4",
+    "border": "#d7d7d7",
+    "borderSoft": "#e7e7e7",
+    "borderStrong": "#d7d7d7",
+    "text": "#18181b",
+    "textDim": "#656567",
+    "textFaint": "#949496",
+    "accent": "#8b5cf6",
+    "accentSoft": "rgba(139, 92, 246, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "corporate-clean",
+   "name": "企业简洁风",
+   "nameEn": "Corporate Clean",
+   "category": "minimal",
+   "description": "专业简洁的企业风格，强调可读性、一致性和信任感。适合B2B SaaS、企业官网、后台管理系统。",
+   "dark": false,
+   "accents": [
+    "#3b82f6",
+    "#64748b",
+    "#10b981",
+    "#c559f0"
+   ],
+   "palette": {
+    "bg": "#f8fafc",
+    "bgRail": "#e9ebed",
+    "panel": "#fcfdfe",
+    "panel2": "#eceeef",
+    "panel3": "#e2e4e5",
+    "border": "#d5d7d9",
+    "borderSoft": "#e5e7e9",
+    "borderStrong": "#d5d7d9",
+    "text": "#1e40af",
+    "textDim": "#687fc9",
+    "textFaint": "#96a6d9",
+    "accent": "#64748b",
+    "accentSoft": "rgba(100, 116, 139, 0.16)",
+    "shadow": "0 6px 18px rgba(0,0,0,0.10)"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "minimalist-flat",
+   "name": "极简扁平风",
+   "nameEn": "Minimalist Flat",
+   "category": "minimal",
+   "description": "极致简约的扁平设计，无阴影无渐变，通过颜色和留白创造层次。适合作品集、创意机构、艺术网站。",
+   "dark": false,
+   "accents": [
+    "#ff3366",
+    "#00d4aa",
+    "#ffcc00",
+    "#b45700"
+   ],
+   "palette": {
+    "bg": "#ffffff",
+    "bgRail": "#f0f0f0",
+    "panel": "#ffffff",
+    "panel2": "#f2f2f2",
+    "panel3": "#e8e8e8",
+    "border": "#111111",
+    "borderSoft": "#7c7c7c",
+    "borderStrong": "#111111",
+    "text": "#000000",
+    "textDim": "#575757",
+    "textFaint": "#8c8c8c",
+    "accent": "#b45700",
+    "accentSoft": "rgba(180, 87, 0, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "soft-ui",
+   "name": "柔和界面风",
+   "nameEn": "Soft UI",
+   "category": "modern",
+   "description": "温和友好的界面风格，柔和的阴影、圆润的边角、低饱和度的配色。适合消费类应用、社交产品、生活服务类 App。",
+   "dark": false,
+   "accents": [
+    "#ec4899",
+    "#10b981",
+    "#f59e0b",
+    "#d15d1a"
+   ],
+   "palette": {
+    "bg": "#f1f5f9",
+    "bgRail": "#e3e6ea",
+    "panel": "#fafbfd",
+    "panel2": "#e5e9ed",
+    "panel3": "#dbdfe3",
+    "border": "#cfd3d6",
+    "borderSoft": "#dee2e6",
+    "borderStrong": "#cfd3d6",
+    "text": "#6366f1",
+    "textDim": "#9397f4",
+    "textFaint": "#b1b5f5",
+    "accent": "#d15d1a",
+    "accentSoft": "rgba(209, 93, 26, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 0
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "natural-organic",
+   "name": "自然有机风",
+   "nameEn": "Natural Organic",
+   "category": "minimal",
+   "description": "温暖自然的有机风格，大地色系、自然纹理、手工感元素。适合健康品牌、有机食品、环保产品、手工艺品。",
+   "dark": false,
+   "accents": [
+    "#8b9d77",
+    "#d4a373",
+    "#e9e0d4",
+    "#75a191"
+   ],
+   "palette": {
+    "bg": "#faf6f1",
+    "bgRail": "#ebe7e3",
+    "panel": "#fdfcfa",
+    "panel2": "#eeeae5",
+    "panel3": "#e4e0db",
+    "border": "#d7d4cf",
+    "borderSoft": "#e7e3de",
+    "borderStrong": "#d7d4cf",
+    "text": "#5c4033",
+    "textDim": "#927e74",
+    "textFaint": "#b3a49c",
+    "accent": "#75a191",
+    "accentSoft": "rgba(117, 161, 145, 0.16)",
+    "shadow": "0 2px 6px rgba(0,0,0,0.18)"
+   },
+   "shape": {
+    "radius": 999,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "modern-gradient",
+   "name": "现代渐变风",
+   "nameEn": "Modern Gradient",
+   "category": "expressive",
+   "description": "充满活力的现代渐变风格，多彩渐变背景、玻璃质感卡片、动态光影效果。适合创业公司、数字产品、活动页面。",
+   "dark": true,
+   "accents": [
+    "#06b6d4",
+    "#ec4899",
+    "#f59e0b",
+    "#8587ff"
+   ],
+   "palette": {
+    "bg": "#1e1b4b",
+    "bgRail": "#19163e",
+    "panel": "#2c2956",
+    "panel2": "#34325d",
+    "panel3": "#403d66",
+    "border": "#ffffff",
+    "borderSoft": "#9a98ae",
+    "borderStrong": "#ffffff",
+    "text": "#eceff6",
+    "textDim": "#a6a7bc",
+    "textFaint": "#7b7a98",
+    "accent": "#f59e0b",
+    "accentSoft": "rgba(245, 158, 11, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.24)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "retro-vintage",
+   "name": "复古怀旧风",
+   "nameEn": "Retro Vintage",
+   "category": "retro",
+   "description": "怀旧复古的设计风格，老式排版、复古色调、手工质感元素。适合咖啡馆、复古品牌、独立杂志、音乐厂牌。",
+   "dark": false,
+   "accents": [
+    "#c94c4c",
+    "#2e4a3f",
+    "#d4a373",
+    "#816904"
+   ],
+   "palette": {
+    "bg": "#f5e6d3",
+    "bgRail": "#e6d8c6",
+    "panel": "#fbf6ee",
+    "panel2": "#e9dac8",
+    "panel3": "#dfd1c0",
+    "border": "#8b4513",
+    "borderSoft": "#bb8d69",
+    "borderStrong": "#8b4513",
+    "text": "#8b4513",
+    "textDim": "#af7c54",
+    "textFaint": "#c59e7d",
+    "accent": "#2e4a3f",
+    "accentSoft": "rgba(46, 74, 63, 0.16)",
+    "shadow": "0 4px 8px rgba(139,69,19,0.15)"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "dark-mode",
+   "name": "暗黑模式",
+   "nameEn": "Dark Mode",
+   "category": "modern",
+   "description": "优雅的深色界面设计，低对比度层次、微妙的边框和高亮。适合开发工具、专业应用、深夜阅读模式。",
+   "dark": true,
+   "accents": [
+    "#22c55e",
+    "#f59e0b",
+    "#ef4444",
+    "#2ab5e5"
+   ],
+   "palette": {
+    "bg": "#0f172a",
+    "bgRail": "#0c1322",
+    "panel": "#1d2537",
+    "panel2": "#272e3f",
+    "panel3": "#333a4a",
+    "border": "#313748",
+    "borderSoft": "#22293a",
+    "borderStrong": "#313748",
+    "text": "#eceff6",
+    "textDim": "#a1a6b1",
+    "textFaint": "#727886",
+    "accent": "#f59e0b",
+    "accentSoft": "rgba(245, 158, 11, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "macos-vibrancy",
+   "name": "macOS 毛玻璃",
+   "nameEn": "macOS Vibrancy",
+   "category": "modern",
+   "description": "macOS 原生暗色毛玻璃风格。通过多层深灰面板、系统级 backdrop-blur 和极度克制的装饰，还原桌面应用的沉稳质感。",
+   "dark": true,
+   "accents": [
+    "#0a84ff",
+    "#30d158",
+    "#ff9f0a",
+    "#ff453a"
+   ],
+   "palette": {
+    "bg": "#1c1c1e",
+    "bgRail": "#171719",
+    "panel": "#2a2a2c",
+    "panel2": "#333334",
+    "panel3": "#3e3e40",
+    "border": "#ffffff",
+    "borderSoft": "#99999a",
+    "borderStrong": "#ffffff",
+    "text": "#eceff6",
+    "textDim": "#a5a7ad",
+    "textFaint": "#7a7b7f",
+    "accent": "#ff9f0a",
+    "accentSoft": "rgba(255, 159, 10, 0.16)",
+    "shadow": "0 1px 0 rgba(255,255,255,0.05)"
+   },
+   "shape": {
+    "radius": 16,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "geometric-bold",
+   "name": "几何大胆风",
+   "nameEn": "Geometric Bold",
+   "category": "expressive",
+   "description": "大胆的几何图形设计，强烈的形状对比、鲜明的色块、动态的构图。适合艺术展览、设计机构、创意品牌。",
+   "dark": false,
+   "accents": [
+    "#ff0000",
+    "#0000ff",
+    "#ffff00",
+    "#6c3b00"
+   ],
+   "palette": {
+    "bg": "#ffffff",
+    "bgRail": "#f0f0f0",
+    "panel": "#ffffff",
+    "panel2": "#f2f2f2",
+    "panel3": "#e8e8e8",
+    "border": "#111111",
+    "borderSoft": "#7c7c7c",
+    "borderStrong": "#111111",
+    "text": "#000000",
+    "textDim": "#575757",
+    "textFaint": "#8c8c8c",
+    "accent": "#6c3b00",
+    "accentSoft": "rgba(108, 59, 0, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 4
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "masonry-flow",
+   "name": "瀑布流布局",
+   "nameEn": "Masonry Flow",
+   "category": "modern",
+   "description": "Pinterest 风格的不等高卡片瀑布流布局，通过 CSS columns 或 masonry grid 实现自然流动的视觉效果，适合图片展示、作品集、社交媒体。",
+   "dark": false,
+   "accents": [
+    "#e94560",
+    "#16c79a",
+    "#ffd460",
+    "#7579e7"
+   ],
+   "palette": {
+    "bg": "#f5f5f5",
+    "bgRail": "#e6e6e6",
+    "panel": "#fbfbfb",
+    "panel2": "#e9e9e9",
+    "panel3": "#dfdfdf",
+    "border": "#d3d3d3",
+    "borderSoft": "#e2e2e2",
+    "borderStrong": "#d3d3d3",
+    "text": "#1a1a2e",
+    "textDim": "#646472",
+    "textFaint": "#92929b",
+    "accent": "#e94560",
+    "accentSoft": "rgba(233, 69, 96, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 16,
+    "borderWidth": 0
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "split-screen",
+   "name": "分屏布局",
+   "nameEn": "Split Screen",
+   "category": "modern",
+   "description": "左右对称或不对称的分屏布局，通过对比和平衡创造视觉张力，常用于产品展示、品牌故事、比较页面。",
+   "dark": false,
+   "accents": [
+    "#ff4757",
+    "#2ed573",
+    "#1e90ff",
+    "#ffa502"
+   ],
+   "palette": {
+    "bg": "#ffffff",
+    "bgRail": "#f0f0f0",
+    "panel": "#ffffff",
+    "panel2": "#f2f2f2",
+    "panel3": "#e8e8e8",
+    "border": "#dbdbdb",
+    "borderSoft": "#ebebeb",
+    "borderStrong": "#dbdbdb",
+    "text": "#0f0f0f",
+    "textDim": "#616161",
+    "textFaint": "#939393",
+    "accent": "#1e90ff",
+    "accentSoft": "rgba(30, 144, 255, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 0
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "full-page-scroll",
+   "name": "全屏滚动布局",
+   "nameEn": "Full Page Scroll",
+   "category": "expressive",
+   "description": "每一屏占满整个视口的沉浸式滚动体验，通过滚动切换完整场景，适合品牌故事、产品介绍、作品集展示。",
+   "dark": false,
+   "accents": [
+    "#6366f1",
+    "#ec4899",
+    "#14b8a6",
+    "#f59e0b"
+   ],
+   "palette": {
+    "bg": "#ffffff",
+    "bgRail": "#f0f0f0",
+    "panel": "#ffffff",
+    "panel2": "#f2f2f2",
+    "panel3": "#e8e8e8",
+    "border": "#ffffff",
+    "borderSoft": "#ffffff",
+    "borderStrong": "#ffffff",
+    "text": "#000000",
+    "textDim": "#575757",
+    "textFaint": "#8c8c8c",
+    "accent": "#6366f1",
+    "accentSoft": "rgba(99, 102, 241, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 999,
+    "borderWidth": 0
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "timeline-vertical",
+   "name": "垂直时间线布局",
+   "nameEn": "Vertical Timeline",
+   "category": "minimal",
+   "description": "垂直时间轴布局，通过连接线串联时间节点，适合展示历史进程、项目里程碑、工作经历、流程步骤。",
+   "dark": false,
+   "accents": [
+    "#3b82f6",
+    "#10b981",
+    "#f59e0b",
+    "#ef4444"
+   ],
+   "palette": {
+    "bg": "#f8fafc",
+    "bgRail": "#e9ebed",
+    "panel": "#fcfdfe",
+    "panel2": "#eceeef",
+    "panel3": "#e2e4e5",
+    "border": "#d5d7d9",
+    "borderSoft": "#e5e7e9",
+    "borderStrong": "#d5d7d9",
+    "text": "#1e293b",
+    "textDim": "#68707d",
+    "textFaint": "#969ca5",
+    "accent": "#ef4444",
+    "accentSoft": "rgba(239, 68, 68, 0.16)",
+    "shadow": "0 2px 6px rgba(0,0,0,0.18)"
+   },
+   "shape": {
+    "radius": 16,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "card-stack",
+   "name": "卡片堆叠布局",
+   "nameEn": "Card Stack",
+   "category": "expressive",
+   "description": "卡片前后重叠的立体布局，通过 Z 轴层叠和偏移创造深度感，适合轮播、步骤展示、卡组选择。",
+   "dark": false,
+   "accents": [
+    "#6c5ce7",
+    "#00cec9",
+    "#fd79a8",
+    "#ffeaa7"
+   ],
+   "palette": {
+    "bg": "#f0f0f5",
+    "bgRail": "#e2e2e6",
+    "panel": "#f9f9fb",
+    "panel2": "#e4e4e9",
+    "panel3": "#dadadf",
+    "border": "#ceced3",
+    "borderSoft": "#dddde2",
+    "borderStrong": "#ceced3",
+    "text": "#1a1a2e",
+    "textDim": "#636372",
+    "textFaint": "#90909b",
+    "accent": "#6c5ce7",
+    "accentSoft": "rgba(108, 92, 231, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "sidebar-fixed",
+   "name": "固定侧边栏布局",
+   "nameEn": "Fixed Sidebar",
+   "category": "modern",
+   "description": "固定位置的侧边导航栏与可滚动主内容区的应用布局，适合后台管理、文档站点、仪表盘、SaaS 应用。",
+   "dark": false,
+   "accents": [
+    "#3b82f6",
+    "#10b981",
+    "#f59e0b",
+    "#ef4444"
+   ],
+   "palette": {
+    "bg": "#f8fafc",
+    "bgRail": "#e9ebed",
+    "panel": "#fcfdfe",
+    "panel2": "#eceeef",
+    "panel3": "#e2e4e5",
+    "border": "#d5d7d9",
+    "borderSoft": "#e5e7e9",
+    "borderStrong": "#d5d7d9",
+    "text": "#1e293b",
+    "textDim": "#68707d",
+    "textFaint": "#969ca5",
+    "accent": "#ef4444",
+    "accentSoft": "rgba(239, 68, 68, 0.16)",
+    "shadow": "0 2px 6px rgba(0,0,0,0.18)"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "magazine-grid",
+   "name": "杂志网格布局",
+   "nameEn": "Magazine Grid",
+   "category": "modern",
+   "description": "灵感来自印刷杂志的多栏网格布局，通过不同大小的内容块创造丰富的视觉层次，适合新闻、博客、内容聚合。",
+   "dark": false,
+   "accents": [
+    "#e63946",
+    "#2a9d8f",
+    "#e9c46a",
+    "#264653"
+   ],
+   "palette": {
+    "bg": "#fafafa",
+    "bgRail": "#ebebeb",
+    "panel": "#fdfdfd",
+    "panel2": "#eeeeee",
+    "panel3": "#e4e4e4",
+    "border": "#d7d7d7",
+    "borderSoft": "#e7e7e7",
+    "borderStrong": "#d7d7d7",
+    "text": "#1a1a1a",
+    "textDim": "#666666",
+    "textFaint": "#959595",
+    "accent": "#264653",
+    "accentSoft": "rgba(38, 70, 83, 0.16)",
+    "shadow": "0 2px 6px rgba(0,0,0,0.18)"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "hero-fullscreen",
+   "name": "全屏英雄区布局",
+   "nameEn": "Fullscreen Hero",
+   "category": "expressive",
+   "description": "以全屏大图或视频为背景的英雄区布局，通过震撼的视觉效果抓住注意力，适合品牌展示、产品发布、活动宣传。",
+   "dark": true,
+   "accents": [
+    "#ff6b6b",
+    "#4ecdc4",
+    "#ffe66d",
+    "#6c5ce7"
+   ],
+   "palette": {
+    "bg": "#000000",
+    "bgRail": "#000000",
+    "panel": "#0f0f0f",
+    "panel2": "#1a1a1a",
+    "panel3": "#262626",
+    "border": "#ffffff",
+    "borderSoft": "#8c8c8c",
+    "borderStrong": "#ffffff",
+    "text": "#ffffff",
+    "textDim": "#a8a8a8",
+    "textFaint": "#737373",
+    "accent": "#ffe66d",
+    "accentSoft": "rgba(255, 230, 109, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 999,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "claymorphism",
+   "name": "粘土拟态",
+   "nameEn": "Claymorphism",
+   "category": "modern",
+   "description": "柔软的粘土质感设计，通过超大圆角、内外阴影组合和柔和渐变，创造出可爱的 3D 立体效果，适合儿童应用和趣味产品。",
+   "dark": false,
+   "accents": [
+    "#a7f3d0",
+    "#c4b5fd",
+    "#fcd34d",
+    "#b6e9ff"
+   ],
+   "palette": {
+    "bg": "#fef3c7",
+    "bgRail": "#efe4bb",
+    "panel": "#fffaea",
+    "panel2": "#f1e7bd",
+    "panel3": "#e7ddb5",
+    "border": "#dad1ab",
+    "borderSoft": "#eae0b8",
+    "borderStrong": "#dad1ab",
+    "text": "#20242d",
+    "textDim": "#6b6a61",
+    "textFaint": "#9a9682",
+    "accent": "#c4b5fd",
+    "accentSoft": "rgba(196, 181, 253, 0.16)",
+    "shadow": "8px 8px 16px rgba(0,0,0,0.1),inset 4px 4px 8px rgba(255,255,255,0.4),inset -2px -2px 4px rgba(0,0,0,0.1)"
+   },
+   "shape": {
+    "radius": 26,
+    "borderWidth": 0
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "notion-style",
+   "name": "Notion 风格",
+   "nameEn": "Notion Style",
+   "category": "minimal",
+   "description": "极简清爽的文档工具风格，强调内容可读性和功能性，使用微妙的边框、柔和的悬停效果和清晰的文字层级。",
+   "dark": false,
+   "accents": [
+    "#2eaadc",
+    "#eb5757",
+    "#0f7b6c",
+    "#a083ff"
+   ],
+   "palette": {
+    "bg": "#ffffff",
+    "bgRail": "#f0f0f0",
+    "panel": "#ffffff",
+    "panel2": "#f2f2f2",
+    "panel3": "#e8e8e8",
+    "border": "#dbdbdb",
+    "borderSoft": "#ebebeb",
+    "borderStrong": "#dbdbdb",
+    "text": "#37352f",
+    "textDim": "#7b7a76",
+    "textFaint": "#a5a4a1",
+    "accent": "#0f7b6c",
+    "accentSoft": "rgba(15, 123, 108, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 8,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "stripe-style",
+   "name": "Stripe 风格",
+   "nameEn": "Stripe Style",
+   "category": "modern",
+   "description": "精致专业的金融科技风格，以 Stripe 紫为主色调，配合渐变网格背景、精致卡片阴影和流畅动画，适合支付产品和开发者工具。",
+   "dark": true,
+   "accents": [
+    "#00d4ff",
+    "#7a73ff",
+    "#80e9ff",
+    "#9f9aff"
+   ],
+   "palette": {
+    "bg": "#0a2540",
+    "bgRail": "#081e34",
+    "panel": "#19324b",
+    "panel2": "#223b53",
+    "panel3": "#2f465d",
+    "border": "#2c445b",
+    "borderSoft": "#1d364f",
+    "borderStrong": "#2c445b",
+    "text": "#eceff6",
+    "textDim": "#9faab8",
+    "textFaint": "#708092",
+    "accent": "#80e9ff",
+    "accentSoft": "rgba(128, 233, 255, 0.16)",
+    "shadow": "0 2px 4px rgba(0,0,0,0.04),0 8px 16px rgba(0,0,0,0.08)"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "apple-style",
+   "name": "Apple 风格",
+   "nameEn": "Apple Style",
+   "category": "minimal",
+   "description": "极致简约的高端设计风格，大量留白、精致圆角、微妙阴影和 SF Pro 风格字体，传达高端科技产品的品质感。",
+   "dark": false,
+   "accents": [
+    "#0071e3",
+    "#34c759",
+    "#ff3b30",
+    "#a13ff6"
+   ],
+   "palette": {
+    "bg": "#f5f5f7",
+    "bgRail": "#e6e6e8",
+    "panel": "#fbfbfc",
+    "panel2": "#e9e9eb",
+    "panel3": "#dfdfe1",
+    "border": "#d3d3d4",
+    "borderSoft": "#e2e2e4",
+    "borderStrong": "#d3d3d4",
+    "text": "#000000",
+    "textDim": "#535354",
+    "textFaint": "#878788",
+    "accent": "#0071e3",
+    "accentSoft": "rgba(0, 113, 227, 0.16)",
+    "shadow": "0 4px 12px rgba(0,0,0,0.08)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 0
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "pixel-art",
+   "name": "像素艺术风",
+   "nameEn": "Pixel Art",
+   "category": "retro",
+   "description": "复古 8-bit 像素游戏风格，无圆角、像素化边框、硬边阴影和鲜明的 8-bit 配色，适合游戏、复古应用和独立开发者项目。",
+   "dark": false,
+   "accents": [
+    "#ff004d",
+    "#00e436",
+    "#29adff",
+    "#ffec27"
+   ],
+   "palette": {
+    "bg": "#f4f4f4",
+    "bgRail": "#e5e5e5",
+    "panel": "#fbfbfb",
+    "panel2": "#e8e8e8",
+    "panel3": "#dedede",
+    "border": "#1a1c2c",
+    "borderSoft": "#7c7d86",
+    "borderStrong": "#1a1c2c",
+    "text": "#1a1c2c",
+    "textDim": "#646570",
+    "textFaint": "#92939a",
+    "accent": "#ff004d",
+    "accentSoft": "rgba(255, 0, 77, 0.16)",
+    "shadow": "4px 4px 0 #1a1c2c"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 4
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "vaporwave",
+   "name": "霓虹复古",
+   "nameEn": "Neon Retro",
+   "category": "retro",
+   "description": "80-90年代复古未来主义美学，粉紫渐变、霓虹色彩、故障艺术效果。包含蒸汽波、合成波、赛博朋克三种变体。",
+   "dark": false,
+   "accents": [
+    "#05ffa1",
+    "#b967ff",
+    "#fffb96",
+    "#47d9ff"
+   ],
+   "palette": {
+    "bg": "#f7f8fa",
+    "bgRail": "#e8e9eb",
+    "panel": "#fcfcfd",
+    "panel2": "#ebecee",
+    "panel3": "#e1e2e4",
+    "border": "#ff71ce",
+    "borderSoft": "#fbaee2",
+    "borderStrong": "#ff71ce",
+    "text": "#ff71ce",
+    "textDim": "#fc9fdd",
+    "textFaint": "#fbbbe6",
+    "accent": "#b967ff",
+    "accentSoft": "rgba(185, 103, 255, 0.16)",
+    "shadow": "0 0 16px rgba(255,113,206,0.5)"
+   },
+   "shape": {
+    "radius": 16,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "y2k",
+   "name": "千禧风格",
+   "nameEn": "Y2K",
+   "category": "retro",
+   "description": "2000年代初的未来主义美学，金属质感、透明塑料、气泡元素、银色和彩虹渐变，充满对数字时代的乐观想象。",
+   "dark": true,
+   "accents": [
+    "#00ffff",
+    "#ff00ff",
+    "#87ceeb",
+    "#93c4ff"
+   ],
+   "palette": {
+    "bg": "#ff69b4",
+    "bgRail": "#d15694",
+    "panel": "#ff72b8",
+    "panel2": "#ff78bc",
+    "panel3": "#ff80bf",
+    "border": "#c0c0c0",
+    "borderSoft": "#dc99bb",
+    "borderStrong": "#c0c0c0",
+    "text": "#eceff6",
+    "textDim": "#f2c1e0",
+    "textFaint": "#f6a5d2",
+    "accent": "#00ffff",
+    "accentSoft": "rgba(0, 255, 255, 0.16)",
+    "shadow": "0 4px 16px rgba(255,105,180,0.4)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "memphis",
+   "name": "孟菲斯风格",
+   "nameEn": "Memphis",
+   "category": "retro",
+   "description": "80年代意大利设计运动，大胆的几何图形、鲜艳的撞色、不规则形状和有趣的图案，打破传统设计规则。",
+   "dark": false,
+   "accents": [
+    "#48dbfb",
+    "#ff9ff3",
+    "#1dd1a1",
+    "#5f27cd"
+   ],
+   "palette": {
+    "bg": "#feca57",
+    "bgRail": "#efbe52",
+    "panel": "#ffebbf",
+    "panel2": "#f1c053",
+    "panel3": "#e7b84f",
+    "border": "#111111",
+    "borderSoft": "#7c6430",
+    "borderStrong": "#111111",
+    "text": "#ff6b6b",
+    "textDim": "#ff8b64",
+    "textFaint": "#fe9f60",
+    "accent": "#5f27cd",
+    "accentSoft": "rgba(95, 39, 205, 0.16)",
+    "shadow": "5px 5px 0px 0px rgba(0,0,0,1)"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 4
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "art-deco",
+   "name": "装饰艺术风格",
+   "nameEn": "Art Deco",
+   "category": "retro",
+   "description": "1920-30年代的奢华设计风格，几何对称图案、金色装饰、优雅线条和高端质感，传达精致与繁荣。",
+   "dark": true,
+   "accents": [
+    "#c9a227",
+    "#2d2d44",
+    "#f5f5dc",
+    "#4bc542"
+   ],
+   "palette": {
+    "bg": "#1a1a2e",
+    "bgRail": "#151526",
+    "panel": "#28283b",
+    "panel2": "#313143",
+    "panel3": "#3c3c4d",
+    "border": "#d4af37",
+    "borderSoft": "#806c33",
+    "borderStrong": "#d4af37",
+    "text": "#eceff6",
+    "textDim": "#a5a7b2",
+    "textFaint": "#787a88",
+    "accent": "#f5f5dc",
+    "accentSoft": "rgba(245, 245, 220, 0.16)",
+    "shadow": "0 4px 12px rgba(212,175,55,0.2)"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "bauhaus",
+   "name": "包豪斯风格",
+   "nameEn": "Bauhaus",
+   "category": "modern",
+   "description": "德国包豪斯学派的设计理念，强调功能主义、几何形式和原色运用，形式追随功能的现代主义经典。",
+   "dark": false,
+   "accents": [
+    "#ff0000",
+    "#ffcc00",
+    "#0000ff",
+    "#6c3b00"
+   ],
+   "palette": {
+    "bg": "#ffffff",
+    "bgRail": "#f0f0f0",
+    "panel": "#ffffff",
+    "panel2": "#f2f2f2",
+    "panel3": "#e8e8e8",
+    "border": "#111111",
+    "borderSoft": "#7c7c7c",
+    "borderStrong": "#111111",
+    "text": "#000000",
+    "textDim": "#575757",
+    "textFaint": "#8c8c8c",
+    "accent": "#6c3b00",
+    "accentSoft": "rgba(108, 59, 0, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "skeuomorphism",
+   "name": "拟物设计",
+   "nameEn": "Skeuomorphism",
+   "category": "retro",
+   "description": "模拟真实世界物体的数字设计风格，通过纹理、光影、材质模仿现实物品，带来熟悉感和直觉性体验。",
+   "dark": false,
+   "accents": [
+    "#c9a227",
+    "#5c4033",
+    "#2e5a3c",
+    "#4bc542"
+   ],
+   "palette": {
+    "bg": "#f7f8fa",
+    "bgRail": "#e8e9eb",
+    "panel": "#fcfcfd",
+    "panel2": "#ebecee",
+    "panel3": "#e1e2e4",
+    "border": "#a89880",
+    "borderSoft": "#ccc3b7",
+    "borderStrong": "#a89880",
+    "text": "#8b7355",
+    "textDim": "#b0a08d",
+    "textFaint": "#c6bcb0",
+    "accent": "#5c4033",
+    "accentSoft": "rgba(92, 64, 51, 0.16)",
+    "shadow": "0 3px 6px rgba(0,0,0,0.16),0 3px 6px rgba(0,0,0,0.23)"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "swiss-style",
+   "name": "瑞士国际风格",
+   "nameEn": "Swiss International",
+   "category": "modern",
+   "description": "源于瑞士的理性主义设计风格，强调网格系统、无衬线字体、清晰层次和客观信息传达，是现代平面设计的基石。",
+   "dark": false,
+   "accents": [
+    "#ff0000",
+    "#0057b8",
+    "#ffcc00",
+    "#6c3b00"
+   ],
+   "palette": {
+    "bg": "#ffffff",
+    "bgRail": "#f0f0f0",
+    "panel": "#ffffff",
+    "panel2": "#f2f2f2",
+    "panel3": "#e8e8e8",
+    "border": "#111111",
+    "borderSoft": "#7c7c7c",
+    "borderStrong": "#111111",
+    "text": "#000000",
+    "textDim": "#575757",
+    "textFaint": "#8c8c8c",
+    "accent": "#6c3b00",
+    "accentSoft": "rgba(108, 59, 0, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "ghibli-style",
+   "name": "吉卜力风格",
+   "nameEn": "Ghibli Style",
+   "category": "expressive",
+   "description": "灵感源自吉卜力工作室动画的设计风格，温暖柔和的色调、手绘质感、自然元素和梦幻氛围，传递治愈与诗意。",
+   "dark": false,
+   "accents": [
+    "#e8a87c",
+    "#85cdca",
+    "#c38d94",
+    "#9ec069"
+   ],
+   "palette": {
+    "bg": "#f4e4bc",
+    "bgRail": "#e5d6b1",
+    "panel": "#fbf5e6",
+    "panel2": "#e8d9b3",
+    "panel3": "#decfab",
+    "border": "#7cb9a8",
+    "borderSoft": "#b2ccb1",
+    "borderStrong": "#7cb9a8",
+    "text": "#7cb9a8",
+    "textDim": "#a5c8af",
+    "textFaint": "#bed1b3",
+    "accent": "#c38d94",
+    "accentSoft": "rgba(195, 141, 148, 0.16)",
+    "shadow": "0 4px 16px rgba(124,185,168,0.2)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "material-design",
+   "name": "材料设计",
+   "nameEn": "Material Design",
+   "category": "modern",
+   "description": "Google 推出的设计系统，基于纸张和墨水的隐喻，强调层次、动效、大胆色彩和响应式交互，是现代移动端设计的标准。",
+   "dark": false,
+   "accents": [
+    "#ff0266",
+    "#ffde03",
+    "#00c853",
+    "#c12700"
+   ],
+   "palette": {
+    "bg": "#f7f8fa",
+    "bgRail": "#e8e9eb",
+    "panel": "#fcfcfd",
+    "panel2": "#ebecee",
+    "panel3": "#e1e2e4",
+    "border": "#e0e0e0",
+    "borderSoft": "#eaebec",
+    "borderStrong": "#e0e0e0",
+    "text": "#6200ee",
+    "textDim": "#9554f2",
+    "textFaint": "#b488f5",
+    "accent": "#c12700",
+    "accentSoft": "rgba(193, 39, 0, 0.16)",
+    "shadow": "0 3px 6px rgba(0,0,0,0.15),0 2px 4px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 8,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "fluent-design",
+   "name": "流利设计",
+   "nameEn": "Fluent Design",
+   "category": "modern",
+   "description": "微软推出的设计系统，融合了光效、深度、动效、材质和缩放五大元素，打造自然直观的跨平台体验。",
+   "dark": true,
+   "accents": [
+    "#ffb900",
+    "#e81123",
+    "#00cc6a",
+    "#3bf022"
+   ],
+   "palette": {
+    "bg": "#106ebe",
+    "bgRail": "#0d5a9c",
+    "panel": "#1e77c2",
+    "panel2": "#287cc4",
+    "panel3": "#3484c8",
+    "border": "#e1e1e1",
+    "borderSoft": "#83add1",
+    "borderStrong": "#e1e1e1",
+    "text": "#eceff6",
+    "textDim": "#a1c3e3",
+    "textFaint": "#73a8d7",
+    "accent": "#3bf022",
+    "accentSoft": "rgba(59, 240, 34, 0.16)",
+    "shadow": "0 3.2px 7.2px rgba(0,0,0,0.13),0 0.6px 1.8px rgba(0,0,0,0.1)"
+   },
+   "shape": {
+    "radius": 8,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "comic-style",
+   "name": "漫画风格",
+   "nameEn": "Comic Style",
+   "category": "expressive",
+   "description": "灵感源自漫画书和日式漫画的设计风格，浓重的墨线边框、网点填充、对话气泡、动作线和分镜面板布局，充满故事感和视觉冲击力。",
+   "dark": false,
+   "accents": [
+    "#ff3333",
+    "#ffcc00",
+    "#3366ff",
+    "#33cc33"
+   ],
+   "palette": {
+    "bg": "#ffffff",
+    "bgRail": "#f0f0f0",
+    "panel": "#ffffff",
+    "panel2": "#f2f2f2",
+    "panel3": "#e8e8e8",
+    "border": "#1a1a1a",
+    "borderSoft": "#818181",
+    "borderStrong": "#1a1a1a",
+    "text": "#1a1a1a",
+    "textDim": "#686868",
+    "textFaint": "#989898",
+    "accent": "#3366ff",
+    "accentSoft": "rgba(51, 102, 255, 0.16)",
+    "shadow": "4px 4px 0px 0px rgba(26,26,26,1)"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 4
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "sketch-style",
+   "name": "铅笔手绘风",
+   "nameEn": "Sketch Style",
+   "category": "expressive",
+   "description": "模拟铅笔手绘的设计风格，不规则线条边框、纸张纹理背景、手写字体感、素描阴影和涂鸦装饰，传达亲切温暖的手工质感。",
+   "dark": false,
+   "accents": [
+    "#e74c3c",
+    "#3498db",
+    "#27ae60",
+    "#f39c12"
+   ],
+   "palette": {
+    "bg": "#f5f0e8",
+    "bgRail": "#e6e2da",
+    "panel": "#fbf9f6",
+    "panel2": "#e9e4dc",
+    "panel3": "#dfdad3",
+    "border": "#2c2c2c",
+    "borderSoft": "#868481",
+    "borderStrong": "#2c2c2c",
+    "text": "#2c2c2c",
+    "textDim": "#706f6c",
+    "textFaint": "#9b9893",
+    "accent": "#e74c3c",
+    "accentSoft": "rgba(231, 76, 60, 0.16)",
+    "shadow": "2px 2px 0px rgba(44,44,44,0.3)"
+   },
+   "shape": {
+    "radius": 4,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "watercolor-style",
+   "name": "水彩画风",
+   "nameEn": "Watercolor Style",
+   "category": "expressive",
+   "description": "灵感源自水彩画的设计风格，柔和的颜色渐变、模糊的边缘效果、纸张质感背景和流动的色彩扩散，传递艺术感与诗意。",
+   "dark": false,
+   "accents": [
+    "#e8a87c",
+    "#85cdca",
+    "#c38d94",
+    "#d4a373"
+   ],
+   "palette": {
+    "bg": "#faf8f5",
+    "bgRail": "#ebe9e6",
+    "panel": "#fdfcfb",
+    "panel2": "#eeece9",
+    "panel3": "#e4e2df",
+    "border": "#4a6fa5",
+    "borderSoft": "#99adc9",
+    "borderStrong": "#4a6fa5",
+    "text": "#4a6fa5",
+    "textDim": "#869ec0",
+    "textFaint": "#abbad1",
+    "accent": "#c38d94",
+    "accentSoft": "rgba(195, 141, 148, 0.16)",
+    "shadow": "0 4px 20px rgba(74,111,165,0.12)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "f-pattern-layout",
+   "name": "F型布局",
+   "nameEn": "F-Pattern Layout",
+   "category": "modern",
+   "description": "基于眼动追踪研究的F型扫描布局，用户视线从左上角开始，沿顶部水平扫描后向下移动，适合内容密集型页面、博客文章和新闻列表。",
+   "dark": false,
+   "accents": [
+    "#e63946",
+    "#457b9d",
+    "#2a9d8f",
+    "#e9c46a"
+   ],
+   "palette": {
+    "bg": "#f8f9fa",
+    "bgRail": "#e9eaeb",
+    "panel": "#fcfdfd",
+    "panel2": "#ecedee",
+    "panel3": "#e2e3e4",
+    "border": "#d5d6d7",
+    "borderSoft": "#e5e6e7",
+    "borderStrong": "#d5d6d7",
+    "text": "#1a1a2e",
+    "textDim": "#656673",
+    "textFaint": "#94959e",
+    "accent": "#e63946",
+    "accentSoft": "rgba(230, 57, 70, 0.16)",
+    "shadow": "0 2px 6px rgba(0,0,0,0.18)"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "z-pattern-layout",
+   "name": "Z型布局",
+   "nameEn": "Z-Pattern Layout",
+   "category": "modern",
+   "description": "基于眼动追踪的Z型扫描布局，视线从左上到右上，斜穿到左下再到右下，形成Z字路径。适合着陆页、营销页面和简洁信息展示。",
+   "dark": false,
+   "accents": [
+    "#6366f1",
+    "#06b6d4",
+    "#f59e0b",
+    "#ec4899"
+   ],
+   "palette": {
+    "bg": "#ffffff",
+    "bgRail": "#f0f0f0",
+    "panel": "#ffffff",
+    "panel2": "#f2f2f2",
+    "panel3": "#e8e8e8",
+    "border": "#dbdbdb",
+    "borderSoft": "#ebebeb",
+    "borderStrong": "#dbdbdb",
+    "text": "#0f172a",
+    "textDim": "#616672",
+    "textFaint": "#93979f",
+    "accent": "#6366f1",
+    "accentSoft": "rgba(99, 102, 241, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 16,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "holy-grail-layout",
+   "name": "圣杯布局",
+   "nameEn": "Holy Grail Layout",
+   "category": "modern",
+   "description": "经典的三栏式网页布局，由固定页头、三列中间区域（左侧导航、主内容、右侧边栏）和固定页脚组成，是Web设计的基础布局范式。",
+   "dark": false,
+   "accents": [
+    "#3b82f6",
+    "#10b981",
+    "#f59e0b",
+    "#ef4444"
+   ],
+   "palette": {
+    "bg": "#f1f5f9",
+    "bgRail": "#e3e6ea",
+    "panel": "#fafbfd",
+    "panel2": "#e5e9ed",
+    "panel3": "#dbdfe3",
+    "border": "#cfd3d6",
+    "borderSoft": "#dee2e6",
+    "borderStrong": "#cfd3d6",
+    "text": "#1e293b",
+    "textDim": "#666e7c",
+    "textFaint": "#9299a4",
+    "accent": "#ef4444",
+    "accentSoft": "rgba(239, 68, 68, 0.16)",
+    "shadow": "0 2px 6px rgba(0,0,0,0.18)"
+   },
+   "shape": {
+    "radius": 16,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "dashboard-layout",
+   "name": "仪表盘布局",
+   "nameEn": "Dashboard Layout",
+   "category": "modern",
+   "description": "数据驱动的仪表盘布局，包含侧边导航、顶部工具栏、多模块数据面板和图表区域，适合后台管理系统、数据分析平台和监控面板。",
+   "dark": false,
+   "accents": [
+    "#6366f1",
+    "#10b981",
+    "#f59e0b",
+    "#ef4444"
+   ],
+   "palette": {
+    "bg": "#f9fafb",
+    "bgRail": "#eaebec",
+    "panel": "#fdfdfd",
+    "panel2": "#edeeee",
+    "panel3": "#e3e4e4",
+    "border": "#d6d7d8",
+    "borderSoft": "#e6e7e8",
+    "borderStrong": "#d6d7d8",
+    "text": "#111827",
+    "textDim": "#60656f",
+    "textFaint": "#91949c",
+    "accent": "#6366f1",
+    "accentSoft": "rgba(99, 102, 241, 0.16)",
+    "shadow": "0 2px 6px rgba(0,0,0,0.18)"
+   },
+   "shape": {
+    "radius": 16,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "cyberpunk-neon",
+   "name": "赛博朋克霓虹",
+   "nameEn": "Cyberpunk Neon",
+   "category": "expressive",
+   "description": "未来感十足的赛博朋克风格，霓虹发光效果、深色背景、高科技感的 UI 元素。适合游戏、科技产品、创意工作室。",
+   "dark": true,
+   "accents": [
+    "#ff00ff",
+    "#ffff00",
+    "#00ff00",
+    "#ff0506"
+   ],
+   "palette": {
+    "bg": "#0a0a0f",
+    "bgRail": "#08080c",
+    "panel": "#19191d",
+    "panel2": "#222227",
+    "panel3": "#2f2f33",
+    "border": "#2c2c31",
+    "borderSoft": "#1d1d22",
+    "borderStrong": "#2c2c31",
+    "text": "#00ffff",
+    "textDim": "#03acad",
+    "textFaint": "#06787b",
+    "accent": "#ffff00",
+    "accentSoft": "rgba(255, 255, 0, 0.16)",
+    "shadow": "0 0 15px rgba(0,255,255,0.4)"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "synthwave",
+   "name": "合成波",
+   "nameEn": "Synthwave",
+   "category": "retro",
+   "description": "80年代复古未来主义音乐美学，霓虹粉紫配色、网格地平线、日落渐变和复古科技感，充满怀旧的未来想象。",
+   "dark": false,
+   "accents": [
+    "#ff6ec7",
+    "#7b68ee",
+    "#ff1493",
+    "#f67d50"
+   ],
+   "palette": {
+    "bg": "#00ffff",
+    "bgRail": "#00f0f0",
+    "panel": "#9effff",
+    "panel2": "#00f2f2",
+    "panel3": "#00e8e8",
+    "border": "#ff00ff",
+    "borderSoft": "#8c73ff",
+    "borderStrong": "#ff00ff",
+    "text": "#ff00ff",
+    "textDim": "#a857ff",
+    "textFaint": "#738cff",
+    "accent": "#ff1493",
+    "accentSoft": "rgba(255, 20, 147, 0.16)",
+    "shadow": "0 0 16px rgba(255,0,255,0.5)"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "neo-brutalist-soft",
+   "name": "柔和野兽派",
+   "nameEn": "Neo-Brutalist Soft",
+   "category": "expressive",
+   "description": "Neo-Brutalist 的温和版本。保留硬边缘阴影和无圆角特性，但使用更柔和的配色、较细的边框和更温和的对比度。",
+   "dark": false,
+   "accents": [
+    "#f472b6",
+    "#a3e635",
+    "#38bdf8",
+    "#fbbf24"
+   ],
+   "palette": {
+    "bg": "#f5f5f5",
+    "bgRail": "#e6e6e6",
+    "panel": "#fbfbfb",
+    "panel2": "#e9e9e9",
+    "panel3": "#dfdfdf",
+    "border": "#d3d3d3",
+    "borderSoft": "#e2e2e2",
+    "borderStrong": "#d3d3d3",
+    "text": "#1a1a1a",
+    "textDim": "#646464",
+    "textFaint": "#929292",
+    "accent": "#f472b6",
+    "accentSoft": "rgba(244, 114, 182, 0.16)",
+    "shadow": "4px 4px 0px 0px rgba(0,0,0,0.2)"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "neo-brutalist-playful",
+   "name": "俏皮野兽派",
+   "nameEn": "Neo-Brutalist Playful",
+   "category": "expressive",
+   "description": "Neo-Brutalist 的活泼版本。保留核心特征，加入更多色彩、旋转倾斜元素、图标化装饰和有趣的微交互，适合年轻化品牌。",
+   "dark": false,
+   "accents": [
+    "#ff6b6b",
+    "#4ecdc4",
+    "#ffe66d",
+    "#95e1d3",
+    "#f38181"
+   ],
+   "palette": {
+    "bg": "#ffffff",
+    "bgRail": "#f0f0f0",
+    "panel": "#ffffff",
+    "panel2": "#f2f2f2",
+    "panel3": "#e8e8e8",
+    "border": "#111111",
+    "borderSoft": "#7c7c7c",
+    "borderStrong": "#111111",
+    "text": "#000000",
+    "textDim": "#575757",
+    "textFaint": "#8c8c8c",
+    "accent": "#ff6b6b",
+    "accentSoft": "rgba(255, 107, 107, 0.16)",
+    "shadow": "6px 6px 0px 0px rgba(0,0,0,1)"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 4
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "art-nouveau",
+   "name": "新艺术运动风",
+   "nameEn": "Art Nouveau",
+   "category": "retro",
+   "description": "源自19世纪末的有机曲线美学，以流动的藤蔓纹样、自然花卉元素、Mucha风格海报装饰和优雅的衬线字体为特征，传递自然与艺术的和谐统一。",
+   "dark": false,
+   "accents": [
+    "#c9a227",
+    "#8b6db5",
+    "#4a7c3f",
+    "#4bc542"
+   ],
+   "palette": {
+    "bg": "#f5f0e1",
+    "bgRail": "#e6e2d4",
+    "panel": "#fbf9f4",
+    "panel2": "#e9e4d6",
+    "panel3": "#dfdacd",
+    "border": "#c9a227",
+    "borderSoft": "#ddc57b",
+    "borderStrong": "#c9a227",
+    "text": "#2d5016",
+    "textDim": "#71865b",
+    "textFaint": "#9ba886",
+    "accent": "#4a7c3f",
+    "accentSoft": "rgba(74, 124, 63, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "surrealism",
+   "name": "超现实主义风",
+   "nameEn": "Surrealism",
+   "category": "expressive",
+   "description": "灵感源自Dali等超现实主义大师，梦境般的场景构成、不合逻辑的空间关系、融化变形的形态和意想不到的色彩组合，营造神秘而引人入胜的视觉体验。",
+   "dark": false,
+   "accents": [
+    "#d4a574",
+    "#c38d94",
+    "#4a3f6b",
+    "#90ba6d"
+   ],
+   "palette": {
+    "bg": "#f0ece4",
+    "bgRail": "#e2ded6",
+    "panel": "#f9f8f5",
+    "panel2": "#e4e0d9",
+    "panel3": "#dad7cf",
+    "border": "#d4a574",
+    "borderSoft": "#e1c5a6",
+    "borderStrong": "#d4a574",
+    "text": "#1a1a3e",
+    "textDim": "#636176",
+    "textFaint": "#908e99",
+    "accent": "#4a3f6b",
+    "accentSoft": "rgba(74, 63, 107, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "ukiyo-e-digital",
+   "name": "浮世绘数字风",
+   "nameEn": "Ukiyo-e Digital",
+   "category": "retro",
+   "description": "灵感源自日本浮世绘木版画，以靛蓝、朱红、金叶为主色调，扁平化设计、强烈的轮廓线、波浪纹样和北斋式构图，将传统东方美学融入现代数字界面。",
+   "dark": false,
+   "accents": [
+    "#d4553a",
+    "#c9a227",
+    "#2a5a8c",
+    "#747800"
+   ],
+   "palette": {
+    "bg": "#f5f0e1",
+    "bgRail": "#e6e2d4",
+    "panel": "#fbf9f4",
+    "panel2": "#e9e4d6",
+    "panel3": "#dfdacd",
+    "border": "#1a3055",
+    "borderSoft": "#7d8694",
+    "borderStrong": "#1a3055",
+    "text": "#1a3055",
+    "textDim": "#647185",
+    "textFaint": "#929aa2",
+    "accent": "#2a5a8c",
+    "accentSoft": "rgba(42, 90, 140, 0.16)",
+    "shadow": "4px 4px 0px #1a3055"
+   },
+   "shape": {
+    "radius": 4,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "gothic",
+   "name": "哥特式风",
+   "nameEn": "Gothic",
+   "category": "retro",
+   "description": "中世纪哥特建筑美学，尖拱、玫瑰窗、手抄本装饰、大教堂氛围。深紫与血红配色，金色装饰线条，充满黑暗而庄严的神秘气息。",
+   "dark": true,
+   "accents": [
+    "#c9a227",
+    "#0a0a0a",
+    "#4a2d6e",
+    "#4bc542"
+   ],
+   "palette": {
+    "bg": "#8b1a1a",
+    "bgRail": "#721515",
+    "panel": "#922828",
+    "panel2": "#973131",
+    "panel3": "#9c3c3c",
+    "border": "#c9a227",
+    "borderSoft": "#ad6521",
+    "borderStrong": "#c9a227",
+    "text": "#eceff6",
+    "textDim": "#cba7ab",
+    "textFaint": "#b77a7d",
+    "accent": "#4bc542",
+    "accentSoft": "rgba(75, 197, 66, 0.16)",
+    "shadow": "0 4px 16px rgba(10,10,10,0.7)"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "outrun",
+   "name": "Outrun 复古未来",
+   "nameEn": "Outrun",
+   "category": "retro",
+   "description": "80年代日落、棕榈树剪影、跑车、网格地平线和复古浪潮美学。洋红与紫色霓虹、青色天空，充满速度感和怀旧未来主义。",
+   "dark": true,
+   "accents": [
+    "#00d4ff",
+    "#0a0a0a",
+    "#ff6b35",
+    "#9f9aff"
+   ],
+   "palette": {
+    "bg": "#a020f0",
+    "bgRail": "#831ac5",
+    "panel": "#a62df1",
+    "panel2": "#aa36f2",
+    "panel3": "#ae41f2",
+    "border": "#ff006e",
+    "borderSoft": "#d40ea8",
+    "borderStrong": "#ff006e",
+    "text": "#eceff6",
+    "textDim": "#d2a9f4",
+    "textFaint": "#c27df3",
+    "accent": "#00d4ff",
+    "accentSoft": "rgba(0, 212, 255, 0.16)",
+    "shadow": "0 0 16px rgba(255,0,110,0.5)"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "dark-academia",
+   "name": "暗黑学院风",
+   "nameEn": "Dark Academia",
+   "category": "retro",
+   "description": "古典大学图书馆、皮革装帧书籍、古典文学和老式校园美学。深棕与墨绿配色，暗金点缀，温暖而沉静的学术氛围。",
+   "dark": true,
+   "accents": [
+    "#8b7355",
+    "#f5f0e1",
+    "#5c4033",
+    "#647f53"
+   ],
+   "palette": {
+    "bg": "#2d4a3e",
+    "bgRail": "#253d33",
+    "panel": "#3a554a",
+    "panel2": "#425c51",
+    "panel3": "#4c655b",
+    "border": "#8b7355",
+    "borderSoft": "#61614b",
+    "borderStrong": "#8b7355",
+    "text": "#eceff6",
+    "textDim": "#abb7b7",
+    "textFaint": "#839491",
+    "accent": "#f5f0e1",
+    "accentSoft": "rgba(245, 240, 225, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.24)"
+   },
+   "shape": {
+    "radius": 6,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "cottagecore",
+   "name": "田园核风",
+   "nameEn": "Cottagecore",
+   "category": "retro",
+   "description": "田园乡村美学，花卉图案、刺绣质感、蘑菇元素和温馨家庭感。柔和的衬线字体、圆润边角、温暖自然的配色，唤起对简单田园生活的向往。",
+   "dark": false,
+   "accents": [
+    "#f5d75f",
+    "#8b7355",
+    "#d4a0a0",
+    "#7ff77e"
+   ],
+   "palette": {
+    "bg": "#faf6f0",
+    "bgRail": "#ebe7e2",
+    "panel": "#fdfcf9",
+    "panel2": "#eeeae4",
+    "panel3": "#e4e0da",
+    "border": "#d4a0a0",
+    "borderSoft": "#e5c7c4",
+    "borderStrong": "#d4a0a0",
+    "text": "#5a8f5a",
+    "textDim": "#90b28d",
+    "textFaint": "#b2c8ac",
+    "accent": "#8b7355",
+    "accentSoft": "rgba(139, 115, 85, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "risograph",
+   "name": "Risograph 印刷风",
+   "nameEn": "Risograph",
+   "category": "expressive",
+   "description": "Risograph 印刷机的独特美学，2-3色套印效果、半调网点、套印错位和有限色彩，呈现独特的印刷质感和手工批量感。",
+   "dark": true,
+   "accents": [
+    "#ff8a00",
+    "#22c55e",
+    "#48c200",
+    "#a38bff"
+   ],
+   "palette": {
+    "bg": "#2563eb",
+    "bgRail": "#1e51c1",
+    "panel": "#326cec",
+    "panel2": "#3b73ed",
+    "panel3": "#467aee",
+    "border": "#1a1a1a",
+    "borderSoft": "#1f3b78",
+    "borderStrong": "#1a1a1a",
+    "text": "#eceff6",
+    "textDim": "#a8bff2",
+    "textFaint": "#7fa2f0",
+    "accent": "#48c200",
+    "accentSoft": "rgba(72, 194, 0, 0.16)",
+    "shadow": "3px 3px 0px #ff6b9d"
+   },
+   "shape": {
+    "radius": 4,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "mecha",
+   "name": "机甲风",
+   "nameEn": "Mecha",
+   "category": "expressive",
+   "description": "灵感源自高达/EVA等机甲动画的设计风格，科技面板、警告标识、机械质感，军绿和深蓝底色搭配警告黄和危险红，充满工业力量感。",
+   "dark": true,
+   "accents": [
+    "#fbbf24",
+    "#ef4444",
+    "#56ed40",
+    "#069006"
+   ],
+   "palette": {
+    "bg": "#4a5c3a",
+    "bgRail": "#3d4b30",
+    "panel": "#556646",
+    "panel2": "#5c6c4e",
+    "panel3": "#657458",
+    "border": "#4a5c3a",
+    "borderSoft": "#4a5c3a",
+    "borderStrong": "#4a5c3a",
+    "text": "#eceff6",
+    "textDim": "#b5bdb6",
+    "textFaint": "#939e8f",
+    "accent": "#56ed40",
+    "accentSoft": "rgba(86, 237, 64, 0.16)",
+    "shadow": "4px 4px 0px rgba(251,191,36,0.3)"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "gothic-lolita",
+   "name": "哥特萝莉风",
+   "nameEn": "Gothic Lolita",
+   "category": "expressive",
+   "description": "维多利亚蕾丝、黑色缎带、十字架与玫瑰的暗黑优雅，融合哥特式建筑装饰与洛丽塔精致细节的暗色浪漫美学。",
+   "dark": true,
+   "accents": [
+    "#e5e5e5",
+    "#1a1a1a",
+    "#6b2d5b",
+    "#e5e5e5"
+   ],
+   "palette": {
+    "bg": "#8b1a2a",
+    "bgRail": "#721522",
+    "panel": "#922837",
+    "panel2": "#97313f",
+    "panel3": "#9c3c4a",
+    "border": "#4a1a4a",
+    "borderSoft": "#671a3c",
+    "borderStrong": "#4a1a4a",
+    "text": "#eceff6",
+    "textDim": "#cba7b1",
+    "textFaint": "#b77a86",
+    "accent": "#e5e5e5",
+    "accentSoft": "rgba(229, 229, 229, 0.16)",
+    "shadow": "0 4px 12px rgba(74,26,74,0.4)"
+   },
+   "shape": {
+    "radius": 4,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "cyber-chinese",
+   "name": "赛博中华风",
+   "nameEn": "Cyber Chinese",
+   "category": "expressive",
+   "description": "传统中华美学与赛博朋克科幻的碰撞融合，朱红金黄搭配霓虹蓝紫，龙凤印章与霓虹灯笼交织的未来东方幻想。",
+   "dark": true,
+   "accents": [
+    "#00d4ff",
+    "#a020f0",
+    "#0a0a0a",
+    "#9f9aff"
+   ],
+   "palette": {
+    "bg": "#c9a227",
+    "bgRail": "#a58520",
+    "panel": "#cca834",
+    "panel2": "#ceab3d",
+    "panel3": "#d1b047",
+    "border": "#d4553a",
+    "borderSoft": "#cf7831",
+    "borderStrong": "#d4553a",
+    "text": "#eceff6",
+    "textDim": "#e0d5b0",
+    "textFaint": "#d9c584",
+    "accent": "#00d4ff",
+    "accentSoft": "rgba(0, 212, 255, 0.16)",
+    "shadow": "0 0 16px rgba(212,85,58,0.4)"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "acid-graphics",
+   "name": "酸性平面设计",
+   "nameEn": "Acid Graphics",
+   "category": "expressive",
+   "description": "高饱和度荧光色彩、扭曲字体、液态流动形态和迷幻视觉。源于锐舞文化和地下俱乐部美学，以强烈的视觉冲击力呈现反叛与实验精神。",
+   "dark": true,
+   "accents": [
+    "#e6ff00",
+    "#a020f0",
+    "#ff6ec7",
+    "#00ffff"
+   ],
+   "palette": {
+    "bg": "#0a0a0a",
+    "bgRail": "#080808",
+    "panel": "#191919",
+    "panel2": "#222222",
+    "panel3": "#2f2f2f",
+    "border": "#39ff14",
+    "borderSoft": "#249110",
+    "borderStrong": "#39ff14",
+    "text": "#39ff14",
+    "textDim": "#29ac11",
+    "textFaint": "#1f780e",
+    "accent": "#e6ff00",
+    "accentSoft": "rgba(230, 255, 0, 0.16)",
+    "shadow": "4px 4px 0px #a020f0"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "hand-drawn-doodle",
+   "name": "手绘涂鸦风",
+   "nameEn": "Hand-Drawn Doodle",
+   "category": "expressive",
+   "description": "手绘线条、涂鸦插画、不规则形状和手写字体。像在笔记本上随手画出的设计，充满创意和趣味性，传达温暖亲切的手工感。",
+   "dark": false,
+   "accents": [
+    "#ff6b6b",
+    "#4ecdc4",
+    "#ffd93d",
+    "#a98d16"
+   ],
+   "palette": {
+    "bg": "#fffef5",
+    "bgRail": "#f0efe6",
+    "panel": "#fffffb",
+    "panel2": "#f2f1e9",
+    "panel3": "#e8e7df",
+    "border": "#2c2c2c",
+    "borderSoft": "#8b8a86",
+    "borderStrong": "#2c2c2c",
+    "text": "#2c2c2c",
+    "textDim": "#747370",
+    "textFaint": "#a0a09b",
+    "accent": "#a98d16",
+    "accentSoft": "rgba(169, 141, 22, 0.16)",
+    "shadow": "3px 3px 0px #4ecdc4"
+   },
+   "shape": {
+    "radius": 4,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "swiss-poster",
+   "name": "瑞士海报风",
+   "nameEn": "Swiss Poster",
+   "category": "modern",
+   "description": "大胆排版、网格对齐、原色色块和实验性布局。源于瑞士国际主义海报设计传统，以超大字体和强烈的视觉层次构建信息传达。与 swiss-style 的区别在于更注重海报级别的实验性大排版。",
+   "dark": false,
+   "accents": [
+    "#ff0000",
+    "#0057b8",
+    "#ffcc00",
+    "#6c3b00"
+   ],
+   "palette": {
+    "bg": "#ffffff",
+    "bgRail": "#f0f0f0",
+    "panel": "#ffffff",
+    "panel2": "#f2f2f2",
+    "panel3": "#e8e8e8",
+    "border": "#000000",
+    "borderSoft": "#737373",
+    "borderStrong": "#000000",
+    "text": "#000000",
+    "textDim": "#575757",
+    "textFaint": "#8c8c8c",
+    "accent": "#6c3b00",
+    "accentSoft": "rgba(108, 59, 0, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "watercolor-art",
+   "name": "水彩艺术风",
+   "nameEn": "Watercolor Art",
+   "category": "expressive",
+   "description": "真实水彩画美学，有机的晕染边缘、颜料池化效果、纸张纹理叠加和植物水彩装饰，营造如同手绘水彩画般的自然有机视觉体验。",
+   "dark": false,
+   "accents": [
+    "#7bb8d4",
+    "#8cc5a8",
+    "#c3a0d4",
+    "#e8c87a"
+   ],
+   "palette": {
+    "bg": "#faf6f0",
+    "bgRail": "#ebe7e2",
+    "panel": "#fdfcf9",
+    "panel2": "#eeeae4",
+    "panel3": "#e4e0da",
+    "border": "#d4a0a0",
+    "borderSoft": "#e5c7c4",
+    "borderStrong": "#d4a0a0",
+    "text": "#d4a0a0",
+    "textDim": "#e1bdbb",
+    "textFaint": "#e9cfcc",
+    "accent": "#7bb8d4",
+    "accentSoft": "rgba(123, 184, 212, 0.16)",
+    "shadow": "0 4px 20px rgba(212,160,160,0.12)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "impressionist-oil",
+   "name": "油画印象派风",
+   "nameEn": "Impressionist Oil",
+   "category": "expressive",
+   "description": "受莫奈、雷诺阿等印象派大师启发，大胆的笔触纹理、斑驳光影、点彩色彩和温暖的画布质感，呈现如油画般的浓郁视觉体验。",
+   "dark": false,
+   "accents": [
+    "#c0392b",
+    "#2c3e50",
+    "#1abc9c",
+    "#f5d88a"
+   ],
+   "palette": {
+    "bg": "#f5f0e1",
+    "bgRail": "#e6e2d4",
+    "panel": "#fbf9f4",
+    "panel2": "#e9e4d6",
+    "panel3": "#dfdacd",
+    "border": "#e8a87c",
+    "borderSoft": "#eec8a9",
+    "borderStrong": "#e8a87c",
+    "text": "#20242d",
+    "textDim": "#68696a",
+    "textFaint": "#959490",
+    "accent": "#2c3e50",
+    "accentSoft": "rgba(44, 62, 80, 0.16)",
+    "shadow": "0 3px 0 rgba(192,57,43,0.12),0 5px 16px rgba(232,168,124,0.20)"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "immersive-photo",
+   "name": "沉浸摄影",
+   "nameEn": "Immersive Photo",
+   "category": "expressive",
+   "description": "摄影即界面。全幅大图铺满视口，文字压在图上、靠可读性遮罩浮起；缓慢的 Ken Burns 推拉让静照呼吸，模糊占位先行、真图渐显。图是内容不是背景，排版为让照片说话而生。",
+   "dark": false,
+   "accents": [
+    "#e8b04b",
+    "#1a1c22",
+    "#b8bcc4"
+   ],
+   "palette": {
+    "bg": "#f4f1ea",
+    "bgRail": "#e5e3dc",
+    "panel": "#fbfaf7",
+    "panel2": "#e8e5de",
+    "panel3": "#dedbd5",
+    "border": "#ffffff",
+    "borderSoft": "#faf9f6",
+    "borderStrong": "#ffffff",
+    "text": "#0c0d10",
+    "textDim": "#5b5b5a",
+    "textFaint": "#8c8a88",
+    "accent": "#1a1c22",
+    "accentSoft": "rgba(26, 28, 34, 0.16)",
+    "shadow": "0 8px 28px rgba(0,0,0,0.4)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "collage-art",
+   "name": "拼贴艺术风",
+   "nameEn": "Collage Art",
+   "category": "expressive",
+   "description": "杂志拼贴和混合材料美学，纸片剪切、多层叠加、撕纸边缘和混搭字体，营造充满创意和手工感的视觉冲击。",
+   "dark": false,
+   "accents": [
+    "#e74c3c",
+    "#3498db",
+    "#f39c12",
+    "#9b59b6"
+   ],
+   "palette": {
+    "bg": "#f5f0e8",
+    "bgRail": "#e6e2da",
+    "panel": "#fbf9f6",
+    "panel2": "#e9e4dc",
+    "panel3": "#dfdad3",
+    "border": "#2d2d2d",
+    "borderSoft": "#878581",
+    "borderStrong": "#2d2d2d",
+    "text": "#2d2d2d",
+    "textDim": "#716f6d",
+    "textFaint": "#9b9894",
+    "accent": "#9b59b6",
+    "accentSoft": "rgba(155, 89, 182, 0.16)",
+    "shadow": "5px 5px 0px #2d2d2d"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "glitch-art",
+   "name": "故障艺术风",
+   "nameEn": "Glitch Art",
+   "category": "expressive",
+   "description": "数字故障美学风格，通过RGB色彩通道分离、水平位移带、扫描线纹理、VHS追踪错误和数据损坏块，呈现赛博朋克式的视觉冲击和信号腐蚀质感。",
+   "dark": true,
+   "accents": [
+    "#ff00ff",
+    "#ffff00",
+    "#ffffff",
+    "#ff0506"
+   ],
+   "palette": {
+    "bg": "#0a0a0a",
+    "bgRail": "#080808",
+    "panel": "#191919",
+    "panel2": "#222222",
+    "panel3": "#2f2f2f",
+    "border": "#00ffff",
+    "borderSoft": "#049191",
+    "borderStrong": "#00ffff",
+    "text": "#00ffff",
+    "textDim": "#03acac",
+    "textFaint": "#067878",
+    "accent": "#ffff00",
+    "accentSoft": "rgba(255, 255, 0, 0.16)",
+    "shadow": "3px 0 #ff00ff,-3px 0 #ffff00"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "visual-novel",
+   "name": "视觉小说风",
+   "nameEn": "Visual Novel",
+   "category": "modern",
+   "description": "借鉴ADV视觉小说游戏UI的设计风格，半透明对话框面板、角色铭牌徽章、装饰性边角框线、分支选项按钮和存档界面，打造沉浸式交互故事体验。",
+   "dark": false,
+   "accents": [
+    "#6366f1",
+    "#ec4899",
+    "#10b981",
+    "#d948bb"
+   ],
+   "palette": {
+    "bg": "#f7fafc",
+    "bgRail": "#e8ebed",
+    "panel": "#fcfdfe",
+    "panel2": "#ebeeef",
+    "panel3": "#e1e4e5",
+    "border": "#4a5568",
+    "borderSoft": "#989fab",
+    "borderStrong": "#4a5568",
+    "text": "#4a5568",
+    "textDim": "#858d9a",
+    "textFaint": "#a9b0b9",
+    "accent": "#6366f1",
+    "accentSoft": "rgba(99, 102, 241, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "shoujo-manga",
+   "name": "少女漫画风",
+   "nameEn": "Shoujo Manga",
+   "category": "expressive",
+   "description": "少女漫画特有的浪漫美学，网点纹理背景、花朵框线装饰、缎带横幅标题、多角星闪光效果、蕾丝边框和爱心元素，以粉色主色调呈现梦幻柔美的视觉体验。",
+   "dark": false,
+   "accents": [
+    "#c4b5fd",
+    "#fde68a",
+    "#fecdd3",
+    "#f8a9d7"
+   ],
+   "palette": {
+    "bg": "#fff5f7",
+    "bgRail": "#f0e6e8",
+    "panel": "#fffbfc",
+    "panel2": "#f2e9eb",
+    "panel3": "#e8dfe1",
+    "border": "#ffb7c5",
+    "borderSoft": "#ffd3dc",
+    "borderStrong": "#ffb7c5",
+    "text": "#20242d",
+    "textDim": "#6c6b72",
+    "textFaint": "#9b979c",
+    "accent": "#c4b5fd",
+    "accentSoft": "rgba(196, 181, 253, 0.16)",
+    "shadow": "0 4px 15px #ffb7c530"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "cyber-anime",
+   "name": "赛博动漫风",
+   "nameEn": "Cyber Anime",
+   "category": "expressive",
+   "description": "融合赛博朋克科幻UI与动漫美学，以HUD抬头显示、全息投影面板、机甲边框和多层霓虹光效，打造未来感十足的动漫界面风格。",
+   "dark": true,
+   "accents": [
+    "#06d6a0",
+    "#ff006e",
+    "#38bdf8",
+    "#51b1ff"
+   ],
+   "palette": {
+    "bg": "#0f0f1a",
+    "bgRail": "#0c0c15",
+    "panel": "#1d1d28",
+    "panel2": "#272731",
+    "panel3": "#33333c",
+    "border": "#7c3aed",
+    "borderSoft": "#4b278e",
+    "borderStrong": "#7c3aed",
+    "text": "#eceff6",
+    "textDim": "#a1a3ab",
+    "textFaint": "#72747d",
+    "accent": "#06d6a0",
+    "accentSoft": "rgba(6, 214, 160, 0.16)",
+    "shadow": "0 0 15px rgba(124,58,237,0.4)"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "pixel-anime",
+   "name": "像素动漫风",
+   "nameEn": "Pixel Anime",
+   "category": "retro",
+   "description": "将经典JRPG游戏UI与像素动漫美学融合，以RPG对话框、状态条、像素边框和NES色板打造怀旧8-bit游戏界面风格。",
+   "dark": true,
+   "accents": [
+    "#ff6b6b",
+    "#ffd93d",
+    "#50c878",
+    "#a98d16"
+   ],
+   "palette": {
+    "bg": "#2d1b69",
+    "bgRail": "#251656",
+    "panel": "#3a2972",
+    "panel2": "#423278",
+    "panel3": "#4c3d80",
+    "border": "#1a1040",
+    "borderSoft": "#231552",
+    "borderStrong": "#1a1040",
+    "text": "#eceff6",
+    "textDim": "#aba7c6",
+    "textFaint": "#837aa8",
+    "accent": "#ffd93d",
+    "accentSoft": "rgba(255, 217, 61, 0.16)",
+    "shadow": "4px 4px 0px #1a1040"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "japanese-fresh",
+   "name": "日系清新风",
+   "nameEn": "Japanese Fresh",
+   "category": "minimal",
+   "description": "以Ma (间) 留白哲学、侘寂美学和极致呼吸感为核心，通过发丝级边框、植物线描装饰和极简温暖中性色，营造沉静治愈的设计体验。",
+   "dark": false,
+   "accents": [
+    "#98d8c8",
+    "#ffb7c5",
+    "#b8d4e3",
+    "#b0cdf3"
+   ],
+   "palette": {
+    "bg": "#fafaf8",
+    "bgRail": "#ebebe9",
+    "panel": "#fdfdfc",
+    "panel2": "#eeeeec",
+    "panel3": "#e4e4e2",
+    "border": "#d4d4cf",
+    "borderSoft": "#e5e5e1",
+    "borderStrong": "#d4d4cf",
+    "text": "#20242d",
+    "textDim": "#6a6d72",
+    "textFaint": "#989a9d",
+    "accent": "#ffb7c5",
+    "accentSoft": "rgba(255, 183, 197, 0.16)",
+    "shadow": "0 1px 3px rgba(0,0,0,0.03)"
+   },
+   "shape": {
+    "radius": 16,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "neon-samurai",
+   "name": "霓虹武士风",
+   "nameEn": "Neon Samurai",
+   "category": "expressive",
+   "description": "日本传统武士美学与霓虹赛博朋克的碰撞融合，刀锋斜切线条、朱红的鸟居门框架、书法笔触与双色霓虹光效交织，浮世绘遇见霓虹灯的未来都市武道。",
+   "dark": true,
+   "accents": [
+    "#a020f0",
+    "#38bdf8",
+    "#fbbf24",
+    "#ff1253"
+   ],
+   "palette": {
+    "bg": "#080818",
+    "bgRail": "#070714",
+    "panel": "#171726",
+    "panel2": "#21212f",
+    "panel3": "#2d2d3b",
+    "border": "#dc2626",
+    "borderSoft": "#7d1920",
+    "borderStrong": "#dc2626",
+    "text": "#eceff6",
+    "textDim": "#9ea0ab",
+    "textFaint": "#6f707c",
+    "accent": "#fbbf24",
+    "accentSoft": "rgba(251, 191, 36, 0.16)",
+    "shadow": "0 0 15px rgba(220,38,38,0.4)"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "magic-circle",
+   "name": "魔法阵风",
+   "nameEn": "Magic Circle",
+   "category": "expressive",
+   "description": "同心圆环嵌套体系、六芒星几何核心、符文铭文沿圆路径排列、生命之花神圣几何、金色辉光辐射与炼金术符号交织的奇幻视觉风格。",
+   "dark": true,
+   "accents": [
+    "#fbbf24",
+    "#e2e8f0",
+    "#818cf8",
+    "#56ed40"
+   ],
+   "palette": {
+    "bg": "#0a0920",
+    "bgRail": "#08071a",
+    "panel": "#19182d",
+    "panel2": "#222236",
+    "panel3": "#2f2e41",
+    "border": "#fbbf24",
+    "borderSoft": "#8f6d22",
+    "borderStrong": "#fbbf24",
+    "text": "#eceff6",
+    "textDim": "#9fa1ad",
+    "textFaint": "#707080",
+    "accent": "#e2e8f0",
+    "accentSoft": "rgba(226, 232, 240, 0.16)",
+    "shadow": "0 0 20px rgba(251,191,36,0.2)"
+   },
+   "shape": {
+    "radius": 4,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "cyber-wafuu",
+   "name": "赛博和风",
+   "nameEn": "Cyber Wafuu",
+   "category": "expressive",
+   "description": "青海波纹样与电路走线融合、鸟居门导航框架、麻叶纹网格、金继ぎ金色修复线、障子屏风格栅面板、传统纹样被科技'侵入'的日式赛博美学。",
+   "dark": true,
+   "accents": [
+    "#c41e3a",
+    "#c9a227",
+    "#38bdf8",
+    "#7c3e00"
+   ],
+   "palette": {
+    "bg": "#080814",
+    "bgRail": "#070710",
+    "panel": "#171722",
+    "panel2": "#21212c",
+    "panel3": "#2d2d37",
+    "border": "#1e3a5f",
+    "borderSoft": "#14243d",
+    "borderStrong": "#1e3a5f",
+    "text": "#eceff6",
+    "textDim": "#9ea0a9",
+    "textFaint": "#6f707a",
+    "accent": "#38bdf8",
+    "accentSoft": "rgba(56, 189, 248, 0.16)",
+    "shadow": "0 0 15px rgba(56,189,248,0.3)"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "steampunk",
+   "name": "蒸汽朋克",
+   "nameEn": "Steampunk",
+   "category": "expressive",
+   "description": "维多利亚时代工业机械美学，黄铜与铜质金属元素、齿轮机关装饰、蒸汽管道铆钉细节。适合复古科幻、工业风格、创意展示项目。",
+   "dark": true,
+   "accents": [
+    "#b87333",
+    "#f5f0e1",
+    "#4a4a4a",
+    "#5a9025"
+   ],
+   "palette": {
+    "bg": "#3d2b1f",
+    "bgRail": "#322319",
+    "panel": "#49382c",
+    "panel2": "#504035",
+    "panel3": "#5a4b41",
+    "border": "#b87333",
+    "borderSoft": "#81532a",
+    "borderStrong": "#b87333",
+    "text": "#eceff6",
+    "textDim": "#b0acad",
+    "textFaint": "#8c8380",
+    "accent": "#f5f0e1",
+    "accentSoft": "rgba(245, 240, 225, 0.16)",
+    "shadow": "0 0 15px rgba(181,166,66,0.3)"
+   },
+   "shape": {
+    "radius": 6,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "pop-art",
+   "name": "波普艺术",
+   "nameEn": "Pop Art",
+   "category": "expressive",
+   "description": "大胆鲜明的波普艺术风格，灵感来自 Andy Warhol 和 Roy Lichtenstein。粗黑轮廓、半色调网点、漫画式对话泡泡、高饱和度色块。适合创意品牌、潮流文化、艺术展示。",
+   "dark": true,
+   "accents": [
+    "#00bfff",
+    "#000000",
+    "#ffffff",
+    "#a486ff"
+   ],
+   "palette": {
+    "bg": "#ff69b4",
+    "bgRail": "#d15694",
+    "panel": "#ff72b8",
+    "panel2": "#ff78bc",
+    "panel3": "#ff80bf",
+    "border": "#111111",
+    "borderSoft": "#7c395a",
+    "borderStrong": "#111111",
+    "text": "#ffdd00",
+    "textDim": "#ffb63d",
+    "textFaint": "#ff9d63",
+    "accent": "#ffffff",
+    "accentSoft": "rgba(255, 255, 255, 0.16)",
+    "shadow": "4px 4px 0 #000"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 4
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "solarpunk",
+   "name": "太阳朋克",
+   "nameEn": "Solarpunk",
+   "category": "expressive",
+   "description": "乐观的生态未来主义风格，融合自然与科技的和谐美学。有机曲线、植物元素、温暖渐变、柔和圆角。适合环保、可持续发展、绿色科技产品。",
+   "dark": false,
+   "accents": [
+    "#38bdf8",
+    "#a16207",
+    "#fef3c7",
+    "#b692ff"
+   ],
+   "palette": {
+    "bg": "#fbbf24",
+    "bgRail": "#ecb422",
+    "panel": "#fde7ac",
+    "panel2": "#eeb522",
+    "panel3": "#e4ae21",
+    "border": "#d8a41f",
+    "borderSoft": "#e8b021",
+    "borderStrong": "#d8a41f",
+    "text": "#20242d",
+    "textDim": "#6a592a",
+    "textFaint": "#987928",
+    "accent": "#a16207",
+    "accentSoft": "rgba(161, 98, 7, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "jrpg",
+   "name": "日式RPG",
+   "nameEn": "JRPG",
+   "category": "expressive",
+   "description": "经典日式 RPG 菜单与对话框美学，斜面边框、渐变背景、状态栏、华丽框架。适合游戏界面、互动叙事、奇幻风格产品。",
+   "dark": true,
+   "accents": [
+    "#fbbf24",
+    "#f0f9ff",
+    "#22c55e",
+    "#56ed40"
+   ],
+   "palette": {
+    "bg": "#0f172a",
+    "bgRail": "#0c1322",
+    "panel": "#1d2537",
+    "panel2": "#272e3f",
+    "panel3": "#333a4a",
+    "border": "#313748",
+    "borderSoft": "#22293a",
+    "borderStrong": "#313748",
+    "text": "#eceff6",
+    "textDim": "#a1a6b1",
+    "textFaint": "#727886",
+    "accent": "#f0f9ff",
+    "accentSoft": "rgba(240, 249, 255, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 8,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "asymmetric-grid",
+   "name": "非对称网格",
+   "nameEn": "Asymmetric Grid",
+   "category": "modern",
+   "description": "打破传统对称网格的布局方式，通过不规则的列宽、重叠元素和视觉张力创造动态有趣的页面结构，适合创意作品集、艺术展览和品牌展示。",
+   "dark": false,
+   "accents": [
+    "#ff3366",
+    "#00d4ff",
+    "#ffcc00",
+    "#b45700"
+   ],
+   "palette": {
+    "bg": "#ffffff",
+    "bgRail": "#f0f0f0",
+    "panel": "#ffffff",
+    "panel2": "#f2f2f2",
+    "panel3": "#e8e8e8",
+    "border": "#0f0f0f",
+    "borderSoft": "#7b7b7b",
+    "borderStrong": "#0f0f0f",
+    "text": "#0f0f0f",
+    "textDim": "#616161",
+    "textFaint": "#939393",
+    "accent": "#b45700",
+    "accentSoft": "rgba(180, 87, 0, 0.16)",
+    "shadow": "4px 4px 0px #0f0f0f"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "parallax-sections",
+   "name": "视差滚动",
+   "nameEn": "Parallax Sections",
+   "category": "modern",
+   "description": "通过固定背景和滚动内容创造深度视差效果的沉浸式布局，每个全屏区块都有独立的背景层，适合品牌故事、产品展示和沉浸式体验页面。",
+   "dark": false,
+   "accents": [
+    "#3b82f6",
+    "#93c5fd",
+    "#0ea5e9",
+    "#c559f0"
+   ],
+   "palette": {
+    "bg": "#f8fafc",
+    "bgRail": "#e9ebed",
+    "panel": "#fcfdfe",
+    "panel2": "#eceeef",
+    "panel3": "#e2e4e5",
+    "border": "#ffffff",
+    "borderSoft": "#fcfdfe",
+    "borderStrong": "#ffffff",
+    "text": "#1e3a5f",
+    "textDim": "#687b94",
+    "textFaint": "#96a4b5",
+    "accent": "#3b82f6",
+    "accentSoft": "rgba(59, 130, 246, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "warm-dashboard",
+   "name": "暖色仪表盘",
+   "nameEn": "Warm Dashboard",
+   "category": "modern",
+   "description": "温暖柔和的仪表盘设计风格，采用珊瑚/赤陶色背景、奶油白卡片、柔和阴影，营造舒适专业的数据展示体验。",
+   "dark": false,
+   "accents": [
+    "#4a9d9a",
+    "#e8b86d",
+    "#c17767",
+    "#6b8e8e"
+   ],
+   "palette": {
+    "bg": "#faf8f5",
+    "bgRail": "#ebe9e6",
+    "panel": "#fdfcfb",
+    "panel2": "#eeece9",
+    "panel3": "#e4e2df",
+    "border": "#d7d5d3",
+    "borderSoft": "#e7e5e2",
+    "borderStrong": "#d7d5d3",
+    "text": "#d4a088",
+    "textDim": "#e1bead",
+    "textFaint": "#e9d0c4",
+    "accent": "#c17767",
+    "accentSoft": "rgba(193, 119, 103, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "neon-gradient",
+   "name": "霓虹渐变",
+   "nameEn": "Neon Gradient",
+   "category": "expressive",
+   "description": "深色背景上的鲜艳渐变卡片，配合粗彩色边框和霓虹发光效果，适合科技产品、SaaS 着陆页、年轻化品牌。",
+   "dark": true,
+   "accents": [
+    "#f472b6",
+    "#22d3ee",
+    "#a3e635",
+    "#fbbf24",
+    "#fb7185"
+   ],
+   "palette": {
+    "bg": "#0f0a1e",
+    "bgRail": "#0c0819",
+    "panel": "#1d192c",
+    "panel2": "#272234",
+    "panel3": "#332f40",
+    "border": "#312c3e",
+    "borderSoft": "#221d30",
+    "borderStrong": "#312c3e",
+    "text": "#eceff6",
+    "textDim": "#a1a1ad",
+    "textFaint": "#72717f",
+    "accent": "#a3e635",
+    "accentSoft": "rgba(163, 230, 53, 0.16)",
+    "shadow": "0 0 30px rgba(168,85,247,0.4)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 4
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "liquid-glass",
+   "name": "液态玻璃",
+   "nameEn": "Liquid Glass",
+   "category": "modern",
+   "description": "通透的玻璃浮在内容之上：中心清晰、边缘轻折光，白色细高光勾勒厚度。用在浮动导航、搜索和控制面板，触碰时轻压、拖动时伸展、松手后回弹。",
+   "dark": true,
+   "accents": [
+    "#25414a",
+    "#e4efeb",
+    "#c7e4e5",
+    "#557b79"
+   ],
+   "palette": {
+    "bg": "#202929",
+    "bgRail": "#1a2222",
+    "panel": "#2d3636",
+    "panel2": "#363e3e",
+    "panel3": "#414949",
+    "border": "#ffffff",
+    "borderSoft": "#9b9f9f",
+    "borderStrong": "#ffffff",
+    "text": "#f3f2ed",
+    "textDim": "#abaeaa",
+    "textFaint": "#7f8381",
+    "accent": "#e4efeb",
+    "accentSoft": "rgba(228, 239, 235, 0.16)",
+    "shadow": "0 8px 22px rgba(8,24,50,0.12)"
+   },
+   "shape": {
+    "radius": 24,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "scandinavian",
+   "name": "北欧极简风",
+   "nameEn": "Scandinavian Minimalism",
+   "category": "minimal",
+   "description": "源自北欧的温暖极简设计，强调自然材质、舒适留白、木质色调和Hygge生活美学，营造宁静温馨的视觉体验。",
+   "dark": false,
+   "accents": [
+    "#5a7a6b",
+    "#7ba0b8",
+    "#c9a88c",
+    "#607683"
+   ],
+   "palette": {
+    "bg": "#f5f0eb",
+    "bgRail": "#e6e2dd",
+    "panel": "#fbf9f7",
+    "panel2": "#e9e4df",
+    "panel3": "#dfdad6",
+    "border": "#d4cdc5",
+    "borderSoft": "#e3ddd6",
+    "borderStrong": "#d4cdc5",
+    "text": "#3d3d3d",
+    "textDim": "#7c7a78",
+    "textFaint": "#a29f9d",
+    "accent": "#607683",
+    "accentSoft": "rgba(96, 118, 131, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 4,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "cel-shading",
+   "name": "赛璐璐动画风",
+   "nameEn": "Cel Shading",
+   "category": "expressive",
+   "description": "模拟传统动画赛璐璃片的渲染风格，粗黑轮廓线、平面色块填充、无渐变阴影和鲜艳饱和色彩，充满卡通游戏的活力感。",
+   "dark": false,
+   "accents": [
+    "#e63946",
+    "#4ea8de",
+    "#2ecc71",
+    "#f1c40f"
+   ],
+   "palette": {
+    "bg": "#fafaf5",
+    "bgRail": "#ebebe6",
+    "panel": "#fdfdfb",
+    "panel2": "#eeeee9",
+    "panel3": "#e4e4df",
+    "border": "#1a1a2e",
+    "borderSoft": "#7f7f88",
+    "borderStrong": "#1a1a2e",
+    "text": "#1a1a2e",
+    "textDim": "#666672",
+    "textFaint": "#95959b",
+    "accent": "#e63946",
+    "accentSoft": "rgba(230, 57, 70, 0.16)",
+    "shadow": "3px 3px 0 #1a1a2e"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "cinematic-video-hero",
+   "name": "电影视频首屏",
+   "nameEn": "Cinematic Video Hero",
+   "category": "expressive",
+   "description": "以短循环视频开场的电影级首屏。海报帧先出作 LCP，视频进视口才静音自动播、无缝循环；文字压在可读性遮罩上，暗场调色与缓慢运动营造预告片般的沉浸开场。",
+   "dark": false,
+   "accents": [
+    "#e4c063",
+    "#141821",
+    "#9aa6b8"
+   ],
+   "palette": {
+    "bg": "#f3efe8",
+    "bgRail": "#e4e1da",
+    "panel": "#faf9f6",
+    "panel2": "#e7e3dc",
+    "panel3": "#ddd9d3",
+    "border": "#ffffff",
+    "borderSoft": "#faf8f5",
+    "borderStrong": "#ffffff",
+    "text": "#05060a",
+    "textDim": "#565555",
+    "textFaint": "#888684",
+    "accent": "#141821",
+    "accentSoft": "rgba(20, 24, 33, 0.16)",
+    "shadow": "0 10px 30px rgba(0,0,0,0.5)"
+   },
+   "shape": {
+    "radius": 16,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "wabi-sabi",
+   "name": "侘寂风",
+   "nameEn": "Wabi-Sabi",
+   "category": "minimal",
+   "description": "日本侘寂美学的数字化呈现，崇尚不完美之美、自然衰老之雅和极致留白之禅，以墨色、茶色和纸张质感传递东方诗意。",
+   "dark": false,
+   "accents": [
+    "#8a9a7b",
+    "#b5a78c",
+    "#8b6f4e",
+    "#799d91"
+   ],
+   "palette": {
+    "bg": "#f2ede4",
+    "bgRail": "#e3dfd6",
+    "panel": "#faf8f5",
+    "panel2": "#e6e1d9",
+    "panel3": "#dcd8cf",
+    "border": "#d4cdc5",
+    "borderSoft": "#e2dbd3",
+    "borderStrong": "#d4cdc5",
+    "text": "#3a3a3a",
+    "textDim": "#797774",
+    "textFaint": "#9f9c98",
+    "accent": "#8b6f4e",
+    "accentSoft": "rgba(139, 111, 78, 0.16)",
+    "shadow": "0 2px 6px rgba(0,0,0,0.18)"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "zen-garden",
+   "name": "枯山水",
+   "nameEn": "Zen Garden",
+   "category": "minimal",
+   "description": "日本枯山水庭园的数字化诠释，以砂纹、石组、苔藓为灵感，追求极致静谧与冥想感。沙白与苔绿的搭配传递出自然之道的宁静力量。",
+   "dark": false,
+   "accents": [
+    "#8a9a7b",
+    "#c4bba8",
+    "#7a7062",
+    "#799d91"
+   ],
+   "palette": {
+    "bg": "#f5f3ee",
+    "bgRail": "#e6e4e0",
+    "panel": "#fbfaf9",
+    "panel2": "#e9e7e2",
+    "panel3": "#dfddd9",
+    "border": "#c4bba8",
+    "borderSoft": "#dad4c8",
+    "borderStrong": "#c4bba8",
+    "text": "#4a5548",
+    "textDim": "#848b80",
+    "textFaint": "#a8aca3",
+    "accent": "#7a7062",
+    "accentSoft": "rgba(122, 112, 98, 0.16)",
+    "shadow": "0 2px 6px rgba(0,0,0,0.18)"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "sci-fi-hud",
+   "name": "科幻HUD",
+   "nameEn": "Sci-Fi HUD",
+   "category": "modern",
+   "description": "源自星际飞船驾驶舱和战术指挥中心的全息显示界面。深空背景、青色发光边框、半透明玻璃面板、雷达扫描动效，营造'正在操作高科技设备'的沉浸体验。",
+   "dark": true,
+   "accents": [
+    "#0ea5e9",
+    "#22d3ee",
+    "#22c55e",
+    "#9e74ff"
+   ],
+   "palette": {
+    "bg": "#020617",
+    "bgRail": "#020513",
+    "panel": "#111525",
+    "panel2": "#1b1f2e",
+    "panel3": "#282b3a",
+    "border": "#252937",
+    "borderSoft": "#151929",
+    "borderStrong": "#252937",
+    "text": "#eceff6",
+    "textDim": "#9ca0aa",
+    "textFaint": "#6b6f7b",
+    "accent": "#22d3ee",
+    "accentSoft": "rgba(34, 211, 238, 0.16)",
+    "shadow": "0 0 15px rgba(6,182,212,0.3)"
+   },
+   "shape": {
+    "radius": 6,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "scrollytelling",
+   "name": "滚动叙事",
+   "nameEn": "Scrollytelling",
+   "category": "expressive",
+   "description": "滚动就是叙事进度条。一块 sticky 画布钉在视口中央，文字步骤逐段划过时触发画布状态切换——数字跳动、图形变形、图层点亮。信息随阅读进度一帧帧揭示，像纽约时报的数据长报道。",
+   "dark": false,
+   "accents": [
+    "#2f6fed",
+    "#e8503a",
+    "#1c2530"
+   ],
+   "palette": {
+    "bg": "#f7f5f0",
+    "bgRail": "#e8e6e2",
+    "panel": "#fcfbf9",
+    "panel2": "#ebe9e4",
+    "panel3": "#e1dfda",
+    "border": "#ffffff",
+    "borderSoft": "#fbfaf8",
+    "borderStrong": "#ffffff",
+    "text": "#0e1116",
+    "textDim": "#5d5f60",
+    "textFaint": "#8e8e8e",
+    "accent": "#1c2530",
+    "accentSoft": "rgba(28, 37, 48, 0.16)",
+    "shadow": "0 4px 16px rgba(0,0,0,0.5)"
+   },
+   "shape": {
+    "radius": 8,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "kawaii-minimal",
+   "name": "可爱极简",
+   "nameEn": "Kawaii Minimal",
+   "category": "minimal",
+   "description": "融合日系可爱文化与极简设计的温柔风格。柔和的粉彩色系、圆润形状、轻盈留白和细腻的微交互，适合生活方式应用、儿童产品和创意工具。",
+   "dark": false,
+   "accents": [
+    "#a78bfa",
+    "#67e8f9",
+    "#fde68a",
+    "#f47abd"
+   ],
+   "palette": {
+    "bg": "#fff7ed",
+    "bgRail": "#f0e8df",
+    "panel": "#fffcf8",
+    "panel2": "#f2ebe1",
+    "panel3": "#e8e1d8",
+    "border": "#dbd4cc",
+    "borderSoft": "#ebe4db",
+    "borderStrong": "#dbd4cc",
+    "text": "#20242d",
+    "textDim": "#6c6c6e",
+    "textFaint": "#9b9897",
+    "accent": "#a78bfa",
+    "accentSoft": "rgba(167, 139, 250, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "kinetic-constructivism",
+   "name": "动力学构成主义",
+   "nameEn": "Kinetic Constructivism",
+   "category": "expressive",
+   "description": "会动的构成主义。米白纸面上，红、蓝、黄的实色几何——圆、三角、方与粗对角线——不是被摆上去的，而是沿着轴线做机械运动：圆盘公转、三角钟摆、方块按节拍行进。运动学自 El Lissitzky 与 Rodchenko 的海报，节奏来自机械本身。",
+   "dark": true,
+   "accents": [
+    "#e0231b",
+    "#1c4a87",
+    "#f4b301"
+   ],
+   "palette": {
+    "bg": "#17130e",
+    "bgRail": "#13100b",
+    "panel": "#25211c",
+    "panel2": "#2e2b26",
+    "panel3": "#3a3632",
+    "border": "#17130e",
+    "borderSoft": "#17130e",
+    "borderStrong": "#17130e",
+    "text": "#efe9dc",
+    "textDim": "#a6a096",
+    "textFaint": "#78736b",
+    "accent": "#f4b301",
+    "accentSoft": "rgba(244, 179, 1, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "broadcast-glitch",
+   "name": "故障广播",
+   "nameEn": "Broadcast Glitch",
+   "category": "retro",
+   "description": "老电视信号的动态包装。CRT 黑底上，扫描线缓缓滚动、RGB 通道红青错位抖动、SMPTE 测试卡彩条横扫、画面偶尔像信号不良般跳帧位移。这是 90 年代电视台呼号与 VHS 故障艺术的复兴——不是合成波日落，是坏掉的信号本身在发光。",
+   "dark": false,
+   "accents": [
+    "#ff2e4c",
+    "#00e5d8",
+    "#f5e000"
+   ],
+   "palette": {
+    "bg": "#ededed",
+    "bgRail": "#dfdfdf",
+    "panel": "#f8f8f8",
+    "panel2": "#e1e1e1",
+    "panel3": "#d8d8d8",
+    "border": "#ededed",
+    "borderSoft": "#ededed",
+    "borderStrong": "#ededed",
+    "text": "#0b0b0e",
+    "textDim": "#58585a",
+    "textFaint": "#878789",
+    "accent": "#ff2e4c",
+    "accentSoft": "rgba(255, 46, 76, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "kinetic-typography",
+   "name": "动力学排印",
+   "nameEn": "Kinetic Typography",
+   "category": "expressive",
+   "description": "文字即界面的动态排印风格。墨黑舞台上，可变字体的字重与字宽成为动画本体：逐字登场、字重呼吸、滚动速度拉伸字宽。一切动效只属于文字，唯一的信号橙负责指路。",
+   "dark": false,
+   "accents": [
+    "#ff4d00",
+    "#141416",
+    "#8a857b"
+   ],
+   "palette": {
+    "bg": "#f4f1eb",
+    "bgRail": "#e5e3dd",
+    "panel": "#fbfaf7",
+    "panel2": "#e8e5df",
+    "panel3": "#dedbd6",
+    "border": "#f4f1eb",
+    "borderSoft": "#f4f1eb",
+    "borderStrong": "#f4f1eb",
+    "text": "#0b0b0c",
+    "textDim": "#5a5958",
+    "textFaint": "#8b8a87",
+    "accent": "#141416",
+    "accentSoft": "rgba(20, 20, 22, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "film-noir",
+   "name": "黑色电影",
+   "nameEn": "Film Noir",
+   "category": "retro",
+   "description": "源自 1940-50 年代经典黑色电影的戏剧性视觉风格。极致的明暗对比、深沉的灰阶层次、斜线光影和神秘氛围，适合故事驱动的产品、摄影作品集和高端品牌。",
+   "dark": false,
+   "accents": [
+    "#c41e3a",
+    "#8b7355",
+    "#d4af37",
+    "#7c3e00"
+   ],
+   "palette": {
+    "bg": "#f5f5f0",
+    "bgRail": "#e6e6e2",
+    "panel": "#fbfbf9",
+    "panel2": "#e9e9e4",
+    "panel3": "#dfdfda",
+    "border": "#d3d3ce",
+    "borderSoft": "#e2e2dd",
+    "borderStrong": "#d3d3ce",
+    "text": "#1a1a1a",
+    "textDim": "#646463",
+    "textFaint": "#929290",
+    "accent": "#7c3e00",
+    "accentSoft": "rgba(124, 62, 0, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "arcade-crt",
+   "name": "街机CRT",
+   "nameEn": "Arcade CRT",
+   "category": "retro",
+   "description": "80-90年代街机显示器美学，包含扫描线、屏幕曲率、霓虹辉光和RGB色差效果。适合游戏、复古科技、创意项目。",
+   "dark": true,
+   "accents": [
+    "#ff00ff",
+    "#00ffff",
+    "#ff2a2a",
+    "#ffff00",
+    "#ff8533"
+   ],
+   "palette": {
+    "bg": "#050505",
+    "bgRail": "#040404",
+    "panel": "#141414",
+    "panel2": "#1e1e1e",
+    "panel3": "#2a2a2a",
+    "border": "#39ff14",
+    "borderSoft": "#228e0d",
+    "borderStrong": "#39ff14",
+    "text": "#39ff14",
+    "textDim": "#27aa0f",
+    "textFaint": "#1c750c",
+    "accent": "#ffff00",
+    "accentSoft": "rgba(255, 255, 0, 0.16)",
+    "shadow": "0 0 20px rgba(57,255,20,0.5)"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "frutiger-aero",
+   "name": "Frutiger Aero",
+   "nameEn": "Frutiger Aero",
+   "category": "retro",
+   "description": "Windows Vista/7时代的玻璃质感美学，天空蓝渐变、半透明毛玻璃面板与自然元素融合，营造清新通透的数字自然感。",
+   "dark": true,
+   "accents": [
+    "#ffffff",
+    "#e0f2fe",
+    "#34d399",
+    "#7dd3fc"
+   ],
+   "palette": {
+    "bg": "#5fb3cc",
+    "bgRail": "#4e93a7",
+    "panel": "#69b8cf",
+    "panel2": "#6fbbd1",
+    "panel3": "#77bed4",
+    "border": "#ffffff",
+    "borderSoft": "#b7dde8",
+    "borderStrong": "#ffffff",
+    "text": "#eceff6",
+    "textDim": "#bcdbe8",
+    "textFaint": "#9ecedf",
+    "accent": "#ffffff",
+    "accentSoft": "rgba(255, 255, 255, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.24)"
+   },
+   "shape": {
+    "radius": 26,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "anti-design",
+   "name": "反设计",
+   "nameEn": "Anti-Design",
+   "category": "expressive",
+   "description": "故意打破传统UI规范的粗野主义实验风格，极粗边框、高饱和色彩与不规则排版",
+   "dark": false,
+   "accents": [
+    "#ff0000",
+    "#0000ff",
+    "#ffff00",
+    "#ff00ff",
+    "#00ffff",
+    "#00ff00"
+   ],
+   "palette": {
+    "bg": "#ffffff",
+    "bgRail": "#f0f0f0",
+    "panel": "#ffffff",
+    "panel2": "#f2f2f2",
+    "panel3": "#e8e8e8",
+    "border": "#111111",
+    "borderSoft": "#7c7c7c",
+    "borderStrong": "#111111",
+    "text": "#000000",
+    "textDim": "#575757",
+    "textFaint": "#8c8c8c",
+    "accent": "#0000ff",
+    "accentSoft": "rgba(0, 0, 255, 0.16)",
+    "shadow": "8px 8px 0 #000"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 4
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "brutalist-web",
+   "name": "网页粗野主义",
+   "nameEn": "Brutalist Web",
+   "category": "retro",
+   "description": "回归90年代早期互联网的原始HTML美学，系统字体、蓝色下划线链接、纯白背景、无装饰，内容优先于形式。",
+   "dark": false,
+   "accents": [
+    "#0000ff",
+    "#ff0000",
+    "#008000",
+    "#d60099"
+   ],
+   "palette": {
+    "bg": "#ffffff",
+    "bgRail": "#f0f0f0",
+    "panel": "#ffffff",
+    "panel2": "#f2f2f2",
+    "panel3": "#e8e8e8",
+    "border": "#111111",
+    "borderSoft": "#7c7c7c",
+    "borderStrong": "#111111",
+    "text": "#000000",
+    "textDim": "#575757",
+    "textFaint": "#8c8c8c",
+    "accent": "#0000ff",
+    "accentSoft": "rgba(0, 0, 255, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "holographic",
+   "name": "全息渐变",
+   "nameEn": "Holographic",
+   "category": "expressive",
+   "description": "彩虹光谱虹彩渐变美学，模拟全息投影的棱镜折射与动态光效，营造超凡脱俗的虹彩体验。",
+   "dark": true,
+   "accents": [
+    "#ff0080",
+    "#ffd700",
+    "#00d4ff",
+    "#00ff88",
+    "#6366f1"
+   ],
+   "palette": {
+    "bg": "#0a0a1f",
+    "bgRail": "#080819",
+    "panel": "#19192c",
+    "panel2": "#222235",
+    "panel3": "#2f2f41",
+    "border": "#ffffff",
+    "borderSoft": "#91919a",
+    "borderStrong": "#ffffff",
+    "text": "#eceff6",
+    "textDim": "#9fa1ad",
+    "textFaint": "#707180",
+    "accent": "#00ff88",
+    "accentSoft": "rgba(0, 255, 136, 0.16)",
+    "shadow": "0 0 25px rgba(147,51,234,0.4)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "generative-art",
+   "name": "生成艺术",
+   "nameEn": "Generative Art",
+   "category": "expressive",
+   "description": "算法驱动的程序化视觉美学，以数学函数、噪声纹理和参数化图形创造独特动态界面。适合创意编程、数据可视化、艺术项目。",
+   "dark": true,
+   "accents": [
+    "#3b82f6",
+    "#14b8a6",
+    "#f43f5e",
+    "#f59e0b"
+   ],
+   "palette": {
+    "bg": "#0a0a0a",
+    "bgRail": "#080808",
+    "panel": "#191919",
+    "panel2": "#222222",
+    "panel3": "#2f2f2f",
+    "border": "#2c2c2c",
+    "borderSoft": "#1d1d1d",
+    "borderStrong": "#2c2c2c",
+    "text": "#eceff6",
+    "textDim": "#9fa1a6",
+    "textFaint": "#707174",
+    "accent": "#f59e0b",
+    "accentSoft": "rgba(245, 158, 11, 0.16)",
+    "shadow": "0 0 20px rgba(124,58,237,0.25)"
+   },
+   "shape": {
+    "radius": 16,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "particle",
+   "name": "粒子系统",
+   "nameEn": "Particle System",
+   "category": "modern",
+   "description": "深色科技背景上漂浮的粒子网络，以连线、脉冲和轨迹营造数据流动感。适合科技公司、数据可视化、创意作品集。",
+   "dark": true,
+   "accents": [
+    "#e0e8ff",
+    "#64c8ff",
+    "#64ffc8",
+    "#a78bfa"
+   ],
+   "palette": {
+    "bg": "#0f1419",
+    "bgRail": "#0c1014",
+    "panel": "#1d2227",
+    "panel2": "#272c30",
+    "panel3": "#33373c",
+    "border": "#ffffff",
+    "borderSoft": "#939598",
+    "borderStrong": "#ffffff",
+    "text": "#eceff6",
+    "textDim": "#a1a5ab",
+    "textFaint": "#72777c",
+    "accent": "#64ffc8",
+    "accentSoft": "rgba(100, 255, 200, 0.16)",
+    "shadow": "0 0 20px rgba(59,130,246,0.2)"
+   },
+   "shape": {
+    "radius": 16,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "parallax-editorial",
+   "name": "视差杂志",
+   "nameEn": "Parallax Editorial",
+   "category": "expressive",
+   "description": "有物理纵深的杂志排版。暖纸底色上，前景文字与背景层以不同速率滚动，制造真实的层叠景深；sticky 图文交错、章节编号、首字下沉，把长内容读成一场有节奏的翻页。",
+   "dark": false,
+   "accents": [
+    "#b3401f",
+    "#2e2a22",
+    "#c9bba0"
+   ],
+   "palette": {
+    "bg": "#f5f0e6",
+    "bgRail": "#e6e2d8",
+    "panel": "#fbf9f6",
+    "panel2": "#e9e4da",
+    "panel3": "#dfdad1",
+    "border": "#1a1712",
+    "borderSoft": "#7d7971",
+    "borderStrong": "#1a1712",
+    "text": "#1a1712",
+    "textDim": "#64615a",
+    "textFaint": "#928e87",
+    "accent": "#2e2a22",
+    "accentSoft": "rgba(46, 42, 34, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "vhs-aesthetic",
+   "name": "VHS美学",
+   "nameEn": "VHS Aesthetic",
+   "category": "retro",
+   "description": "80-90年代VHS录像带视觉美学，色彩失真、扫描线噪点与信号故障效果。适合怀旧、复古科技、创意影像项目。",
+   "dark": true,
+   "accents": [
+    "#00ffff",
+    "#ffff00",
+    "#00ff00",
+    "#1a0a2e"
+   ],
+   "palette": {
+    "bg": "#000000",
+    "bgRail": "#000000",
+    "panel": "#0f0f0f",
+    "panel2": "#1a1a1a",
+    "panel3": "#262626",
+    "border": "#ff00ff",
+    "borderSoft": "#8c008c",
+    "borderStrong": "#ff00ff",
+    "text": "#eceff6",
+    "textDim": "#9c9ea2",
+    "textFaint": "#6a6c6f",
+    "accent": "#ffff00",
+    "accentSoft": "rgba(255, 255, 0, 0.16)",
+    "shadow": "0 0 20px rgba(255,0,255,0.4)"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "terracotta",
+   "name": "赤陶暖调",
+   "nameEn": "Terracotta",
+   "category": "minimal",
+   "description": "地中海赤陶与暖色大地的设计风格，温暖的陶土色调、粗糙手工质感和自然纹理。适合生活方式品牌、餐饮、旅行和手工艺品展示。",
+   "dark": false,
+   "accents": [
+    "#d4a373",
+    "#7a6350",
+    "#8b9d77",
+    "#8fb86a"
+   ],
+   "palette": {
+    "bg": "#faf5ef",
+    "bgRail": "#ebe6e1",
+    "panel": "#fdfbf9",
+    "panel2": "#eee9e3",
+    "panel3": "#e4dfd9",
+    "border": "#d4a373",
+    "borderSoft": "#e5c8ab",
+    "borderStrong": "#d4a373",
+    "text": "#b5654a",
+    "textDim": "#cc9682",
+    "textFaint": "#dbb4a5",
+    "accent": "#7a6350",
+    "accentSoft": "rgba(122, 99, 80, 0.16)",
+    "shadow": "#b5654a"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "monochrome",
+   "name": "单色极简",
+   "nameEn": "Monochrome",
+   "category": "minimal",
+   "description": "纯黑白灰的极致单色设计，通过精确的灰阶层次、字重对比和负空间构建视觉层次，不依赖任何色彩即达到高级感。适合摄影、建筑和高端品牌。",
+   "dark": false,
+   "accents": [
+    "#666666",
+    "#999999",
+    "#cccccc",
+    "#666666"
+   ],
+   "palette": {
+    "bg": "#fafafa",
+    "bgRail": "#ebebeb",
+    "panel": "#fdfdfd",
+    "panel2": "#eeeeee",
+    "panel3": "#e4e4e4",
+    "border": "#e5e5e5",
+    "borderSoft": "#eeeeee",
+    "borderStrong": "#e5e5e5",
+    "text": "#111111",
+    "textDim": "#606060",
+    "textFaint": "#919191",
+    "accent": "#666666",
+    "accentSoft": "rgba(102, 102, 102, 0.16)",
+    "shadow": "0 2px 6px rgba(0,0,0,0.18)"
+   },
+   "shape": {
+    "radius": 4,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "ink-wash",
+   "name": "水墨画风",
+   "nameEn": "Ink Wash",
+   "category": "minimal",
+   "description": "源自中国传统水墨画的设计风格，以墨色浓淡干湿变化营造空灵意境，大量留白表达'气韵生动'，适合文化品牌、茶道、书法和东方美学项目。",
+   "dark": false,
+   "accents": [
+    "#6b7b6e",
+    "#a89279",
+    "#c4b9a8",
+    "#697a7c"
+   ],
+   "palette": {
+    "bg": "#f8f5f0",
+    "bgRail": "#e9e6e2",
+    "panel": "#fcfbf9",
+    "panel2": "#ece9e4",
+    "panel3": "#e2dfda",
+    "border": "#2c2c2c",
+    "borderSoft": "#888684",
+    "borderStrong": "#2c2c2c",
+    "text": "#2c2c2c",
+    "textDim": "#71706f",
+    "textFaint": "#9c9b98",
+    "accent": "#697a7c",
+    "accentSoft": "rgba(105, 122, 124, 0.16)",
+    "shadow": "0 2px 6px rgba(0,0,0,0.18)"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "mid-century-modern",
+   "name": "中世纪现代",
+   "nameEn": "Mid-Century Modern",
+   "category": "retro",
+   "description": "50年代原子时代设计美学，几何图案、有机曲线、饱和色彩。Eames椅、原子钟、星芒图案为灵感。",
+   "dark": false,
+   "accents": [
+    "#2a6e5e",
+    "#c4a35a",
+    "#3d3d3d",
+    "#44628c"
+   ],
+   "palette": {
+    "bg": "#f5f0e1",
+    "bgRail": "#e6e2d4",
+    "panel": "#fbf9f4",
+    "panel2": "#e9e4d6",
+    "panel3": "#dfdacd",
+    "border": "#3d3d3d",
+    "borderSoft": "#908e87",
+    "borderStrong": "#3d3d3d",
+    "text": "#e8572a",
+    "textDim": "#ec8b68",
+    "textFaint": "#efab8f",
+    "accent": "#2a6e5e",
+    "accentSoft": "rgba(42, 110, 94, 0.16)",
+    "shadow": "4px 4px 0 #3d3d3d"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "constructivism",
+   "name": "构成主义",
+   "nameEn": "Constructivism",
+   "category": "retro",
+   "description": "苏联构成主义海报风格，强烈的红黑配色、对角线构图、几何块面、宣传性排版。",
+   "dark": false,
+   "accents": [
+    "#1a1a1a",
+    "#d4a843",
+    "#8b4513",
+    "#1a1a1a"
+   ],
+   "palette": {
+    "bg": "#f2e8d5",
+    "bgRail": "#e3dac8",
+    "panel": "#faf6ef",
+    "panel2": "#e6dcca",
+    "panel3": "#dcd3c2",
+    "border": "#1a1a1a",
+    "borderSoft": "#7b776e",
+    "borderStrong": "#1a1a1a",
+    "text": "#cc0000",
+    "textDim": "#d94f48",
+    "textFaint": "#e18075",
+    "accent": "#8b4513",
+    "accentSoft": "rgba(139, 69, 19, 0.16)",
+    "shadow": "4px 4px 0 #1a1a1a"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 4
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "op-art",
+   "name": "欧普艺术",
+   "nameEn": "Op Art",
+   "category": "expressive",
+   "description": "光学艺术运动风格，利用几何图案制造视觉幻象和运动感。黑白对比为核心，辅以振动色彩对。",
+   "dark": false,
+   "accents": [
+    "#ff3300",
+    "#0066ff",
+    "#ffcc00",
+    "#5e6d00"
+   ],
+   "palette": {
+    "bg": "#ffffff",
+    "bgRail": "#f0f0f0",
+    "panel": "#ffffff",
+    "panel2": "#f2f2f2",
+    "panel3": "#e8e8e8",
+    "border": "#111111",
+    "borderSoft": "#7c7c7c",
+    "borderStrong": "#111111",
+    "text": "#000000",
+    "textDim": "#575757",
+    "textFaint": "#8c8c8c",
+    "accent": "#5e6d00",
+    "accentSoft": "rgba(94, 109, 0, 0.16)",
+    "shadow": "4px 4px 0 #000000"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "islamic-geometric",
+   "name": "伊斯兰几何",
+   "nameEn": "Islamic Geometric",
+   "category": "expressive",
+   "description": "伊斯兰几何纹理设计风格，精密的几何镶嵌图案、阿拉伯式花纹、金色与深蓝的经典配色。",
+   "dark": false,
+   "accents": [
+    "#c9a74e",
+    "#2d7d46",
+    "#8b2332",
+    "#6bc15e"
+   ],
+   "palette": {
+    "bg": "#f5ecd7",
+    "bgRail": "#e6deca",
+    "panel": "#fbf8f0",
+    "panel2": "#e9e0cc",
+    "panel3": "#dfd7c4",
+    "border": "#c9a74e",
+    "borderSoft": "#ddc68c",
+    "borderStrong": "#c9a74e",
+    "text": "#1a3a5c",
+    "textDim": "#647786",
+    "textFaint": "#929ca0",
+    "accent": "#8b2332",
+    "accentSoft": "rgba(139, 35, 50, 0.16)",
+    "shadow": "0 4px 12px rgba(201,167,78,0.15)"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "indian-festive",
+   "name": "印度节庆",
+   "nameEn": "Indian Festive",
+   "category": "expressive",
+   "description": "印度排灯节与色彩节的绚丽美学，丰富的金色装饰、宝石色调、曼荼罗纹饰。适合庆典、活动、生活方式品牌。",
+   "dark": false,
+   "accents": [
+    "#ff9f1c",
+    "#7b2d8e",
+    "#2a9d8f",
+    "#d4af37"
+   ],
+   "palette": {
+    "bg": "#fff8e7",
+    "bgRail": "#f0e9d9",
+    "panel": "#fffcf6",
+    "panel2": "#f2ecdb",
+    "panel3": "#e8e2d2",
+    "border": "#d4af37",
+    "borderSoft": "#e7d086",
+    "borderStrong": "#d4af37",
+    "text": "#e63946",
+    "textDim": "#ee7a7d",
+    "textFaint": "#f4a29f",
+    "accent": "#7b2d8e",
+    "accentSoft": "rgba(123, 45, 142, 0.16)",
+    "shadow": "0 4px 16px rgba(212,175,55,0.2)"
+   },
+   "shape": {
+    "radius": 16,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "african-textile",
+   "name": "非洲纺织",
+   "nameEn": "African Textile",
+   "category": "expressive",
+   "description": "西非Kente布和Adire扎染为灵感的设计风格，大胆的几何编织图案、大地色与鲜明色彩的碰撞、手工质感。",
+   "dark": true,
+   "accents": [
+    "#f0c75e",
+    "#1a5632",
+    "#e8d5b5",
+    "#80e671"
+   ],
+   "palette": {
+    "bg": "#2c1810",
+    "bgRail": "#24140d",
+    "panel": "#39261e",
+    "panel2": "#412f28",
+    "panel3": "#4c3b34",
+    "border": "#2c1810",
+    "borderSoft": "#2c1810",
+    "borderStrong": "#2c1810",
+    "text": "#eceff6",
+    "textDim": "#aba6a8",
+    "textFaint": "#827977",
+    "accent": "#e8d5b5",
+    "accentSoft": "rgba(232, 213, 181, 0.16)",
+    "shadow": "4px 4px 0px #2c1810"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "korean-minimal",
+   "name": "韩式极简",
+   "nameEn": "Korean Minimal",
+   "category": "minimal",
+   "description": "韩国极简设计美学，受K-beauty和韩国建筑影响。柔和的粉彩色调、大量留白、精致的圆角和克制的装饰。",
+   "dark": false,
+   "accents": [
+    "#d4a5a5",
+    "#a8c5b8",
+    "#e8d4b8",
+    "#b9b08a"
+   ],
+   "palette": {
+    "bg": "#faf9f7",
+    "bgRail": "#ebeae8",
+    "panel": "#fdfdfc",
+    "panel2": "#eeedeb",
+    "panel3": "#e4e3e1",
+    "border": "#3d4a5c",
+    "borderSoft": "#9299a2",
+    "borderStrong": "#3d4a5c",
+    "text": "#3d4a5c",
+    "textDim": "#7d8691",
+    "textFaint": "#a5aab1",
+    "accent": "#b9b08a",
+    "accentSoft": "rgba(185, 176, 138, 0.16)",
+    "shadow": "0 4px 12px rgba(61,74,92,0.06)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "pastel-goth",
+   "name": "粉彩哥特",
+   "nameEn": "Pastel Goth",
+   "category": "expressive",
+   "description": "柔暗美学与糖果色的独特融合，粉紫粉蓝等柔和色彩搭配骷髅、十字架等暗系元素。暗色背景+粉彩高亮。",
+   "dark": true,
+   "accents": [
+    "#d4a5e3",
+    "#7ec8c8",
+    "#f5a5b8",
+    "#b8a5f5"
+   ],
+   "palette": {
+    "bg": "#1a1225",
+    "bgRail": "#150f1e",
+    "panel": "#282032",
+    "panel2": "#312a3b",
+    "panel3": "#3c3646",
+    "border": "#d4a5e3",
+    "borderSoft": "#80638e",
+    "borderStrong": "#d4a5e3",
+    "text": "#eceff6",
+    "textDim": "#a5a4af",
+    "textFaint": "#787583",
+    "accent": "#7ec8c8",
+    "accentSoft": "rgba(126, 200, 200, 0.16)",
+    "shadow": "0 0 16px rgba(212,165,227,0.2)"
+   },
+   "shape": {
+    "radius": 16,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "maximalism",
+   "name": "极繁主义",
+   "nameEn": "Maximalism",
+   "category": "expressive",
+   "description": "极繁主义设计——更多就是更多。层叠图案、混搭字体、饱和色彩、装饰性边框。与极简主义形成鲜明对比，拥抱丰富、华丽和视觉冲击。",
+   "dark": true,
+   "accents": [
+    "#ffbe0b",
+    "#3a86ff",
+    "#8338ec",
+    "#06d6a0"
+   ],
+   "palette": {
+    "bg": "#1a0a2e",
+    "bgRail": "#150826",
+    "panel": "#28193b",
+    "panel2": "#312243",
+    "panel3": "#3c2f4d",
+    "border": "#d4145a",
+    "borderSoft": "#801046",
+    "borderStrong": "#d4145a",
+    "text": "#eceff6",
+    "textDim": "#a5a1b2",
+    "textFaint": "#787188",
+    "accent": "#ffbe0b",
+    "accentSoft": "rgba(255, 190, 11, 0.16)",
+    "shadow": "4px 4px 0px #ffbe0b,8px 8px 0px #3a86ff"
+   },
+   "shape": {
+    "radius": 4,
+    "borderWidth": 4
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "medieval-manuscript",
+   "name": "中世纪手抄本",
+   "nameEn": "Medieval Manuscript",
+   "category": "retro",
+   "description": "中世纪泥金手抄本风格，花体首字母、羊皮纸质感、金色与深红装饰性边框。哥特式黑体字与插画元素相结合。",
+   "dark": false,
+   "accents": [
+    "#c9a74e",
+    "#2d4a2d",
+    "#3d2b1f",
+    "#6bc15e"
+   ],
+   "palette": {
+    "bg": "#f0e6d0",
+    "bgRail": "#e2d8c4",
+    "panel": "#f9f6ed",
+    "panel2": "#e4dac6",
+    "panel3": "#dad1bd",
+    "border": "#c9a74e",
+    "borderSoft": "#dbc388",
+    "borderStrong": "#c9a74e",
+    "text": "#8b1a1a",
+    "textDim": "#ad5f58",
+    "textFaint": "#c38a7e",
+    "accent": "#3d2b1f",
+    "accentSoft": "rgba(61, 43, 31, 0.16)",
+    "shadow": "2px 2px 0px #3d2b1f"
+   },
+   "shape": {
+    "radius": 4,
+    "borderWidth": 4
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "graffiti-street",
+   "name": "涂鸦街头",
+   "nameEn": "Graffiti Street",
+   "category": "expressive",
+   "description": "街头涂鸦艺术风格，喷漆质感、大胆的撞色、手写体标签、砖墙背景。都市文化与反叛精神的视觉表达。",
+   "dark": true,
+   "accents": [
+    "#00e5ff",
+    "#ffea00",
+    "#b620e0",
+    "#ff6d00"
+   ],
+   "palette": {
+    "bg": "#1c1c1e",
+    "bgRail": "#171719",
+    "panel": "#2a2a2c",
+    "panel2": "#333334",
+    "panel3": "#3e3e40",
+    "border": "#ff2d55",
+    "borderSoft": "#99253c",
+    "borderStrong": "#ff2d55",
+    "text": "#eceff6",
+    "textDim": "#a5a7ad",
+    "textFaint": "#7a7b7f",
+    "accent": "#ffea00",
+    "accentSoft": "rgba(255, 234, 0, 0.16)",
+    "shadow": "4px 4px 0px #00e5ff"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 4
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "marble-luxury",
+   "name": "大理石奢华",
+   "nameEn": "Marble Luxury",
+   "category": "modern",
+   "description": "大理石纹理与金色装饰的高端设计风格，白色大理石质感背景、金色线条分隔、黑色文字。适合奢侈品牌、酒店、高端地产。",
+   "dark": false,
+   "accents": [
+    "#c9a96e",
+    "#8a7968",
+    "#e8e0d6",
+    "#85bd73"
+   ],
+   "palette": {
+    "bg": "#f8f6f3",
+    "bgRail": "#e9e7e4",
+    "panel": "#fcfcfa",
+    "panel2": "#eceae7",
+    "panel3": "#e2e0dd",
+    "border": "#c9a96e",
+    "borderSoft": "#deccaa",
+    "borderStrong": "#c9a96e",
+    "text": "#1a1a1a",
+    "textDim": "#656564",
+    "textFaint": "#949391",
+    "accent": "#8a7968",
+    "accentSoft": "rgba(138, 121, 104, 0.16)",
+    "shadow": "0 2px 20px rgba(0,0,0,0.04)"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "victorian-botanical",
+   "name": "维多利亚植物",
+   "nameEn": "Victorian Botanical",
+   "category": "retro",
+   "description": "维多利亚时代植物学插画风格，精细的线描植物、花卉纹饰、自然历史博物馆的优雅。暗绿与金色的经典搭配。",
+   "dark": false,
+   "accents": [
+    "#8b6914",
+    "#6b3a3a",
+    "#3d5c3d",
+    "#308323"
+   ],
+   "palette": {
+    "bg": "#faf5ef",
+    "bgRail": "#ebe6e1",
+    "panel": "#fdfbf9",
+    "panel2": "#eee9e3",
+    "panel3": "#e4dfd9",
+    "border": "#2d4a2d",
+    "borderSoft": "#899784",
+    "borderStrong": "#2d4a2d",
+    "text": "#2d4a2d",
+    "textDim": "#73846f",
+    "textFaint": "#9ea898",
+    "accent": "#6b3a3a",
+    "accentSoft": "rgba(107, 58, 58, 0.16)",
+    "shadow": "0 2px 8px rgba(45,74,45,0.1)"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "cubism",
+   "name": "立体主义",
+   "nameEn": "Cubism",
+   "category": "expressive",
+   "description": "毕加索和布拉克的立体主义运动，几何碎片化构图、多视角叠加、棱角分明的形状与沉稳的大地色调。",
+   "dark": false,
+   "accents": [
+    "#8b7355",
+    "#3d5c6e",
+    "#9b3d25",
+    "#647f53"
+   ],
+   "palette": {
+    "bg": "#e8dcc8",
+    "bgRail": "#dacfbc",
+    "panel": "#f6f2ea",
+    "panel2": "#dcd1be",
+    "panel3": "#d3c8b6",
+    "border": "#5c4033",
+    "borderSoft": "#9b8676",
+    "borderStrong": "#5c4033",
+    "text": "#5c4033",
+    "textDim": "#8c7566",
+    "textFaint": "#a99685",
+    "accent": "#9b3d25",
+    "accentSoft": "rgba(155, 61, 37, 0.16)",
+    "shadow": "6px 6px 0px #5c4033"
+   },
+   "shape": {
+    "radius": 4,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "tropical-paradise",
+   "name": "热带天堂",
+   "nameEn": "Tropical Paradise",
+   "category": "modern",
+   "description": "热带度假风设计，棕榈叶、鲜艳花卉色彩、阳光沙滩的明快基调。适合旅游、度假村、生活方式和餐饮品牌。",
+   "dark": false,
+   "accents": [
+    "#ff6f61",
+    "#ffc107",
+    "#4caf50",
+    "#a09314"
+   ],
+   "palette": {
+    "bg": "#fffde7",
+    "bgRail": "#f0eed9",
+    "panel": "#fffef6",
+    "panel2": "#f2f0db",
+    "panel3": "#e8e6d2",
+    "border": "#00897b",
+    "borderSoft": "#73bdac",
+    "borderStrong": "#00897b",
+    "text": "#00897b",
+    "textDim": "#57b0a0",
+    "textFaint": "#8cc9b6",
+    "accent": "#a09314",
+    "accentSoft": "rgba(160, 147, 20, 0.16)",
+    "shadow": "0 4px 20px rgba(0,137,123,0.12)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "github-style",
+   "name": "GitHub 风格",
+   "nameEn": "GitHub Style",
+   "category": "modern",
+   "description": "GitHub设计语言风格，简洁的界面层次、柔和的灰度系统、蓝色交互色、等宽代码字体与开发者友好的信息架构。",
+   "dark": false,
+   "accents": [
+    "#1f883d",
+    "#9a6700",
+    "#cf222e",
+    "#1d7f98"
+   ],
+   "palette": {
+    "bg": "#ffffff",
+    "bgRail": "#f0f0f0",
+    "panel": "#ffffff",
+    "panel2": "#f2f2f2",
+    "panel3": "#e8e8e8",
+    "border": "#d0d7de",
+    "borderSoft": "#e5e9ed",
+    "borderStrong": "#d0d7de",
+    "text": "#0969da",
+    "textDim": "#5d9ce7",
+    "textFaint": "#90bcee",
+    "accent": "#9a6700",
+    "accentSoft": "rgba(154, 103, 0, 0.16)",
+    "shadow": "0 1px 3px rgba(27,31,36,0.12)"
+   },
+   "shape": {
+    "radius": 8,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "witchcore",
+   "name": "巫术核心",
+   "nameEn": "Witchcore",
+   "category": "expressive",
+   "description": "神秘学美学风格，塔罗牌、月相符号、水晶与草药元素。深紫色调搭配金色神秘符文，暗色背景上闪烁的星尘效果。",
+   "dark": true,
+   "accents": [
+    "#c9a74e",
+    "#7b68ae",
+    "#3d8b6e",
+    "#6bc15e"
+   ],
+   "palette": {
+    "bg": "#0d0b14",
+    "bgRail": "#0b0910",
+    "panel": "#1c1a22",
+    "panel2": "#25232c",
+    "panel3": "#313037",
+    "border": "#c9a74e",
+    "borderSoft": "#746134",
+    "borderStrong": "#c9a74e",
+    "text": "#eceff6",
+    "textDim": "#a0a1a9",
+    "textFaint": "#71727a",
+    "accent": "#6bc15e",
+    "accentSoft": "rgba(107, 193, 94, 0.16)",
+    "shadow": "0 4px 16px rgba(13,11,20,0.7)"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "neon-tokyo",
+   "name": "霓虹东京",
+   "nameEn": "Neon Tokyo",
+   "category": "modern",
+   "description": "东京歌舞伎町霓虹夜景风格，湿润的街道倒影、叠层霓虹招牌、赛博朋克城市夜色。不同于cyberpunk-neon的科幻感，更偏向真实都市夜景。",
+   "dark": true,
+   "accents": [
+    "#00f0ff",
+    "#ff6b00",
+    "#bc13fe",
+    "#97b6ff"
+   ],
+   "palette": {
+    "bg": "#0a0a1a",
+    "bgRail": "#080815",
+    "panel": "#191928",
+    "panel2": "#222231",
+    "panel3": "#2f2f3c",
+    "border": "#ff1493",
+    "borderSoft": "#91105d",
+    "borderStrong": "#ff1493",
+    "text": "#eceff6",
+    "textDim": "#9fa1ab",
+    "textFaint": "#70717d",
+    "accent": "#00f0ff",
+    "accentSoft": "rgba(0, 240, 255, 0.16)",
+    "shadow": "0 0 15px rgba(255,20,147,0.3)"
+   },
+   "shape": {
+    "radius": 4,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "paper-craft",
+   "name": "纸艺手作",
+   "nameEn": "Paper Craft",
+   "category": "expressive",
+   "description": "纸艺与剪纸风格，层叠纸张效果、柔和阴影暗示深度、手作质感边缘。适合儿童品牌、教育产品、创意工作室。",
+   "dark": false,
+   "accents": [
+    "#5cb8a5",
+    "#f5c040",
+    "#6b7fb5",
+    "#81a7e2"
+   ],
+   "palette": {
+    "bg": "#fdf6ee",
+    "bgRail": "#eee7e0",
+    "panel": "#fefcf9",
+    "panel2": "#f0eae2",
+    "panel3": "#e6e0d9",
+    "border": "#e0d8cc",
+    "borderSoft": "#ede6db",
+    "borderStrong": "#e0d8cc",
+    "text": "#e85d75",
+    "textDim": "#ef919e",
+    "textFaint": "#f4b1b8",
+    "accent": "#6b7fb5",
+    "accentSoft": "rgba(107, 127, 181, 0.16)",
+    "shadow": "4px 4px 0px rgba(0,0,0,0.08)"
+   },
+   "shape": {
+    "radius": 16,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "blueprint",
+   "name": "工程蓝图",
+   "nameEn": "Blueprint",
+   "category": "minimal",
+   "description": "工程蓝图与技术图纸风格，蓝底白线、网格坐标、标注线和尺寸标记。适合建筑、工程、科技和教育领域。",
+   "dark": true,
+   "accents": [
+    "#4a90d9",
+    "#ff6b35",
+    "#a0c4e8",
+    "#b071e4"
+   ],
+   "palette": {
+    "bg": "#1e3a5f",
+    "bgRail": "#19304e",
+    "panel": "#2c4669",
+    "panel2": "#344e6f",
+    "panel3": "#405877",
+    "border": "#ffffff",
+    "borderSoft": "#9aa6b7",
+    "borderStrong": "#ffffff",
+    "text": "#ffffff",
+    "textDim": "#b2bcc9",
+    "textFaint": "#8393a7",
+    "accent": "#a0c4e8",
+    "accentSoft": "rgba(160, 196, 232, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "dopamine-design",
+   "name": "多巴胺设计",
+   "nameEn": "Dopamine Design",
+   "category": "expressive",
+   "description": "高饱和度霓虹配色、大胆排版、充满能量感的视觉冲击力。2025-2026 年度设计趋势，用色彩直接刺激多巴胺分泌，让界面充满快乐和兴奋。",
+   "dark": true,
+   "accents": [
+    "#ffbe0b",
+    "#3a86ff",
+    "#06d6a0",
+    "#fb5607"
+   ],
+   "palette": {
+    "bg": "#8338ec",
+    "bgRail": "#6b2ec2",
+    "panel": "#8a44ed",
+    "panel2": "#8f4cee",
+    "panel3": "#9656ef",
+    "border": "#ff006e",
+    "borderSoft": "#c719a7",
+    "borderStrong": "#ff006e",
+    "text": "#eceff6",
+    "textDim": "#c8b1f3",
+    "textFaint": "#b28af0",
+    "accent": "#ffbe0b",
+    "accentSoft": "rgba(255, 190, 11, 0.16)",
+    "shadow": "0 8px 30px rgba(255,0,110,0.4)"
+   },
+   "shape": {
+    "radius": 26,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "linear-style",
+   "name": "Linear 风格",
+   "nameEn": "Linear Style",
+   "category": "minimal",
+   "description": "受 Linear 应用启发的极简暗色设计风格。精确的排版、克制的动效、开发者审美的极致表达。深色背景配合微妙的渐变和精细的边框。",
+   "dark": true,
+   "accents": [
+    "#f2c94c",
+    "#27ae60",
+    "#eb5757",
+    "#2d9cdb"
+   ],
+   "palette": {
+    "bg": "#0a0a0b",
+    "bgRail": "#080809",
+    "panel": "#19191a",
+    "panel2": "#222223",
+    "panel3": "#2f2f30",
+    "border": "#ffffff",
+    "borderSoft": "#919191",
+    "borderStrong": "#ffffff",
+    "text": "#eceff6",
+    "textDim": "#9fa1a6",
+    "textFaint": "#707175",
+    "accent": "#f2c94c",
+    "accentSoft": "rgba(242, 201, 76, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "shopify-clean",
+   "name": "清爽电商",
+   "nameEn": "Shopify Clean",
+   "category": "modern",
+   "description": "面向独立电商站的干净现代风格，以产品为核心，清晰的价格层级和流畅的购物转化路径。",
+   "dark": false,
+   "accents": [
+    "#008060",
+    "#1a1a1a",
+    "#e3e3e3",
+    "#ffd700"
+   ],
+   "palette": {
+    "bg": "#f7f7f8",
+    "bgRail": "#e8e8e9",
+    "panel": "#fcfcfc",
+    "panel2": "#ebebec",
+    "panel3": "#e1e1e2",
+    "border": "#e3e3e3",
+    "borderSoft": "#ececec",
+    "borderStrong": "#e3e3e3",
+    "text": "#20242d",
+    "textDim": "#696c72",
+    "textFaint": "#96989d",
+    "accent": "#1a1a1a",
+    "accentSoft": "rgba(26, 26, 26, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "luxury-retail",
+   "name": "奢品零售",
+   "nameEn": "Luxury Retail",
+   "category": "modern",
+   "description": "高端零售与奢侈品牌风格，大面积留白搭配衬线字体，金色与大理石质感传递尊贵感。",
+   "dark": true,
+   "accents": [
+    "#c9a96e",
+    "#8b7355",
+    "#e8e0d4",
+    "#2c2c2c"
+   ],
+   "palette": {
+    "bg": "#1a1a1a",
+    "bgRail": "#151515",
+    "panel": "#282828",
+    "panel2": "#313131",
+    "panel3": "#3c3c3c",
+    "border": "#e8e0d4",
+    "borderSoft": "#8b8780",
+    "borderStrong": "#e8e0d4",
+    "text": "#faf9f6",
+    "textDim": "#aeadab",
+    "textFaint": "#7f7e7d",
+    "accent": "#e8e0d4",
+    "accentSoft": "rgba(232, 224, 212, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 4,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "fresh-market",
+   "name": "鲜活市集",
+   "nameEn": "Fresh Market",
+   "category": "modern",
+   "description": "面向食品生鲜与有机品牌的电商风格，暖色调圆润卡片搭配自然纹理，传递新鲜与信任。",
+   "dark": true,
+   "accents": [
+    "#e8722a",
+    "#f5c542",
+    "#8b4513",
+    "#d4e4bc"
+   ],
+   "palette": {
+    "bg": "#2d5016",
+    "bgRail": "#254212",
+    "panel": "#3a5a24",
+    "panel2": "#42622d",
+    "panel3": "#4c6a39",
+    "border": "#d4e4bc",
+    "borderSoft": "#89a171",
+    "borderStrong": "#d4e4bc",
+    "text": "#fef9f0",
+    "textDim": "#b7c0a6",
+    "textFaint": "#8b9c78",
+    "accent": "#d4e4bc",
+    "accentSoft": "rgba(212, 228, 188, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.24)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "data-dense",
+   "name": "数据密集",
+   "nameEn": "Data Dense",
+   "category": "modern",
+   "description": "高密度后台管理面板风格，紧凑间距与小尺寸组件，优先展示数据表格与操作效率。",
+   "dark": false,
+   "accents": [
+    "#3b82f6",
+    "#ef4444",
+    "#22c55e",
+    "#64748b"
+   ],
+   "palette": {
+    "bg": "#f8fafc",
+    "bgRail": "#e9ebed",
+    "panel": "#fcfdfe",
+    "panel2": "#eceeef",
+    "panel3": "#e2e4e5",
+    "border": "#e2e8f0",
+    "borderSoft": "#ecf0f5",
+    "borderStrong": "#e2e8f0",
+    "text": "#20242d",
+    "textDim": "#696d73",
+    "textFaint": "#979a9f",
+    "accent": "#64748b",
+    "accentSoft": "rgba(100, 116, 139, 0.16)",
+    "shadow": "0 2px 6px rgba(0,0,0,0.18)"
+   },
+   "shape": {
+    "radius": 6,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "oversized-typography",
+   "name": "超大字体排版",
+   "nameEn": "Oversized Typography",
+   "category": "expressive",
+   "description": "2026 年作品集网站头号趋势——文字即布局。姓名与标题以视口级 fluid clamp() 巨字充当 hero 和视觉主体，图像退居次要，黑白底色配唯一国际橙强调。",
+   "dark": false,
+   "accents": [
+    "#ff4d00",
+    "#71717a",
+    "#e4e4e7",
+    "#18181b"
+   ],
+   "palette": {
+    "bg": "#fafaf8",
+    "bgRail": "#ebebe9",
+    "panel": "#fdfdfc",
+    "panel2": "#eeeeec",
+    "panel3": "#e4e4e2",
+    "border": "#0a0a0a",
+    "borderSoft": "#767675",
+    "borderStrong": "#0a0a0a",
+    "text": "#0a0a0a",
+    "textDim": "#5c5c5b",
+    "textFaint": "#8e8e8d",
+    "accent": "#18181b",
+    "accentSoft": "rgba(24, 24, 27, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "developer-terminal",
+   "name": "终端风",
+   "nameEn": "Developer Terminal",
+   "category": "modern",
+   "description": "把网站做成一场终端会话：荧光绿 mono 文字、prompt 前缀、命令与输出的成对结构、tmux 状态栏，用工具的真实感表达开发者身份。",
+   "dark": true,
+   "accents": [
+    "#8be9fd",
+    "#ff79c6",
+    "#ffb86c",
+    "#6272a4"
+   ],
+   "palette": {
+    "bg": "#0a0e12",
+    "bgRail": "#080b0f",
+    "panel": "#191c20",
+    "panel2": "#22262a",
+    "panel3": "#2f3236",
+    "border": "#1f2937",
+    "borderSoft": "#161d26",
+    "borderStrong": "#1f2937",
+    "text": "#4af626",
+    "textDim": "#34a71f",
+    "textFaint": "#27761b",
+    "accent": "#8be9fd",
+    "accentSoft": "rgba(139, 233, 253, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 4,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "horizontal-gallery",
+   "name": "横滚画廊",
+   "nameEn": "Horizontal Gallery",
+   "category": "minimal",
+   "description": "白盒美术馆式的横向滚动作品集布局，无边框大图沿水平展线依次排开，留白即展墙，编号与极细图注还原策展语言，观看是一场步行。",
+   "dark": false,
+   "accents": [
+    "#a85a3a",
+    "#8a8a85",
+    "#e8e6e1",
+    "#2e2e2c"
+   ],
+   "palette": {
+    "bg": "#fcfcfa",
+    "bgRail": "#ededeb",
+    "panel": "#fefefd",
+    "panel2": "#efefee",
+    "panel3": "#e5e5e4",
+    "border": "#e8e6e1",
+    "borderSoft": "#f1f0ec",
+    "borderStrong": "#e8e6e1",
+    "text": "#1a1a1a",
+    "textDim": "#676766",
+    "textFaint": "#969695",
+    "accent": "#2e2e2c",
+    "accentSoft": "rgba(46, 46, 44, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "latex-paper",
+   "name": "论文排版风",
+   "nameEn": "LaTeX Paper",
+   "category": "minimal",
+   "description": "把 LaTeX 学术论文的排版语言搬到网页：Computer Modern 字感、居中标题与 Abstract、层级编号小节、定理环境、编号公式、booktabs 表格与悬挂缩进参考文献。适合研究主页、课程讲义与学术型作品集。",
+   "dark": false,
+   "accents": [
+    "#0b5394",
+    "#f5f5f0",
+    "#6b6b66",
+    "#d4d4d0"
+   ],
+   "palette": {
+    "bg": "#ffffff",
+    "bgRail": "#f0f0f0",
+    "panel": "#ffffff",
+    "panel2": "#f2f2f2",
+    "panel3": "#e8e8e8",
+    "border": "#d4d4d0",
+    "borderSoft": "#e7e7e5",
+    "borderStrong": "#d4d4d0",
+    "text": "#111111",
+    "textDim": "#626262",
+    "textFaint": "#949494",
+    "accent": "#0b5394",
+    "accentSoft": "rgba(11, 83, 148, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "distill-style",
+   "name": "学术科普风",
+   "nameEn": "Distill Style",
+   "category": "minimal",
+   "description": "以 Distill.pub 为原型的学术科普设计语言：窄列 serif 正文承载论证，边注承载旁白，图表突破版心承载证据。适合科普博客、研究者主页与学术型作品集。",
+   "dark": false,
+   "accents": [
+    "#2a7ae2",
+    "#e4572e",
+    "#6b7280",
+    "#f3f4f6"
+   ],
+   "palette": {
+    "bg": "#ffffff",
+    "bgRail": "#f0f0f0",
+    "panel": "#ffffff",
+    "panel2": "#f2f2f2",
+    "panel3": "#e8e8e8",
+    "border": "#e5e7eb",
+    "borderSoft": "#f1f2f4",
+    "borderStrong": "#e5e7eb",
+    "text": "#1f2933",
+    "textDim": "#6b7278",
+    "textFaint": "#9a9fa3",
+    "accent": "#2a7ae2",
+    "accentSoft": "rgba(42, 122, 226, 0.16)",
+    "shadow": "0 2px 6px rgba(0,0,0,0.18)"
+   },
+   "shape": {
+    "radius": 8,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "studio-bold",
+   "name": "创意工作室风",
+   "nameEn": "Creative Studio",
+   "category": "modern",
+   "description": "一种大胆、自信的作品集风格，适合设计工作室、创意机构与自由职业者。超大标题、色彩碰撞、丰富悬停态、客户徽标墙与团队网格——专业但不刻板，充满个性。",
+   "dark": false,
+   "accents": [
+    "#ff6b6b",
+    "#f5f5f0",
+    "#333333",
+    "#0d0d0d"
+   ],
+   "palette": {
+    "bg": "#ffffff",
+    "bgRail": "#f0f0f0",
+    "panel": "#ffffff",
+    "panel2": "#f2f2f2",
+    "panel3": "#e8e8e8",
+    "border": "#ffffff",
+    "borderSoft": "#ffffff",
+    "borderStrong": "#ffffff",
+    "text": "#1a1a1a",
+    "textDim": "#686868",
+    "textFaint": "#989898",
+    "accent": "#0d0d0d",
+    "accentSoft": "rgba(13, 13, 13, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 2
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "gallery-dark",
+   "name": "暗色画廊风",
+   "nameEn": "Dark Gallery",
+   "category": "minimal",
+   "description": "暗色调摄影画廊作品集风格：近黑背景让全出血图片成为绝对主角，温琥珀色点缀无信息，超轻极简排版安静退后。适合摄影师、电影人、视觉艺术家的作品展示。",
+   "dark": false,
+   "accents": [
+    "#c4956a",
+    "#ffffff",
+    "#2a2a2a",
+    "#1a1a1a"
+   ],
+   "palette": {
+    "bg": "#ffffff",
+    "bgRail": "#f0f0f0",
+    "panel": "#ffffff",
+    "panel2": "#f2f2f2",
+    "panel3": "#e8e8e8",
+    "border": "#2a2a2a",
+    "borderSoft": "#8a8a8a",
+    "borderStrong": "#2a2a2a",
+    "text": "#0a0a0a",
+    "textDim": "#5d5d5d",
+    "textFaint": "#919191",
+    "accent": "#1a1a1a",
+    "accentSoft": "rgba(26, 26, 26, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 4,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "warm-organic",
+   "name": "暖感有机风",
+   "nameEn": "Warm Organic",
+   "category": "minimal",
+   "description": "温暖的自然主义作品集风格：陶土与黏土色系、天然质感、柔和阴影与有机曲线。为建筑师、室内设计师、产品设计师、陶瓷艺术家与景观设计师而设计。设计本身像手工制作——仿佛印在了纹理纸上。",
+   "dark": false,
+   "accents": [
+    "#c86a4a",
+    "#7a8b5e",
+    "#d4bfa5",
+    "#e8ded1"
+   ],
+   "palette": {
+    "bg": "#f5f0eb",
+    "bgRail": "#e6e2dd",
+    "panel": "#fbf9f7",
+    "panel2": "#e9e4df",
+    "panel3": "#dfdad6",
+    "border": "#d4bfa5",
+    "borderSoft": "#e3d5c4",
+    "borderStrong": "#d4bfa5",
+    "text": "#2d2a24",
+    "textDim": "#716d68",
+    "textFaint": "#9b9791",
+    "accent": "#c86a4a",
+    "accentSoft": "rgba(200, 106, 74, 0.16)",
+    "shadow": "0 4px 20px -4px rgba(45,42,36,0.10)"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "launch-keynote",
+   "name": "发布会主题",
+   "nameEn": "Launch Keynote",
+   "category": "modern",
+   "description": "苹果发布会式的产品揭幕美学：纯黑舞台、发光产品、超大紧字距标题、唯一电蓝强调。招牌技法是滚动逐帧序列——一个 sticky 画布随滚动播放预渲染的产品动画，一屏一产品一句话，像万亿市值的产品页。",
+   "dark": false,
+   "accents": [
+    "#2997ff",
+    "#1d1d1f",
+    "#86868b"
+   ],
+   "palette": {
+    "bg": "#f5f5f7",
+    "bgRail": "#e6e6e8",
+    "panel": "#fbfbfc",
+    "panel2": "#e9e9eb",
+    "panel3": "#dfdfe1",
+    "border": "#ffffff",
+    "borderSoft": "#fafafb",
+    "borderStrong": "#ffffff",
+    "text": "#000000",
+    "textDim": "#535354",
+    "textFaint": "#878788",
+    "accent": "#1d1d1f",
+    "accentSoft": "rgba(29, 29, 31, 0.16)",
+    "shadow": "0 12px 40px rgba(0,0,0,0.7)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "luxe-lookbook",
+   "name": "奢华画册",
+   "nameEn": "Luxe Lookbook",
+   "category": "expressive",
+   "description": "时装屋数字旗舰的高级定制美学：瓷白底、墨黑字、一支哑光金；超大高对比 Didone 衬线做标题，通栏丝绸动态视频首屏，画册网格悬停揭图。留白即奢侈，克制即高级，数字如艺术品——像一家敢为一件大衣标价四千欧元的时装屋。",
+   "dark": false,
+   "accents": [
+    "#9a7b4f",
+    "#e8e3db",
+    "#6b6259"
+   ],
+   "palette": {
+    "bg": "#f7f5f1",
+    "bgRail": "#e8e6e3",
+    "panel": "#fcfbfa",
+    "panel2": "#ebe9e5",
+    "panel3": "#e1dfdb",
+    "border": "#141210",
+    "borderSoft": "#7a7875",
+    "borderStrong": "#141210",
+    "text": "#141210",
+    "textDim": "#615f5d",
+    "textFaint": "#918f8c",
+    "accent": "#6b6259",
+    "accentSoft": "rgba(107, 98, 89, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "shader-gradient",
+   "name": "着色器渐变",
+   "nameEn": "Shader Gradient",
+   "category": "modern",
+   "description": "以实时 WebGL 片元着色器驱动的流动网格渐变作背景的高端 SaaS 美学。近黑画布上一层缓慢呼吸的虹彩渐变场，冻毛玻璃内容面板悬浮其上，干净现代无衬线配一支明亮强调色——Stripe / Linear / Vercel 首屏的活体渐变。",
+   "dark": false,
+   "accents": [
+    "#7c5cff",
+    "#22d3ee",
+    "#f472b6"
+   ],
+   "palette": {
+    "bg": "#edeef2",
+    "bgRail": "#dfe0e3",
+    "panel": "#f8f9fa",
+    "panel2": "#e1e2e6",
+    "panel3": "#d8d9dc",
+    "border": "#ffffff",
+    "borderSoft": "#f7f7f9",
+    "borderStrong": "#ffffff",
+    "text": "#08090d",
+    "textDim": "#56575b",
+    "textFaint": "#86878b",
+    "accent": "#7c5cff",
+    "accentSoft": "rgba(124, 92, 255, 0.16)",
+    "shadow": "0 20px 60px rgba(0,0,0,0.45)"
+   },
+   "shape": {
+    "radius": 20,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "pastel-ui",
+   "name": "粉彩应用风",
+   "nameEn": "Pastel App UI",
+   "category": "modern",
+   "description": "为手机应用设计的温柔粉彩界面，以暖奶油底色、淡紫、薄荷绿和珊瑚色建立轻松但清晰的社区与内容体验。",
+   "dark": false,
+   "accents": [
+    "#d9c7ff",
+    "#cbefdf",
+    "#ffe49a",
+    "#ffb5a7"
+   ],
+   "palette": {
+    "bg": "#fff8f0",
+    "bgRail": "#f0e9e2",
+    "panel": "#fffcf9",
+    "panel2": "#f2ece4",
+    "panel3": "#e8e2da",
+    "border": "#66508f",
+    "borderSoft": "#ab9cbb",
+    "borderStrong": "#66508f",
+    "text": "#66508f",
+    "textDim": "#9a89b0",
+    "textFaint": "#baacc4",
+    "accent": "#ffb5a7",
+    "accentSoft": "rgba(255, 181, 167, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "mobile-editorial",
+   "name": "移动编辑风",
+   "nameEn": "Mobile Editorial",
+   "category": "minimal",
+   "description": "把杂志排版的节奏压缩进手机屏幕，用衬线标题、暖纸张背景和模块化内容卡片打造有内容感的 App。",
+   "dark": false,
+   "accents": [
+    "#e97b61",
+    "#c5d8c1",
+    "#e9d7a9",
+    "#d7c4e8"
+   ],
+   "palette": {
+    "bg": "#fffdf8",
+    "bgRail": "#f0eee9",
+    "panel": "#fffefc",
+    "panel2": "#f2f0ec",
+    "panel3": "#e8e6e2",
+    "border": "#24211f",
+    "borderSoft": "#878481",
+    "borderStrong": "#24211f",
+    "text": "#24211f",
+    "textDim": "#6e6c69",
+    "textFaint": "#9c9a96",
+    "accent": "#e97b61",
+    "accentSoft": "rgba(233, 123, 97, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 8,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "soft-utility",
+   "name": "柔和工具风",
+   "nameEn": "Soft Utility",
+   "category": "modern",
+   "description": "面向高频使用的手机工具 App，使用浅色背景、清晰状态色和柔和层级，在效率与亲和力之间取得平衡。",
+   "dark": false,
+   "accents": [
+    "#a9d8cc",
+    "#f3c98b",
+    "#e6b7b0",
+    "#b8c9ed"
+   ],
+   "palette": {
+    "bg": "#f4f8f6",
+    "bgRail": "#e5e9e7",
+    "panel": "#fbfcfc",
+    "panel2": "#e8ecea",
+    "panel3": "#dee2e0",
+    "border": "#2d5b63",
+    "borderSoft": "#87a2a5",
+    "borderStrong": "#2d5b63",
+    "text": "#2d5b63",
+    "textDim": "#719095",
+    "textFaint": "#9ab1b4",
+    "accent": "#e6b7b0",
+    "accentSoft": "rgba(230, 183, 176, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 12,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "quantized-line-field",
+   "name": "量化线场",
+   "nameEn": "Quantized Line Field",
+   "category": "expressive",
+   "description": "把图形的明暗转换成四档竖线，用轻柔流动、弹簧位移和网格检测框，让品牌标志成为可探索的交互视觉。",
+   "dark": false,
+   "accents": [
+    "#2152e7",
+    "#c2dcff",
+    "#ec353e",
+    "#267dff"
+   ],
+   "palette": {
+    "bg": "#fafaf8",
+    "bgRail": "#ebebe9",
+    "panel": "#fdfdfc",
+    "panel2": "#eeeeec",
+    "panel3": "#e4e4e2",
+    "border": "#d9dbd5",
+    "borderSoft": "#e8e9e5",
+    "borderStrong": "#d9dbd5",
+    "text": "#202220",
+    "textDim": "#6a6b69",
+    "textFaint": "#989997",
+    "accent": "#2152e7",
+    "accentSoft": "rgba(33, 82, 231, 0.16)",
+    "shadow": "0 8px 24px rgba(0,0,0,0.12)"
+   },
+   "shape": {
+    "radius": 8,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "diffraction-foil",
+   "name": "镭射箔",
+   "nameEn": "Diffraction Foil",
+   "category": "expressive",
+   "description": "按衍射光栅实时算颜色的镭射烫印箔：指针是一盏灯，彩虹以灯为圆心扫过每个元素，银底、星芒、碎钻和幻彩都是不同的刻槽排布。",
+   "dark": false,
+   "accents": [
+    "#ff5ab8",
+    "#ffd36b",
+    "#4fe0b4",
+    "#5aa8ff",
+    "#a98bff"
+   ],
+   "palette": {
+    "bg": "#f7f8fa",
+    "bgRail": "#e8e9eb",
+    "panel": "#fcfcfd",
+    "panel2": "#ebecee",
+    "panel3": "#e1e2e4",
+    "border": "#ffffff",
+    "borderSoft": "#fbfcfd",
+    "borderStrong": "#ffffff",
+    "text": "#0c0b10",
+    "textDim": "#5c5c60",
+    "textFaint": "#8d8d91",
+    "accent": "#ff5ab8",
+    "accentSoft": "rgba(255, 90, 184, 0.16)",
+    "shadow": "0 16px 32px -18px rgba(0,0,0,0.85)"
+   },
+   "shape": {
+    "radius": 16,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  },
+  {
+   "slug": "e-ink",
+   "name": "电子纸",
+   "nameEn": "E-Ink",
+   "category": "modern",
+   "description": "以暖纸白、墨色字级和克制的点阵纹理整理信息密度。保留纸张式的安静节奏，同时让数字、状态和导航在低色阶下仍然清楚。",
+   "dark": false,
+   "accents": [
+    "#555750",
+    "#bab9b0",
+    "#e6e4da"
+   ],
+   "palette": {
+    "bg": "#f5f3ea",
+    "bgRail": "#e6e4dc",
+    "panel": "#fbfaf7",
+    "panel2": "#e9e7de",
+    "panel3": "#dfddd5",
+    "border": "#bab9b0",
+    "borderSoft": "#d5d3ca",
+    "borderStrong": "#bab9b0",
+    "text": "#20211e",
+    "textDim": "#686863",
+    "textFaint": "#95948e",
+    "accent": "#555750",
+    "accentSoft": "rgba(85, 87, 80, 0.16)",
+    "shadow": "none"
+   },
+   "shape": {
+    "radius": 0,
+    "borderWidth": 1
+   },
+   "source": "stylekit"
+  }
+ ]
+}

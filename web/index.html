@@ -6,11 +6,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>聊天信息工作台</title>
     <script>
-      // 首屏前先把主题贴上，避免闪一下白
-      try {
-        var t = localStorage.getItem('chatwork.theme')
-        if (t) document.documentElement.setAttribute('data-theme', t)
-      } catch (e) {}
+      // 首屏防闪：把上次使用的外观直接贴成 CSS 变量（与 lib/themes.js 等价）
+      ;(function () {
+        try {
+          var raw = localStorage.getItem('chatwork.palette')
+          if (!raw) return
+          var t = JSON.parse(raw)
+          if (!t || !t.palette) return
+          var p = t.palette
+          var s = t.shape || {}
+          var radius = s.radius == null ? 12 : s.radius
+          var vars = {
+            '--bg': p.bg,
+            '--bg-rail': p.bgRail || p.bg,
+            '--panel': p.panel,
+            '--panel-2': p.panel2,
+            '--panel-3': p.panel3,
+            '--border': p.border,
+            '--border-soft': p.borderSoft,
+            '--text': p.text,
+            '--text-dim': p.textDim,
+            '--text-faint': p.textFaint,
+            '--accent': p.accent,
+            '--accent-soft': p.accentSoft,
+            '--shadow': p.shadow,
+            '--shadow-sm': p.shadow,
+            '--radius': radius + 'px',
+            '--radius-lg': (radius ? radius + 4 : 0) + 'px',
+            '--radius-sm': Math.max(2, radius - 4) + 'px',
+            '--border-w': (s.borderWidth == null ? 1 : s.borderWidth) + 'px',
+          }
+          var style = document.documentElement.style
+          for (var k in vars) if (vars[k]) style.setProperty(k, vars[k])
+          document.documentElement.setAttribute('data-theme', 'custom')
+          style.colorScheme = t.dark ? 'dark' : 'light'
+        } catch (e) {}
+      })()
     </script>
   </head>
   <body>

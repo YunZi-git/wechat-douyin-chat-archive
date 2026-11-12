@@ -12,7 +12,7 @@ from typing import Any
 from . import paths
 
 DEFAULTS: dict[str, Any] = {
-    "theme": "dark",
+    "theme": "dark",  # 内置：dark/light/warm/purple；其它为 StyleKit 的 slug
     "density": "comfortable",
     "page_size": 60,
     "timezone_offset": 8,
