@@ -28,6 +28,7 @@ from typing import Any, Callable
 from .. import db, paths
 from .. import voice as voice_mod
 from ..jobs import JobCancelled
+from ..wechat_message import has_revoke_marker, parse_message
 
 Progress = Callable[[dict[str, Any]], None] | None
 
@@ -479,14 +480,26 @@ def import_account(
                             text = _clean_text(text)
 
                             raw_xml = text
-                            if kind == "text" and not text:
-                                kind = "other"
-                            if kind == "share" and text:
-                                title = _share_title(text)
-                                text = title or KIND_LABELS["share"]
-                            # 图片/语音等类型的 message_content 是 XML 或空，别把原始标记露给用户
-                            if kind not in ("text", "share") and text.lstrip().startswith(("<", "{")):
-                                text = ""
+                            parsed = parse_message(local_type, raw_xml)
+                            meta = parsed.get("meta") or {}
+                            if parsed.get("kind") not in (None, "", "other"):
+                                kind = parsed["kind"]
+                                text = parsed.get("text") or KIND_LABELS.get(kind, "")
+                            else:
+                                kind = WECHAT_LOCAL_TYPES.get(local_type, "other")
+                                if kind == "text" and not text:
+                                    kind = "other"
+                                if kind == "share" and text:
+                                    title = _share_title(text)
+                                    text = title or KIND_LABELS["share"]
+                                # 图片/语音等类型的 message_content 是 XML 或空，别把原始标记露给用户
+                                if kind not in ("text", "share") and text.lstrip().startswith(("<", "{")):
+                                    text = ""
+                            # 纯文本的撤回提示（没有 XML）也识别出来
+                            if kind == "system" and has_revoke_marker(text):
+                                kind = "revoke"
+                            if kind == "revoke" and not text:
+                                text = "撤回了一条消息"
 
                             sender = n2i.get(r["real_sender_id"], "") or ""
                             is_self = bool(self_wxid) and sender == self_wxid
@@ -511,9 +524,11 @@ def import_account(
                                 kind=kind,
                                 text=body,
                                 media_path=media_rel,
+                                duration=parsed.get("duration"),
                                 seq=int(r["server_id"] or 0) or None,
                                 extra=json.dumps(
                                     {
+                                        **meta,
                                         "local_type": local_type,
                                         "shard": shard.name,
                                         **_media_meta(kind, raw_xml, r["packed_info_data"]),

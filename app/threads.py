@@ -15,6 +15,8 @@
 """
 from __future__ import annotations
 
+import json
+
 import sqlite3
 from typing import Any, Iterator
 
@@ -214,6 +216,12 @@ def _message_row(row: sqlite3.Row) -> dict[str, Any]:
     item = dict(row)
     item["media_url"] = paths.media_url(item.get("media_path"))
     item.pop("media_path", None)
+    # extra 里是引用块/文件信息/位置等结构化字段，前端直接读 meta
+    raw = item.get("extra")
+    try:
+        item["meta"] = json.loads(raw) if raw else {}
+    except (TypeError, json.JSONDecodeError):
+        item["meta"] = {}
     return item
 
 

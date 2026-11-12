@@ -32,7 +32,7 @@
 | 文本消息 | ✅ | ✅ |
 | 语音播放 | ✅ SILK 按需转 WAV | ✅ mpeg 直出 |
 | 语音转写 | ✅ 旧数据回填 + 腾讯云 + 本地 whisper（批量/重试/自动） | ✅ 抖音原生识别 |
-| 图片 | ✅ 按需解密（需微信缓存） | ✅ |
+| 富消息 | ✅ 引用/合并转发/文件/位置/名片/小程序/视频号/撤回 | 引用文本 |
 | 视频 | ✅ 按需定位（需微信缓存） | ✅（引擎支持，需采集时下载） |
 | 动画表情 | ⚠️ 按需解密，表情包命中率取决于缓存 | ✅ gif/webp 会动 |
 | 群聊 | ✅ 独立会话展示 | ✅ |
@@ -75,7 +75,7 @@
 | `web/src/components/ChatView.vue` | 消息流、会话内搜索、跳转 | |
 | `scripts/make_demo_data.py` | 生成合成演示数据（可 `--import`） | demo 数据全靠它 |
 | `scripts/build_portable.py` | 嵌入式 Python + 依赖 + 启动脚本 | |
-| `tests/` | 107 个 pytest 用例 | 全用合成数据 |
+| `tests/` | 120 个 pytest 用例 | 全用合成数据 |
 
 ---
 
@@ -129,12 +129,18 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 - `include` 直接拼昵称；`exclude` 用本地已知列表减去勾选项
 - 参数在启动任务前同步校验，空选择会直接 400
 
-### 4.3 合并 / 解绑
+### 4.3 微信消息语义解析（`app/wechat_message.py`）
+
+`local_type=49` 的 appmsg 按 `<type>` 拆：6 文件、19 合并转发、57 引用（`<refermsg>`）、
+33/36 小程序、51 视频号、5 链接；42 名片、48 位置、43 视频（时长）、47 表情（md5）、
+10000 撤回。解析结果写进 `messages.extra`，`_message_row` 把它转成 `meta` 给前端。
+
+### 4.4 合并 / 解绑
 
 合并 = 把 `identities` 和 `conversations` 的 `contact_id` 改到主联系人 + 删掉次联系人；
 解绑 = 给指定平台新建一个联系人并迁走。**不动任何消息**。
 
-### 4.4 语音播放
+### 4.5 语音播放
 
 `GET /api/messages/{id}/audio`：
 
@@ -142,7 +148,7 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 - `.silk` → `voice.transcode_silk()`：剥掉 `\x02` 前缀 → pilk 转 16 kHz WAV → 缓存到 `data/media/voice_cache/<id>.wav` → 回填 `messages.duration`
 - 并发安全靠「唯一临时文件 + `os.replace`」
 
-### 4.5 语音识别
+### 4.6 语音识别
 
 统一表 `voice_transcriptions(message_id, engine, status, text, error)`，
 `engine` 取值 `legacy | native_douyin | tencent | local_whisper`。
@@ -155,7 +161,7 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 
 导入完成后如果开了「自动识别」，会再跑一批 pending（最多 200 条）。
 
-### 4.6 微信图片 / 表情 / 视频
+### 4.7 微信图片 / 表情 / 视频
 
 导入时只记 md5（`messages.extra`），显示时按需取：
 
@@ -163,18 +169,18 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 - 视频：`/api/messages/{id}/video` → 在账号目录 `msg/video`、`msg/attach` 里按 md5 找
 - 失败返回 404 + 原因，前端显示占位（不会出现坏图）
 
-### 4.7 导出
+### 4.8 导出
 ### 4.7 导出
 
 `exporters/chatlab.py` 全流式：先写 header/members，再逐条写消息，几十万条也不吃内存。
 语音内容优先用转写文本，没有才写 `[语音 X秒]`。图片内嵌有总量上限（120 MB）。
 
-### 4.8 后台任务
+### 4.9 后台任务
 
 `jobs.start()` 起线程，前端轮询 `/api/jobs/{id}`。
 重任务（解密/采集/导入）共用一把进程内锁，排队时也能取消。
 
-### 4.9 打包
+### 4.10 打包
 
 `scripts/build_portable.py`：
 
@@ -308,7 +314,7 @@ git grep -n -I -E "wxid_[a-z0-9]{10,}|sk-[A-Za-z0-9]{20,}|AKID[A-Za-z0-9]{10,}|C
 ## 10. 验收清单（改完代码跑一遍）
 
 ```bash
-.venv\Scripts\python -m pytest -q          # 107 passed
+.venv\Scripts\python -m pytest -q          # 120 passed
 python scripts/build_portable.py --no-build-web   # 能打包
 ```
 

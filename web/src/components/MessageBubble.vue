@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { fmtTime, initial, avatarColor, PLATFORM_META, kindLabel } from '../lib/format'
+import { fmtTime, fmtBytes, initial, avatarColor, PLATFORM_META, kindLabel } from '../lib/format'
 import Icon from './Icon.vue'
 
 const props = defineProps({
@@ -39,6 +39,13 @@ const isVideo = computed(() => m.value.kind === 'video')
 const voiceText = computed(() => (m.value.transcript || '').trim())
 const audioSrc = computed(() => `/api/messages/${m.value.id}/audio`)
 const hasAudio = computed(() => !!m.value.media_url)
+const meta = computed(() => m.value.meta || {})
+const quote = computed(() => meta.value.quote || null)
+const fileMeta = computed(() => meta.value.file || null)
+const forwardMeta = computed(() => meta.value.forward || null)
+const locMeta = computed(() => meta.value.location || null)
+const cardMeta = computed(() => meta.value.card || null)
+const miniMeta = computed(() => meta.value.miniprogram || null)
 </script>
 
 <template>
@@ -68,6 +75,11 @@ const hasAudio = computed(() => !!m.value.media_url)
         <div v-if="m.reply_to" class="quote">
           <Icon name="link" :size="12" />
           <span>{{ m.reply_to }}</span>
+        </div>
+        <div v-else-if="quote" class="quote">
+          <Icon name="link" :size="12" />
+          <span class="q-sender">{{ quote.sender || '引用' }}：</span>
+          <span>{{ quote.content || '（原消息不可见）' }}</span>
         </div>
 
         <!-- 图片 / 表情 -->
@@ -111,6 +123,51 @@ const hasAudio = computed(() => !!m.value.media_url)
           <span v-else class="faint">{{ m.text || '[视频]' }}</span>
         </template>
 
+        <!-- 文件 -->
+        <template v-else-if="m.kind === 'file'">
+          <span class="file-line">
+            <Icon name="file" :size="15" />
+            <span class="grow file-name">{{ fileMeta?.name || m.text }}</span>
+            <span v-if="fileMeta?.size" class="faint small">{{ fmtBytes(fileMeta.size) }}</span>
+          </span>
+        </template>
+
+        <!-- 合并转发 -->
+        <template v-else-if="m.kind === 'forward'">
+          <div class="forward-card">
+            <div class="f-title"><Icon name="folder" :size="14" /> {{ forwardMeta?.title || '合并转发' }}</div>
+            <div class="f-desc">{{ forwardMeta?.desc || m.text }}</div>
+            <div class="f-count">{{ forwardMeta?.count || 0 }} 条消息</div>
+          </div>
+        </template>
+
+        <!-- 位置 -->
+        <template v-else-if="m.kind === 'location'">
+          <span class="file-line">
+            <Icon name="link" :size="14" />
+            <span class="grow">{{ locMeta?.label || m.text }}</span>
+            <span v-if="locMeta?.lat" class="faint small">{{ locMeta.lat }}, {{ locMeta.lng }}</span>
+          </span>
+        </template>
+
+        <!-- 名片 -->
+        <template v-else-if="m.kind === 'card'">
+          <span class="file-line">
+            <Icon name="users" :size="14" />
+            <span class="grow">{{ cardMeta?.nickname || m.text }}</span>
+            <span v-if="cardMeta?.alias" class="faint small">@{{ cardMeta.alias }}</span>
+          </span>
+        </template>
+
+        <!-- 小程序 / 视频号 -->
+        <template v-else-if="m.kind === 'miniprogram' || m.kind === 'channel'">
+          <span class="share-line">
+            <Icon name="link" :size="13" />
+            {{ m.text }}
+          </span>
+          <span v-if="miniMeta?.source" class="faint small"> · {{ miniMeta.source }}</span>
+        </template>
+
         <!-- 文本 / 分享 / 其他 -->
         <template v-else>
           <span v-if="m.kind === 'share'" class="share-line">
@@ -151,4 +208,25 @@ const hasAudio = computed(() => !!m.value.media_url)
   max-width: 120px;
   max-height: 120px;
 }
+.q-sender { color: var(--text-dim); }
+.file-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 180px;
+  max-width: 340px;
+}
+.file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.forward-card { min-width: 200px; }
+.f-title { display: flex; gap: 6px; align-items: center; font-weight: 600; }
+.f-desc {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-dim);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.f-count { margin-top: 6px; font-size: 11px; color: var(--text-faint); border-top: 1px dashed var(--border); padding-top: 5px; }
 </style>

@@ -104,6 +104,10 @@ def _message_content(msg: dict[str, Any], budget: _ImageBudget) -> str:
     kind = msg.get("kind") or "text"
     text = (msg.get("text") or "").strip()
     if kind == "text":
+        quote = (msg.get("meta") or {}).get("quote") or {}
+        if quote:
+            sender = quote.get("sender") or "对方"
+            return f"{text}\n\n> 引用 {sender}：{quote.get('content') or ''}"
         return text
     if kind == "image":
         if msg.get("media_url"):
