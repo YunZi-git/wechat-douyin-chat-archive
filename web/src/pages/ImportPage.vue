@@ -14,6 +14,48 @@ const recent = ref([])
 const customDb = ref('')
 const voiceJsonl = ref('')
 
+// ── 抖音采集范围 ──
+const dyConvs = ref([])
+const dyConvReady = ref(false)
+const dyLoading = ref(false)
+const dyMode = ref('all')
+const dySelected = ref([])
+const dyQuery = ref('')
+const dyIncremental = ref(true)
+
+const filteredConvs = computed(() => {
+  const q = dyQuery.value.trim().toLowerCase()
+  if (!q) return dyConvs.value
+  return dyConvs.value.filter((c) => (c.name || '').toLowerCase().includes(q))
+})
+
+async function loadDouyinConversations() {
+  dyLoading.value = true
+  try {
+    const res = await api.douyinConversations()
+    dyConvs.value = res.items || []
+    dyConvReady.value = !!res.available
+  } catch (err) {
+    toast(`读取会话列表失败：${err.message}`, 'err')
+  } finally {
+    dyLoading.value = false
+  }
+}
+
+function toggleConv(name) {
+  const idx = dySelected.value.indexOf(name)
+  if (idx >= 0) dySelected.value.splice(idx, 1)
+  else dySelected.value.push(name)
+}
+
+function selectAllConvs() {
+  dySelected.value = filteredConvs.value.map((c) => c.name)
+}
+
+function clearConvs() {
+  dySelected.value = []
+}
+
 // 采集用哪个浏览器：系统 Edge 优先，其次 Playwright 的 Chromium
 const browserText = computed(() => {
   const e = sources.value?.engines?.douyin
@@ -51,7 +93,16 @@ async function run(kind, title, arg) {
     wechatDecrypt: () => api.wechatDecrypt(),
     wechatImport: () => api.importWechat(),
     wechatImportOne: () => api.importWechat(arg),
-    douyinRefresh: () => api.douyinRefresh({ incremental: true }),
+    douyinRefresh: () => api.douyinRefresh({
+      incremental: dyIncremental.value,
+      mode: dyMode.value,
+      conversations: dySelected.value,
+    }),
+    douyinCollectOnly: () => api.douyinCollect({
+      incremental: dyIncremental.value,
+      mode: dyMode.value,
+      conversations: dySelected.value,
+    }),
     douyinImport: () => api.importDouyin({ copy_media: true }),
     douyinCustom: () => api.importDouyin({ chat_db: customDb.value.trim(), copy_media: true }),
   }[kind]
@@ -83,7 +134,12 @@ async function onJobDone() {
   activeJob.value = null
 }
 
-onMounted(refresh)
+onMounted(async () => {
+  const scope = new URLSearchParams(location.search).get('scope')
+  if (scope === 'include' || scope === 'exclude') dyMode.value = scope
+  await refresh()
+  await loadDouyinConversations()
+})
 </script>
 
 <template>
@@ -191,6 +247,56 @@ onMounted(refresh)
           </div>
 
           <div class="field mt12">
+            <label>采集范围</label>
+            <div class="row wrap" style="gap: 6px">
+              <button class="chip" :class="{ active: dyMode === 'all' }" @click="dyMode = 'all'">全部会话</button>
+              <button class="chip" :class="{ active: dyMode === 'include' }" @click="dyMode = 'include'">只采集勾选</button>
+              <button class="chip" :class="{ active: dyMode === 'exclude' }" @click="dyMode = 'exclude'">排除勾选</button>
+              <button class="btn sm ghost" :disabled="dyLoading" @click="loadDouyinConversations">
+                <span v-if="dyLoading" class="spinner" />
+                <Icon v-else name="refresh" :size="12" />
+                {{ dyConvReady ? '刷新列表' : '加载会话' }}
+              </button>
+            </div>
+            <div class="hint mt12" v-if="dyMode === 'exclude'">
+              排除模式基于本地已有会话列表；列表里的会话会全部重抓。
+            </div>
+          </div>
+
+          <div v-if="dyMode !== 'all'" class="conv-picker">
+            <div class="row" style="gap: 8px; margin-bottom: 8px">
+              <input v-model="dyQuery" class="input" placeholder="搜索会话…" />
+              <button class="btn sm ghost" @click="selectAllConvs">全选</button>
+              <button class="btn sm ghost" @click="clearConvs">清空</button>
+            </div>
+            <div class="conv-list">
+              <label v-for="c in filteredConvs" :key="c.name" class="conv-row">
+                <span class="checkbox" :class="{ on: dySelected.includes(c.name) }">
+                  <Icon name="check" :size="11" />
+                </span>
+                <input type="checkbox" :checked="dySelected.includes(c.name)" hidden @change="toggleConv(c.name)" />
+                <span class="grow conv-name">{{ c.name }}</span>
+                <span v-if="c.kind === 'group'" class="group-tag">群</span>
+                <span class="faint small nowrap">{{ fmtCount(c.message_count) }}</span>
+              </label>
+              <div v-if="!filteredConvs.length" class="hint" style="padding: 10px">
+                没有可选的会话：先采集一次，或导入本地 chat.db。
+              </div>
+            </div>
+            <div class="hint" style="margin-top: 6px">
+              已选 {{ dySelected.length }} / {{ dyConvs.length }}
+            </div>
+          </div>
+
+          <div class="row mt12">
+            <div class="grow">
+              <div style="font-weight: 550">增量采集</div>
+              <div class="hint">只取新消息；关掉则把整个会话重新抓一遍</div>
+            </div>
+            <button class="switch" :class="{ on: dyIncremental }" @click="dyIncremental = !dyIncremental" />
+          </div>
+
+          <div class="field mt12">
             <label>导入其它位置的 chat.db（可选）</label>
             <input v-model="customDb" class="input" placeholder="D:\douyin\data\chat.db" />
           </div>
@@ -198,7 +304,7 @@ onMounted(refresh)
           <div class="row wrap mt12" style="gap: 8px">
             <button
               class="btn primary"
-              :disabled="!browserReady"
+              :disabled="!browserReady || (dyMode === 'include' && !dySelected.length)"
               :title="browserReady ? '会打开浏览器窗口，请在窗口里扫码登录' : '缺少可用浏览器，请安装 Edge'"
               @click="run('douyinRefresh', '抖音：采集并导入')"
             >
@@ -234,3 +340,26 @@ onMounted(refresh)
     </template>
   </div>
 </template>
+
+<style scoped>
+.conv-picker { margin: 8px 0 4px; }
+.conv-list {
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--border-soft);
+  border-radius: 9px;
+  padding: 4px;
+}
+.conv-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 12.5px;
+  margin: 0;
+}
+.conv-row:hover { background: var(--panel-2); }
+.conv-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+</style>

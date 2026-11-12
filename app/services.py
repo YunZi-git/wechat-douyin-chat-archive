@@ -22,7 +22,7 @@ import threading
 from pathlib import Path
 from typing import Any, Iterator
 
-from . import asr, jobs, paths, settings
+from . import asr, db, jobs, paths, settings
 from .importers import douyin as douyin_importer
 from .importers import wechat as wechat_importer
 
@@ -193,6 +193,101 @@ def browser_status() -> dict[str, Any]:
         "channel": channel,
         "ready": playwright and bool(edge or chromium),
     }
+
+
+def douyin_conversations() -> dict[str, Any]:
+    """给「采集范围」勾选用的抖音会话列表。
+
+    优先读引擎自己的 `data/douyin/chat.db`（采集过就有）；没有的话退回统一库
+    里已经导入过的抖音会话——这样「先导入 chat.db、再补采集」也能选范围。
+    """
+    db_path = paths.DOUYIN_DB
+    if db_path.exists():
+        try:
+            import sqlite3
+
+            con = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+            con.row_factory = sqlite3.Row
+            try:
+                rows = con.execute(
+                    "SELECT name, message_count, last_message_time, conv_type, conv_id"
+                    " FROM conversations ORDER BY last_message_time DESC, name"
+                ).fetchall()
+            finally:
+                con.close()
+        except Exception as exc:  # noqa: BLE001 - 库可能正在被采集写入
+            return {"items": [], "total": 0, "available": False, "error": str(exc)}
+        items = []
+        for row in rows:
+            name = (row["name"] or "").strip()
+            if not name:
+                continue
+            items.append({
+                "name": name,
+                "message_count": int(row["message_count"] or 0),
+                "last_message_time": int(row["last_message_time"] or 0),
+                "kind": "group" if str(row["conv_id"]).isdigit() else "private",
+            })
+        if items:
+            return {"items": items, "total": len(items), "available": True,
+                    "source": "engine"}
+
+    # 回退：统一库里已经导入的抖音会话
+    with db.session(readonly=True) as conn:
+        try:
+            rows = conn.execute(
+                """SELECT c.title AS name, c.kind AS kind,
+                          COUNT(m.id) AS message_count,
+                          COALESCE(MAX(m.ts), 0) AS last_message_time
+                     FROM conversations c
+                     LEFT JOIN messages m ON m.conversation_id = c.id
+                    WHERE c.platform = 'douyin'
+                    GROUP BY c.id
+                    ORDER BY last_message_time DESC, name"""
+            ).fetchall()
+        except Exception:  # noqa: BLE001 - 统一库还没建好
+            rows = []
+    items = [
+        {
+            "name": (r["name"] or "").strip(),
+            "message_count": int(r["message_count"] or 0),
+            "last_message_time": int(r["last_message_time"] or 0),
+            "kind": "group" if r["kind"] == "group" else "private",
+        }
+        for r in rows
+        if (r["name"] or "").strip()
+    ]
+    return {"items": items, "total": len(items), "available": bool(items),
+            "source": "unified" if items else "none"}
+
+
+def _douyin_filter(mode: str, conversations: list[str] | None) -> str | None:
+    """把界面上的「范围」翻译成引擎的 --filter（逗号分隔的精确昵称）。
+
+    * all     → None（引擎默认全量）
+    * include → 勾选的昵称
+    * exclude → 本地已知昵称里去掉勾选的
+    """
+    selected = [str(n).strip() for n in (conversations or []) if str(n).strip()]
+    selected = list(dict.fromkeys(selected))
+    if mode == "all":
+        return None
+    if not selected:
+        raise ValueError("请先勾选至少一个会话，或把范围改成「全部会话」")
+    if len(selected) > 500:
+        raise ValueError("一次最多选择 500 个会话")
+    if mode == "include":
+        return ",".join(selected)
+
+    if mode == "exclude":
+        known = [item["name"] for item in douyin_conversations()["items"]]
+        if not known:
+            raise ValueError("本地还没有会话列表，无法使用「排除」模式；请先全量采集一次")
+        keep = [name for name in known if name not in set(selected)]
+        if not keep:
+            raise ValueError("排除后没有剩下任何会话")
+        return ",".join(keep)
+    raise ValueError(f"未知的采集范围：{mode}")
 
 
 def engine_status() -> dict[str, Any]:
@@ -401,10 +496,17 @@ def start_transcription(
     return jobs.start("asr-transcribe", f"语音转写（{chosen}）", target)
 
 
-def start_douyin_collect(*, filters: str | None = None, incremental: bool = True) -> jobs.Job:
+def start_douyin_collect(*, filters: str | None = None, incremental: bool = True,
+                         mode: str = "all",
+                         conversations: list[str] | None = None) -> jobs.Job:
+    # 先同步校验，参数不合法直接 400，不要等到任务线程里才报错
+    resolved = _douyin_filter(mode, conversations) if mode != "all" else filters
+    scope_text = "全部会话" if not resolved else f"指定 {len(resolved.split(','))} 个会话"
+
     def target(job: jobs.Job) -> dict[str, Any]:
         with _heavy_slot(job, "抖音采集"):
-            cmd = _douyin_collect_cmd(filters, incremental)
+            job.write(f"[i] 采集范围：{scope_text}")
+            cmd = _douyin_collect_cmd(resolved, incremental)
             job.write("[i] 会弹出浏览器，请在窗口里扫码登录抖音")
             code = _run_stream(
                 cmd, cwd=paths.DOUYIN_ENGINE_DIR, env=_douyin_env(), job=job
@@ -416,12 +518,17 @@ def start_douyin_collect(*, filters: str | None = None, incremental: bool = True
 
 
 def start_douyin_refresh(*, filters: str | None = None,
-                         incremental: bool = True) -> jobs.Job:
+                         incremental: bool = True,
+                         mode: str = "all",
+                         conversations: list[str] | None = None) -> jobs.Job:
     """采集完顺手导入统一库。"""
+    resolved = _douyin_filter(mode, conversations) if mode != "all" else filters
+    scope_text = "全部会话" if not resolved else f"指定 {len(resolved.split(','))} 个会话"
 
     def target(job: jobs.Job) -> dict[str, Any]:
         with _heavy_slot(job, "抖音采集并导入"):
-            cmd = _douyin_collect_cmd(filters, incremental)
+            job.write(f"[i] 采集范围：{scope_text}")
+            cmd = _douyin_collect_cmd(resolved, incremental)
             job.write("[i] 第一步：打开浏览器采集（需要扫码登录）")
             code = _run_stream(
                 cmd, cwd=paths.DOUYIN_ENGINE_DIR, env=_douyin_env(), job=job

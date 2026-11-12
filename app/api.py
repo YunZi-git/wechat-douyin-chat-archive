@@ -52,6 +52,8 @@ class DouyinImportBody(BaseModel):
 class CollectBody(BaseModel):
     filters: str | None = None
     incremental: bool = True
+    mode: Literal["all", "include", "exclude"] = "all"
+    conversations: list[str] | None = None
 
 
 class ExportBody(BaseModel):
@@ -265,15 +267,33 @@ def import_douyin(body: DouyinImportBody) -> dict[str, Any]:
     return {"job": job.to_dict(with_log=False)}
 
 
+@router.get("/douyin/conversations")
+def douyin_conversations() -> dict[str, Any]:
+    """本地抖音库里的会话，供「采集范围」勾选。"""
+    return services.douyin_conversations()
+
+
 @router.post("/douyin/collect")
 def douyin_collect(body: CollectBody) -> dict[str, Any]:
-    job = services.start_douyin_collect(filters=body.filters, incremental=body.incremental)
+    try:
+        job = services.start_douyin_collect(
+            filters=body.filters, incremental=body.incremental,
+            mode=body.mode, conversations=body.conversations,
+        )
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(400, str(exc)) from exc
     return {"job": job.to_dict(with_log=False)}
 
 
 @router.post("/douyin/refresh")
 def douyin_refresh(body: CollectBody) -> dict[str, Any]:
-    job = services.start_douyin_refresh(filters=body.filters, incremental=body.incremental)
+    try:
+        job = services.start_douyin_refresh(
+            filters=body.filters, incremental=body.incremental,
+            mode=body.mode, conversations=body.conversations,
+        )
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(400, str(exc)) from exc
     return {"job": job.to_dict(with_log=False)}
 
 

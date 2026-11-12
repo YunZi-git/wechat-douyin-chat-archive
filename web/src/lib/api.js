@@ -82,6 +82,7 @@ export const api = {
   wechatRefresh: () => post('/api/wechat/refresh'),
   importWechat: (accountDir) => post('/api/import/wechat', { account_dir: accountDir || null }),
   importDouyin: (body) => post('/api/import/douyin', body || {}),
+  douyinConversations: () => get('/api/douyin/conversations'),
   douyinCollect: (body) => post('/api/douyin/collect', body || {}),
   douyinRefresh: (body) => post('/api/douyin/refresh', body || {}),
 

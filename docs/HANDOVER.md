@@ -28,7 +28,7 @@
 
 | 能力 | 微信 | 抖音 |
 |---|---|---|
-| 导入 | ✅ 内置 SIWX 解密后读明文库 | ✅ 内置采集（Edge）或导入已有 `chat.db` |
+| 导入 | ✅ 内置 SIWX 解密后读明文库 | ✅ 内置采集（Edge，可按会话选范围）或导入已有 `chat.db` |
 | 文本消息 | ✅ | ✅ |
 | 语音播放 | ✅ SILK 按需转 WAV | ✅ mpeg 直出 |
 | 语音转写 | ✅ 旧数据回填 + 腾讯云 + 本地 whisper（批量/重试/自动） | ✅ 抖音原生识别 |
@@ -70,7 +70,7 @@
 | `web/src/components/ChatView.vue` | 消息流、会话内搜索、跳转 | |
 | `scripts/make_demo_data.py` | 生成合成演示数据（可 `--import`） | demo 数据全靠它 |
 | `scripts/build_portable.py` | 嵌入式 Python + 依赖 + 启动脚本 | |
-| `tests/` | 82 个 pytest 用例 | 全用合成数据 |
+| `tests/` | 94 个 pytest 用例 | 全用合成数据 |
 
 ---
 
@@ -116,6 +116,13 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 两种入口：内置采集（`services.start_douyin_refresh`）或直接导入 `chat.db`。
 群聊判定：`conv_id` 是纯数字；私聊是 `0:1:uidA:uidB`。本人在私聊里出现频率最高。
 媒体在 `data/media/douyin/`，`media_path` 存 `douyin/...`。
+
+**采集范围**：界面三种模式（全部 / 仅勾选 / 排除勾选），后端翻译成引擎的
+`--filter`（逗号分隔、精确昵称）：
+
+- 会话列表优先读 `data/douyin/chat.db`，没有就退回统一库里已导入的抖音会话
+- `include` 直接拼昵称；`exclude` 用本地已知列表减去勾选项
+- 参数在启动任务前同步校验，空选择会直接 400
 
 ### 4.3 合并 / 解绑
 
@@ -292,7 +299,7 @@ git grep -n -I -E "wxid_[a-z0-9]{10,}|sk-[A-Za-z0-9]{20,}|AKID[A-Za-z0-9]{10,}|C
 ## 10. 验收清单（改完代码跑一遍）
 
 ```bash
-.venv\Scripts\python -m pytest -q          # 82 passed
+.venv\Scripts\python -m pytest -q          # 94 passed
 python scripts/build_portable.py --no-build-web   # 能打包
 ```
 
