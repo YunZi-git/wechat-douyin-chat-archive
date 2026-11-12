@@ -1,4 +1,4 @@
-# 运行所需依赖（不含可选采集能力）
+# 运行所需依赖
 fastapi>=0.110
 uvicorn>=0.29
 pywebview>=5.0
@@ -8,3 +8,13 @@ pycryptodome>=3.20
 rich>=13.0
 psutil>=5.9
 openpyxl>=3.1
+
+# 抖音采集引擎的依赖（采集是可选功能，但默认一起装好，
+# 免得用户还要额外折腾）。浏览器优先用系统 Edge，不下载 Chromium。
+playwright>=1.40
+httpx>=0.27
+cryptography>=42
+certifi
+truststore>=0.10
+Pillow>=10
+pillow-heif>=0.16

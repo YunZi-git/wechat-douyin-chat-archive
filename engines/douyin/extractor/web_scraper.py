@@ -23,6 +23,7 @@ if sys.platform == 'win32':
 
 from playwright.async_api import async_playwright
 
+from common import browser as browser_helper
 from common import paths
 from common.tls import client_context
 from extractor.forwarded import backfill_uploaded_forwards
@@ -217,7 +218,8 @@ class WebChatScraper:
         self._db_conn = get_db()
 
         self.pw = await async_playwright().start()
-        self.context = await self.pw.chromium.launch_persistent_context(
+        self.context = await browser_helper.launch_persistent(
+            self.pw,
             USER_DATA_DIR,
             headless=os.environ.get("HEADLESS", "false").lower() == "true",
             viewport={"width": 1400, "height": 900},

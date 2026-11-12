@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { api } from '../lib/api'
 import { store, toast, refreshStats } from '../lib/store'
 import { fmtBytes, fmtCount, fmtDateTime } from '../lib/format'
@@ -12,6 +12,17 @@ const activeJob = ref(null)
 const activeTitle = ref('')
 const recent = ref([])
 const customDb = ref('')
+
+// 采集用哪个浏览器：系统 Edge 优先，其次 Playwright 的 Chromium
+const browserText = computed(() => {
+  const e = sources.value?.engines?.douyin
+  if (!e) return '检测中…'
+  if (!e.playwright) return '未安装'
+  if (e.channel === 'msedge') return '可用（系统 Edge）'
+  if (e.channel === 'chromium') return '可用（内置 Chromium）'
+  return '缺少可用浏览器'
+})
+const browserReady = computed(() => !!sources.value?.engines?.douyin?.ready)
 
 async function refresh() {
   loading.value = true
@@ -154,10 +165,8 @@ onMounted(refresh)
             <span>{{ fmtCount(sources.douyin.conversations) }} / {{ fmtCount(sources.douyin.messages) }}</span>
           </div>
           <div class="kv"><span>语音转写</span><span>{{ fmtCount(sources.douyin.voice) }} 条</span></div>
-          <div class="kv"><span>采集引擎（Playwright）</span>
-            <span :class="sources.engines.douyin.playwright ? '' : 'faint'">
-              {{ sources.engines.douyin.playwright ? '可用' : '未安装' }}
-            </span>
+          <div class="kv"><span>采集浏览器</span>
+            <span :class="browserReady ? '' : 'faint'">{{ browserText }}</span>
           </div>
 
           <div class="field mt12">
@@ -168,8 +177,8 @@ onMounted(refresh)
           <div class="row wrap mt12" style="gap: 8px">
             <button
               class="btn primary"
-              :disabled="!sources.engines.douyin.playwright"
-              :title="sources.engines.douyin.playwright ? '' : '需要安装 Playwright 才能启动浏览器采集'"
+              :disabled="!browserReady"
+              :title="browserReady ? '会打开浏览器窗口，请在窗口里扫码登录' : '缺少可用浏览器，请安装 Edge'"
               @click="run('douyinRefresh', '抖音：采集并导入')"
             >
               <Icon name="refresh" :size="14" /> 采集并导入

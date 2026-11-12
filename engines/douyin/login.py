@@ -7,6 +7,9 @@ import sys
 
 from playwright.async_api import async_playwright
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from common import browser as browser_helper  # noqa: E402
+
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROFILE_DIR = os.path.join(PROJECT_DIR, "data", "browser_profile")
 DOUYIN_URL = "https://www.douyin.com/"
@@ -17,7 +20,8 @@ async def main():
     print("[*] 启动浏览器，请在弹出的窗口中扫码登录...")
 
     pw = await async_playwright().start()
-    context = await pw.chromium.launch_persistent_context(
+    context = await browser_helper.launch_persistent(
+        pw,
         PROFILE_DIR,
         headless=False,
         viewport={"width": 1280, "height": 800},

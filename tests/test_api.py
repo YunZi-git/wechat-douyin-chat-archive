@@ -107,6 +107,15 @@ def test_sources(client):
     assert data["engines"]["wechat"]["bundled"] is True
 
 
+def test_browser_status_shape(client):
+    douyin = client.get("/api/sources").json()["engines"]["douyin"]
+    assert {"playwright", "edge", "chromium", "channel", "ready"} <= set(douyin)
+    assert isinstance(douyin["playwright"], bool)
+    assert isinstance(douyin["ready"], bool)
+    # channel 只可能是三种：msedge / chromium / 空
+    assert douyin["channel"] in ("msedge", "chromium", "")
+
+
 def test_export_and_download(client):
     thread_id = client.get("/api/threads?limit=1").json()["items"][0]["thread_id"]
     res = client.post("/api/export", json={"thread_id": thread_id, "format": "jsonl"})

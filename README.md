@@ -62,7 +62,8 @@
 
 **导入**
 - 微信：内置 SIWX 解密组件，从本机微信数据库读消息（需要微信已登录）
-- 抖音：内置采集组件直接调用抖音 IM 接口；也可以直接导入已有的 `chat.db`
+- 抖音：内置采集组件直接调用抖音 IM 接口，浏览器自动化已随包内置
+  （优先驱动系统自带的 Edge，不额外下载 Chromium）；也可以直接导入已有的 `chat.db`
 - 重复导入是幂等的，不会产生重复消息
 
 **导出**
@@ -141,8 +142,9 @@ python scripts/make_demo_data.py --import
 两种方式：
 
 - **直接导入已有数据库**：选择 `chat.db`（上游引擎或本工具产出的都行），媒体文件会被复制进 `data/media/`
-- **在线采集**：需要额外安装采集依赖（`pip install -r requirements-collect.txt`），
-  然后「采集并导入」，浏览器窗口里扫码登录
+- **在线采集**：「采集并导入」会弹出浏览器窗口，扫码登录即可。
+  浏览器优先用系统 Edge；机器上没有 Edge 时才需要
+  `playwright install chromium`（或设置 `CHATWORK_BROWSER_CHANNEL=chrome` 用 Chrome）
 
 ### 3. 合并同一个人的两个账号
 
@@ -241,8 +243,7 @@ data/
 ├─ demo/                    合成演示数据（可直接导入）
 ├─ tests/                   pytest
 ├─ docs/                    架构与截图
-├─ requirements.txt         运行依赖
-└─ requirements-collect.txt 可选的采集依赖
+└─ requirements.txt         运行依赖（含抖音采集所需的浏览器自动化）
 ```
 
 ---
@@ -268,6 +269,7 @@ python scripts/build_portable.py --zip
 ## 已知限制
 
 - **仅 Windows**：微信解密依赖 Windows 进程内存读取；macOS 理论上可行但未适配
+- **采集依赖浏览器与登录态**：默认用系统 Edge，扫码登录后登录态保存在 `data/douyin/browser_profile/`
 - **微信只导入文本类消息**：图片、语音、视频暂未从微信媒体库落地（抖音侧已支持）
 - **群聊不参与合并**：群聊按平台各自独立展示
 - **首版不含 AI 分析**：只做导入、合并、浏览、搜索、导出

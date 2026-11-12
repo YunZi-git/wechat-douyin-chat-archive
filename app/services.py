@@ -144,9 +144,61 @@ def douyin_source() -> dict[str, Any]:
     return info
 
 
+EDGE_CANDIDATES = (
+    r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+    r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+)
+
+
+def _edge_path() -> str | None:
+    for candidate in EDGE_CANDIDATES:
+        if Path(candidate).exists():
+            return candidate
+    return None
+
+
+def _chromium_installed() -> bool:
+    base = os.environ.get("PLAYWRIGHT_BROWSERS_PATH")
+    roots = [Path(base)] if base and base not in ("0", "1") else []
+    local = os.environ.get("LOCALAPPDATA")
+    if local:
+        roots.append(Path(local) / "ms-playwright")
+    for root in roots:
+        try:
+            if root.is_dir() and any(root.glob("chromium-*")):
+                return True
+        except OSError:
+            continue
+    return False
+
+
+def browser_status() -> dict[str, Any]:
+    """抖音采集用哪个浏览器。
+
+    优先系统 Edge（Win10/11 自带，零下载）；没有才用 Playwright 的 Chromium。
+    """
+    playwright = importlib.util.find_spec("playwright") is not None
+    edge = _edge_path()
+    chromium = _chromium_installed()
+    forced = os.environ.get("CHATWORK_BROWSER_CHANNEL")
+    if forced is not None:
+        channel = forced.strip()
+    else:
+        channel = "msedge" if edge else ("chromium" if chromium else "")
+    return {
+        "playwright": playwright,
+        "edge": edge is not None,
+        "edge_path": edge,
+        "chromium": chromium,
+        "channel": channel,
+        "ready": playwright and bool(edge or chromium),
+    }
+
+
 def engine_status() -> dict[str, Any]:
     siwx_run = paths.SIWX_DIR / "run.py"
     douyin_extract = paths.DOUYIN_ENGINE_DIR / "extract.py"
+    browser = browser_status()
     return {
         "wechat": {
             "bundled": siwx_run.exists(),
@@ -155,8 +207,7 @@ def engine_status() -> dict[str, Any]:
         "douyin": {
             "bundled": douyin_extract.exists(),
             "path": str(paths.DOUYIN_ENGINE_DIR),
-            # 采集需要 Playwright；没装也能导入已有数据库
-            "playwright": importlib.util.find_spec("playwright") is not None,
+            **browser,
         },
     }
 
@@ -297,10 +348,16 @@ def _douyin_collect_cmd(filters: str | None, incremental: bool) -> list[str]:
     script = paths.DOUYIN_ENGINE_DIR / "extract.py"
     if not script.exists():
         raise FileNotFoundError("内置的抖音采集组件缺失")
-    if importlib.util.find_spec("playwright") is None:
+    status = browser_status()
+    if not status["playwright"]:
         raise RuntimeError(
-            "没有安装 Playwright，无法启动浏览器采集。"
-            "可以改为「导入已有数据库」，或安装采集依赖后重试。"
+            "运行环境缺少 Playwright，无法启动浏览器采集。"
+            "可以改为「导入已有数据库」，或安装依赖后重试。"
+        )
+    if not status["channel"]:
+        raise RuntimeError(
+            "没有找到可用的浏览器：请安装 Microsoft Edge，"
+            "或执行 playwright install chromium 后重试。"
         )
     cmd = [sys.executable, str(script)]
     if filters:

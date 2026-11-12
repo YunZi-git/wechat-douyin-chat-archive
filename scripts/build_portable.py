@@ -145,6 +145,10 @@ USAGE = """聊天信息工作台
 想先看看界面长什么样：打开应用 → 导入数据 → 抖音「导入本地数据库」，
 选择 demo/douyin/chat.db 即可（这是完全合成的示例数据）。
 
+抖音「采集并导入」会打开浏览器窗口让你扫码登录。浏览器用的是系统自带的
+Microsoft Edge，不需要另外下载；如果机器上没有 Edge，请执行：
+  runtime\python.exe -m playwright install chromium
+
 备份：直接复制整个 data/ 目录。
 卸载：删掉整个文件夹，不会残留注册表项。
 
