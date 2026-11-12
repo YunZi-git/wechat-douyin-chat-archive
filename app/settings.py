@@ -1,0 +1,53 @@
+"""应用设置（不含任何密钥 / 账号信息）。
+
+设置写在 ``data/settings.json``，该目录不进版本库。开源仓库里不会有任何
+真实配置：第一次启动时这里只会生成默认值。
+"""
+from __future__ import annotations
+
+import json
+import os
+from typing import Any
+
+from . import paths
+
+DEFAULTS: dict[str, Any] = {
+    "theme": "dark",
+    "density": "comfortable",
+    "page_size": 60,
+    "timezone_offset": 8,
+    # 微信侧：本人 wxid 由导入器自动推断，一般不用手填
+    "wechat_self_wxid": "",
+    # 抖音侧：本人 uid 由导入器自动推断
+    "douyin_self_uid": "",
+    # 导入时是否把音频/图片一并带过来（后续版本使用）
+    "import_media": True,
+}
+
+
+def load() -> dict[str, Any]:
+    try:
+        raw = paths.SETTINGS_PATH.read_text(encoding="utf-8")
+        data = json.loads(raw)
+        if not isinstance(data, dict):
+            return dict(DEFAULTS)
+    except FileNotFoundError:
+        return dict(DEFAULTS)
+    except (json.JSONDecodeError, UnicodeDecodeError, OSError):
+        return dict(DEFAULTS)
+    merged = dict(DEFAULTS)
+    merged.update({k: v for k, v in data.items() if k in DEFAULTS})
+    return merged
+
+
+def save(patch: dict[str, Any]) -> dict[str, Any]:
+    """合并写入并原子落盘。"""
+    current = load()
+    for k, v in patch.items():
+        if k in DEFAULTS:
+            current[k] = v
+    paths.SETTINGS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    tmp = paths.SETTINGS_PATH.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(current, ensure_ascii=False, indent=2), encoding="utf-8")
+    os.replace(tmp, paths.SETTINGS_PATH)
+    return current

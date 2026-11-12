@@ -1,0 +1,43 @@
+# ── 隐私：聊天数据、数据库、导出文件一律不进仓库 ──
+data/
+*.db
+*.db-wal
+*.db-shm
+exports/
+cards/
+
+# ── Python ──
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.dsh-pyenv/
+*.egg-info/
+
+# ── 前端 ──
+node_modules/
+web/dist/
+.vite/
+
+# ── 打包产物 / 本地缓存 ──
+dist/
+release/
+build/
+*.spec
+.cache/
+_scratch/
+
+# ── 本地配置 / 密钥（永远不要提交）──
+config.json
+settings.json
+.env
+.env.*
+
+# ── 系统 / 编辑器 ──
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+.idea/
+.vscode/

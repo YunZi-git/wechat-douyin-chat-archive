@@ -1,0 +1,275 @@
+<script setup>
+import { onMounted, ref, watch, computed } from 'vue'
+import { api } from '../lib/api'
+import { store, toast, refreshStats } from '../lib/store'
+import ThreadList from '../components/ThreadList.vue'
+import ChatView from '../components/ChatView.vue'
+import ThreadInfo from '../components/ThreadInfo.vue'
+import ExportDialog from '../components/ExportDialog.vue'
+import Icon from '../components/Icon.vue'
+
+const threads = ref([])
+const total = ref(0)
+const loadingThreads = ref(false)
+const platform = ref('')
+const query = ref('')
+const mergedOnly = ref(false)
+
+const thread = ref(null)
+const messages = ref([])
+const hasMoreBefore = ref(false)
+const loadingMessages = ref(false)
+const messagePlatform = ref('')
+
+const infoOpen = ref(true)
+const exportOpen = ref(false)
+const lightbox = ref('')
+
+let queryTimer = null
+let loadToken = 0
+
+const hasData = computed(() => (store.stats?.messages || 0) > 0)
+const pageSize = computed(() => store.settings.page_size || 60)
+
+async function loadThreads() {
+  loadingThreads.value = true
+  try {
+    const res = await api.threads({ platform: platform.value || undefined, q: query.value || undefined, limit: 400 })
+    threads.value = res.items
+    total.value = res.total
+    if (!store.activeThreadId && res.items.length) {
+      selectThread(res.items[0])
+    }
+  } catch (err) {
+    toast(`读取会话失败：${err.message}`, 'err')
+  } finally {
+    loadingThreads.value = false
+  }
+}
+
+async function selectThread(item) {
+  store.activeThreadId = item.thread_id
+  await loadThread(item.thread_id)
+}
+
+async function loadThread(id) {
+  if (!id) return
+  const token = ++loadToken
+  try {
+    const info = await api.thread(id)
+    if (token !== loadToken) return
+    thread.value = info
+    messagePlatform.value = ''
+    await loadMessages(id)
+  } catch (err) {
+    toast(`读取会话失败：${err.message}`, 'err')
+  }
+}
+
+async function loadMessages(id) {
+  loadingMessages.value = true
+  try {
+    const res = await api.messages(id, {
+      limit: pageSize.value,
+      platform: messagePlatform.value || undefined,
+    })
+    messages.value = res.items
+    hasMoreBefore.value = res.has_more_before
+  } catch (err) {
+    toast(`读取消息失败：${err.message}`, 'err')
+  } finally {
+    loadingMessages.value = false
+  }
+}
+
+async function loadOlder() {
+  if (!thread.value || loadingMessages.value || !hasMoreBefore.value) return
+  const oldest = messages.value[0]?.ts
+  if (!oldest) return
+  loadingMessages.value = true
+  try {
+    const res = await api.messages(thread.value.thread_id, {
+      limit: pageSize.value,
+      beforeTs: oldest,
+      platform: messagePlatform.value || undefined,
+    })
+    messages.value = [...res.items, ...messages.value]
+    hasMoreBefore.value = res.has_more_before
+  } catch (err) {
+    toast(`加载更早消息失败：${err.message}`, 'err')
+  } finally {
+    loadingMessages.value = false
+  }
+}
+
+async function jumpTo({ ts }) {
+  if (!thread.value) return
+  loadingMessages.value = true
+  try {
+    const [before, after] = await Promise.all([
+      api.messages(thread.value.thread_id, {
+        limit: 40,
+        beforeTs: ts,
+        platform: messagePlatform.value || undefined,
+      }),
+      api.messages(thread.value.thread_id, {
+        limit: 40,
+        afterTs: ts,
+        platform: messagePlatform.value || undefined,
+      }),
+    ])
+    const seen = new Set()
+    const merged = []
+    for (const m of [...before.items, ...after.items]) {
+      if (seen.has(m.id)) continue
+      seen.add(m.id)
+      merged.push(m)
+    }
+    merged.sort((a, b) => a.ts - b.ts || a.id - b.id)
+    messages.value = merged
+    hasMoreBefore.value = before.has_more_before
+  } catch (err) {
+    toast(`跳转失败：${err.message}`, 'err')
+  } finally {
+    loadingMessages.value = false
+  }
+}
+
+async function onPlatformFilter(p) {
+  messagePlatform.value = p
+  if (thread.value) await loadMessages(thread.value.thread_id)
+}
+
+async function rename(name) {
+  if (!thread.value?.contact) return
+  try {
+    await api.rename(thread.value.contact.id, name)
+    await loadThread(thread.value.thread_id)
+    await loadThreads()
+    toast('已改名', 'ok')
+  } catch (err) {
+    toast(`改名失败：${err.message}`, 'err')
+  }
+}
+
+async function unmerge(p) {
+  if (!thread.value?.contact) return
+  try {
+    await api.unmerge(thread.value.contact.id, p)
+    await loadThread(thread.value.thread_id)
+    await loadThreads()
+    await refreshStats()
+    toast('已解绑', 'ok')
+  } catch (err) {
+    toast(`解绑失败：${err.message}`, 'err')
+  }
+}
+
+function onQuery(value) {
+  query.value = value
+  clearTimeout(queryTimer)
+  queryTimer = setTimeout(loadThreads, 260)
+}
+
+watch(platform, loadThreads)
+watch(
+  () => store.activeThreadId,
+  (id) => {
+    if (id && thread.value?.thread_id !== id) loadThread(id)
+  }
+)
+
+watch(
+  () => store.focusSeq,
+  () => {
+    if (store.activeThreadId) loadThread(store.activeThreadId)
+  }
+)
+
+onMounted(async () => {
+  // 支持 ?thread=contact:12 深链，方便从合并页/导出直接定位
+  const deep = new URLSearchParams(location.search).get('thread')
+  if (deep) {
+    store.activeThreadId = deep
+    await loadThread(deep)
+  }
+  await loadThreads()
+})
+</script>
+
+<template>
+  <!-- 一条数据都没有：直接把用户引到导入页 -->
+  <div v-if="!hasData" class="empty" style="height: 100%">
+    <div>
+      <div class="icon"><Icon name="database" :size="26" /></div>
+      <h3>还没有导入任何聊天记录</h3>
+      <p style="margin-bottom: 18px">
+        支持导入微信（已解密数据库）和抖音（chat.db）。导入后可以把同一个人的两个平台账号合并，按时间交错浏览。
+      </p>
+      <button class="btn primary" @click="store.view = 'import'">
+        <Icon name="import" :size="15" /> 去导入数据
+      </button>
+    </div>
+  </div>
+
+  <div v-else class="chats-layout" :class="{ 'with-info': infoOpen && thread }">
+    <ThreadList
+      :threads="threads"
+      :total="total"
+      :loading="loadingThreads"
+      :platform="platform"
+      :query="query"
+      :active-id="store.activeThreadId || ''"
+      :merged-only="mergedOnly"
+      @select="selectThread"
+      @update:platform="(v) => (platform = v)"
+      @update:query="onQuery"
+      @update:merged-only="(v) => (mergedOnly = v)"
+      @refresh="loadThreads"
+    />
+
+    <ChatView
+      :thread="thread"
+      :messages="messages"
+      :has-more-before="hasMoreBefore"
+      :platform="messagePlatform"
+      :loading="loadingMessages"
+      @load-older="loadOlder"
+      @toggle-info="infoOpen = !infoOpen"
+      @update:platform="onPlatformFilter"
+      @export="exportOpen = true"
+      @open-image="lightbox = $event"
+      @jump-to="jumpTo"
+    />
+
+    <ThreadInfo
+      v-if="infoOpen && thread"
+      :thread="thread"
+      @close="infoOpen = false"
+      @rename="rename"
+      @unmerge="unmerge"
+      @export="exportOpen = true"
+    />
+
+    <ExportDialog
+      v-if="exportOpen && thread"
+      :thread-id="thread.thread_id"
+      :title="thread.thread_kind === 'contact' ? thread.contact?.display_name : thread.conversation?.title"
+      :platforms="thread.platforms || []"
+      @close="exportOpen = false"
+    />
+
+    <div v-if="lightbox" class="modal-mask" @click="lightbox = ''">
+      <img :src="lightbox" class="lightbox-img" alt="" />
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.lightbox-img {
+  max-width: 92vw;
+  max-height: 90vh;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+</style>

@@ -1,0 +1,10 @@
+# 运行所需依赖（不含可选采集能力）
+fastapi>=0.110
+uvicorn>=0.29
+pywebview>=5.0
+python-multipart>=0.0.9
+zstandard>=0.22
+pycryptodome>=3.20
+rich>=13.0
+psutil>=5.9
+openpyxl>=3.1

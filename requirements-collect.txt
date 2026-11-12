@@ -1,0 +1,11 @@
+# 可选：抖音「在线采集」需要浏览器自动化。
+# 只做导入/浏览/合并/导出时不需要安装这些。
+-r requirements.txt
+playwright>=1.40
+httpx>=0.27
+cryptography>=42
+certifi
+truststore>=0.10
+Pillow>=10
+pillow-heif>=0.16
+apscheduler>=3.10

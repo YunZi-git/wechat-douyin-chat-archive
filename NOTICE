@@ -1,0 +1,50 @@
+第三方组件与出处
+================
+
+本仓库包含或链接到以下第三方代码，它们各自保留原有许可证。
+本项目的整体许可证是 AGPL-3.0（见 LICENSE），对第三方组件的使用不改变
+其原始授权，也不表示原作者为本项目背书。
+
+1. SIWX（Stories in WX）—— 微信 4.x 数据库解密
+   ------------------------------------------------------------------
+   位置：engines/siwx/
+   出处：https://github.com/ImUpXuu/SIWX
+   许可证：GNU Affero General Public License v3.0（见 engines/siwx/LICENSE）
+   说明：本项目把它作为内置组件调用，用于从本机微信进程中提取密钥并解密
+         本地 SQLCipher 数据库。解密与密钥提取的全部实现均来自 SIWX。
+   修改：为适配「数据目录由宿主指定」，仅调整了调用方式；未修改其核心逻辑。
+
+2. douyin-chat-export —— 抖音聊天记录采集与导出
+   ------------------------------------------------------------------
+   位置：engines/douyin/
+   出处：https://github.com/TeamBreakerr/douyin-chat-export
+   许可证：上游仓库 README 声明为 MIT；本仓库按 MIT 条款使用并保留出处。
+   说明：收编其 extractor/ 与 common/（protobuf IM 接口采集、媒体解密、
+         语音转写），用于抓取并落盘抖音聊天数据。
+   修改：
+     - common/paths.py 支持通过 CHATWORK_DOUYIN_DATA / CHATWORK_DOUYIN_MEDIA
+       环境变量指定数据目录（原本写死在仓库内）。
+     - extractor/web_scraper.py 的浏览器 profile 路径改为走 paths.BROWSER_PROFILE。
+     - 未内置其 frontend/（本项目的界面是重新写的）。
+
+3. Python 3.11 embeddable distribution
+   ------------------------------------------------------------------
+   位置：便携包的 runtime/（由 scripts/build_portable.py 下载组装，不入库）
+   出处：https://www.python.org/
+   许可证：PSF License
+
+4. 前端依赖
+   ------------------------------------------------------------------
+   Vue 3（MIT）、Vite（MIT）、@vitejs/plugin-vue（MIT）。
+
+5. 后端依赖
+   ------------------------------------------------------------------
+   FastAPI（MIT）、Starlette（BSD-3-Clause）、Uvicorn（BSD-3-Clause）、
+   pywebview（BSD-3-Clause）、pythonnet（MIT）、pydantic（MIT）、
+   zstandard（BSD-3-Clause）、pycryptodome（BSD-2-Clause）、rich（MIT）、
+   psutil（BSD-3-Clause）、openpyxl（MIT）。
+
+免责声明
+--------
+本项目只用于处理你本人拥有合法访问权限的聊天数据，请勿用于非法用途。
+使用第三方工具可能违反相关平台的服务协议，存在账号被限制的风险，后果自负。

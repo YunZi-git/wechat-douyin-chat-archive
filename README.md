@@ -1,0 +1,285 @@
+# 聊天信息工作台
+
+**把微信和抖音的聊天记录合并成一条可以浏览、搜索、导出的时间线。**
+
+同一个人可能既是你的微信好友，也是你的抖音好友。这个工具把两边的记录读进同一个本地数据库，
+让你手动把「同一个人」的两个账号合并，然后按时间交错地看完整对话。
+
+<br>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/merged-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="docs/screenshots/merged-light.png">
+  <img src="docs/screenshots/merged-dark.png" alt="同一个人的微信与抖音消息交错在同一条时间线上" width="960">
+</picture>
+
+<sub>同一个人的微信（8/15）和抖音（8/17）消息按时间交错；右侧能看到两个平台账号和各自的来源会话。</sub>
+
+<br>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/merge-friends.png">
+  <source media="(prefers-color-scheme: light)" srcset="docs/screenshots/merge-friends.png">
+  <img src="docs/screenshots/merge-friends.png" alt="合并好友" width="960">
+</picture>
+
+<sub>「合并好友」：选中两条记录即可合并成一个人，可随时解绑。</sub>
+
+<br>
+
+- **纯本地**：所有数据都在你自己的机器上，不上传、不联网（只有你自己触发的解密/采集会访问对应平台）
+- **开源**：AGPL-3.0，仓库里不含任何真实聊天数据、密钥或账号信息
+- **可离线**：便携版解压即用，内置 Python 运行时
+
+---
+
+## 目录
+
+- [功能](#功能)
+- [快速开始](#快速开始)
+- [使用流程](#使用流程)
+- [数据与隐私](#数据与隐私)
+- [工作原理](#工作原理)
+- [目录结构](#目录结构)
+- [开发](#开发)
+- [已知限制](#已知限制)
+- [许可证与致谢](#许可证与致谢)
+
+---
+
+## 功能
+
+**跨平台合并**
+- 手动把微信好友和抖音好友合并成「一个人」，两个平台的对话交错在同一条时间线上
+- 每条消息都带平台角标，可以一键只看某个平台
+- 合并后可随时解绑，解绑只影响关联，不删任何消息
+
+**浏览**
+- 会话列表按最近活跃排序，支持按平台筛选、按名字搜索
+- 日期分隔、群聊显示发言人、引用回复、图片放大、语音播放
+- 会话内搜索并跳转到那一条
+- 四套主题（深色 / 浅色 / 暖棕 / 紫夜）
+
+**导入**
+- 微信：内置 SIWX 解密组件，从本机微信数据库读消息（需要微信已登录）
+- 抖音：内置采集组件直接调用抖音 IM 接口；也可以直接导入已有的 `chat.db`
+- 重复导入是幂等的，不会产生重复消息
+
+**导出**
+- ChatLab v0.0.2 格式（JSON / JSONL），可以直接喂给 ChatLab 等分析工具
+- Markdown，方便归档和直接阅读
+- 合并会话可以分别导出单平台，也可以合成一份
+
+**为什么第一版没有 AI**
+这一版专注把「数据打通 + 看得到」做扎实。事实抽取、人物画像这类能力留到后续版本，
+避免一上来就把简单问题复杂化。
+
+---
+
+## 快速开始
+
+### 方式一：便携版（推荐给普通用户）
+
+1. 下载并解压 `聊天信息工作台.zip`
+2. 双击 **`启动.cmd`**
+3. 应用窗口打开后，左侧进入「导入数据」
+
+如果窗口没出现，双击 `启动-调试.cmd`，控制台里会显示具体错误，
+详细信息也会写到 `data/logs/launcher.log`。
+
+> 便携版基于 Windows 10/11 + WebView2（系统自带）。
+> 若系统缺失 WebView2，程序会退化成用默认浏览器打开。
+
+### 方式二：从源码运行
+
+```bash
+git clone <本仓库地址>
+cd 聊天信息工作台
+
+# Python 3.11（pilk / SIWX 不支持 3.13+）
+py -3.11 -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+
+# 前端
+cd web
+npm install
+npm run build
+cd ..
+
+# 启动（原生窗口）
+python launcher.py
+
+# 或者只起后端，用浏览器访问 http://127.0.0.1:8765
+python -m uvicorn app.main:app --port 8765
+```
+
+想先看看界面长什么样，可以先造一份**完全合成**的演示数据：
+
+```bash
+python scripts/make_demo_data.py --import
+```
+
+---
+
+## 使用流程
+
+### 1. 导入微信
+
+微信的数据是 SQLCipher 加密的，需要先从进程内存里取密钥再解密。
+
+- 打开微信并保持登录
+- 「导入数据」→ 微信卡片 → **解密并导入**
+
+解密产物会落在 `data/wechat/decrypted/`，之后的浏览只读这份明文库。
+如果你的环境已经用 SIWX 解好密了，可以直接把账号目录放进去，点「只导入已解密数据」。
+
+> 微信每次升级都可能改变数据库结构，解密组件跟不上时需要等上游 SIWX 更新。
+
+### 2. 导入抖音
+
+两种方式：
+
+- **直接导入已有数据库**：选择 `chat.db`（上游引擎或本工具产出的都行），媒体文件会被复制进 `data/media/`
+- **在线采集**：需要额外安装采集依赖（`pip install -r requirements-collect.txt`），
+  然后「采集并导入」，浏览器窗口里扫码登录
+
+### 3. 合并同一个人的两个账号
+
+「合并好友」→ 在列表里选中微信那条和抖音那条 → 「合并这两个」。
+
+建议先看一眼两边的昵称、备注和聊天内容，确认是同一个人再合并。
+合并只建立关联，不会改动任何原始数据。
+
+### 4. 浏览与导出
+
+回到「聊天」，合并后的会话会同时显示两个平台的消息；右侧信息栏能看到两个平台账号的来源。
+「导出」可以选择 ChatLab JSONL / JSON / Markdown。
+
+---
+
+## 数据与隐私
+
+这个项目的设计前提是：**你的聊天记录只属于你**。
+
+- 所有数据都保存在应用目录的 `data/` 下，没有任何云端同步
+- 后端只监听 `127.0.0.1`，局域网内其它设备访问不到
+- 仓库里不含任何真实聊天数据、密钥、账号目录名或个人信息
+- 演示数据由 `scripts/make_demo_data.py` 生成，人物与内容全是编的
+
+`data/` 的布局：
+
+```
+data/
+├─ unified.db          统一数据库（联系人 / 会话 / 消息 / 导入记录）
+├─ settings.json       界面设置
+├─ media/              图片、语音、视频
+│  └─ douyin/          抖音媒体（按上游的 images/emoji/voice/videos 分目录）
+├─ wechat/decrypted/   微信解密产物
+├─ douyin/             抖音 chat.db 与浏览器登录态
+├─ exports/            导出文件
+└─ logs/               日志
+```
+
+**备份**：直接复制整个 `data/` 目录。
+**换机**：把应用目录和 `data/` 一起带过去即可。
+
+---
+
+## 工作原理
+
+```
+微信客户端 ──SIWX──▶ 明文 SQLCipher 库 ──导入器──┐
+                                                  ├─▶ data/unified.db ──▶ FastAPI ──▶ Vue 界面
+抖音客户端 ──采集/chat.db────────────────导入器──┘
+```
+
+统一数据模型的核心是三张表：
+
+| 表 | 含义 |
+|---|---|
+| `contacts` | **一个人**（不是某个平台账号） |
+| `identities` | 这个人在某个平台的账号（`platform + platform_uid`） |
+| `conversations` | 平台原始会话，私聊通过 `contact_id` 挂到某个人身上 |
+
+同一个 `contact` 下挂两个平台的 `conversations`，查询时把它们合并成一个
+「thread」，按 `ts` 排序就是交错时间线。群聊没有 `contact`，单独作为一条会话。
+
+更细的设计说明见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
+
+---
+
+## 目录结构
+
+```
+聊天信息工作台/
+├─ app/                     后端
+│  ├─ main.py               FastAPI 应用与静态托管
+│  ├─ desktop.py            pywebview 桌面外壳
+│  ├─ api.py                REST 接口
+│  ├─ db.py                 统一库 schema 与读写
+│  ├─ threads.py            跨平台聚合查询
+│  ├─ contacts.py           联系人合并 / 拆分
+│  ├─ services.py           解密、采集、导入的编排
+│  ├─ importers/            wechat.py / douyin.py
+│  ├─ exporters/            ChatLab / Markdown
+│  └─ jobs.py               后台任务与日志
+├─ engines/
+│  ├─ siwx/                 微信解密（AGPL-3.0，第三方）
+│  └─ douyin/               抖音采集（MIT，第三方）
+├─ web/                     Vue 3 + Vite 前端
+├─ scripts/
+│  ├─ build_portable.py     打包便携版
+│  ├─ make_demo_data.py     生成合成演示数据
+│  ├─ import_cli.py         命令行导入
+│  └─ launcher.py           便携包入口
+├─ demo/                    合成演示数据（可直接导入）
+├─ tests/                   pytest
+├─ docs/                    架构与截图
+├─ requirements.txt         运行依赖
+└─ requirements-collect.txt 可选的采集依赖
+```
+
+---
+
+## 开发
+
+```bash
+# 后端测试
+.venv\Scripts\python -m pytest -q
+
+# 前端开发（代理到 8765）
+cd web && npm run dev
+
+# 打包便携版
+python scripts/build_portable.py --zip
+```
+
+打包脚本会下载官方 Python 3.11 embeddable 发行版，把当前 `.venv` 的依赖复制进去，
+再生成 `启动.cmd`。产物在 `release/聊天信息工作台/`。
+
+---
+
+## 已知限制
+
+- **仅 Windows**：微信解密依赖 Windows 进程内存读取；macOS 理论上可行但未适配
+- **微信只导入文本类消息**：图片、语音、视频暂未从微信媒体库落地（抖音侧已支持）
+- **群聊不参与合并**：群聊按平台各自独立展示
+- **首版不含 AI 分析**：只做导入、合并、浏览、搜索、导出
+- 微信/抖音接口随时可能变化，解密与采集能力可能失效
+
+---
+
+## 许可证与致谢
+
+本项目以 **AGPL-3.0** 发布。因为它内置了同样采用 AGPL-3.0 的
+[SIWX](https://github.com/ImUpXuu/SIWX)，整包需要遵循 AGPL 的传染性条款：
+分发修改版或对外提供网络服务时，需要同时提供对应源码。
+
+第三方组件与出处见 [NOTICE](NOTICE)，主要包括：
+
+- [SIWX](https://github.com/ImUpXuu/SIWX) —— 微信数据库解密（AGPL-3.0）
+- [douyin-chat-export](https://github.com/TeamBreakerr/douyin-chat-export) —— 抖音采集（MIT）
+
+**免责声明**：本项目只用于处理你本人拥有合法访问权限的聊天数据。
+使用第三方工具可能违反相关平台的服务协议，存在账号被限制的风险，请自行评估。
