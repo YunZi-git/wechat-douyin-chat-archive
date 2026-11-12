@@ -15,6 +15,10 @@ MAX_LOG_LINES = 800
 MAX_JOBS = 40
 
 
+class JobCancelled(Exception):
+    """任务体主动抛这个表示「用户取消了」，不再当作失败。"""
+
+
 class Job:
     def __init__(self, kind: str, title: str) -> None:
         self.id = uuid.uuid4().hex[:12]
@@ -116,6 +120,9 @@ def start(kind: str, title: str, target: Callable[[Job], Any]) -> Job:
             else:
                 job.status = "ok"
             job.result = result
+        except JobCancelled:
+            job.status = "cancelled"
+            job.write("[i] 已取消（已完成的部分保留）")
         except Exception as exc:  # noqa: BLE001 - 任务失败要把原因留给前端
             job.error = f"{type(exc).__name__}: {exc}"
             job.status = "failed"

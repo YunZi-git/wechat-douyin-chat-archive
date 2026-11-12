@@ -20,7 +20,8 @@ import time
 from pathlib import Path
 from typing import Any, Callable
 
-from .. import db, paths, threads
+from .. import db, paths
+from ..jobs import JobCancelled
 
 Progress = Callable[[dict[str, Any]], None] | None
 
@@ -198,6 +199,7 @@ def import_chat_db(
     copy_media: bool = True,
     progress: Progress = None,
     limit_messages: int | None = None,
+    should_cancel: Callable[[], bool] | None = None,
 ) -> dict[str, Any]:
     chat_db = Path(chat_db)
     if not chat_db.exists():
@@ -242,6 +244,7 @@ def import_chat_db(
         ).lastrowid
 
         conv_map: dict[str, int] = {}
+        touched: set[int] = set()
         for row in src.execute("SELECT * FROM conversations"):
             conv_id = row["conv_id"]
             conv_type = int(row["conv_type"] or 1)
@@ -292,89 +295,106 @@ def import_chat_db(
             if not existed:
                 report["conversations_added"] += 1
             conv_map[conv_id] = cid
+            touched.add(cid)
 
         total = src.execute("SELECT COUNT(*) FROM messages").fetchone()[0]
         if progress:
             progress({"stage": "抖音导入", "total": total, "messages": 0})
 
-        for row in src.execute(
-            "SELECT msg_id, conv_id, sender_uid, sender_name, content, msg_type,"
-            " media_url, media_local_path, timestamp, seq, raw_data, ref_msg"
-            " FROM messages ORDER BY conv_id, seq, timestamp"
-        ):
-            cid = conv_map.get(row["conv_id"])
-            if cid is None:
-                continue
-            raw = _json_obj(row["raw_data"]) or {}
-            sender_uid = row["sender_uid"]
-            is_self = bool(self_uid) and sender_uid == self_uid
-            sender_name = (row["sender_name"] or "").strip() or (
-                users.get(sender_uid or "", {}).get("nickname") or ""
+        def finish(status: str) -> None:
+            report["elapsed"] = round(time.time() - started, 1)
+            report["finished_at"] = int(time.time())
+            db.refresh_conversation_stats(conn, touched)
+            conn.execute(
+                "UPDATE import_runs SET status=?, finished_at=?, conversations_added=?,"
+                " messages_added=?, messages_skipped=?, detail=? WHERE id=?",
+                (
+                    status,
+                    report["finished_at"],
+                    report["conversations_added"],
+                    report["messages_added"],
+                    report["messages_skipped"],
+                    json.dumps(report, ensure_ascii=False),
+                    run_id,
+                ),
             )
+            conn.commit()
 
-            kind, text, duration = classify(
-                int(row["msg_type"] or 0),
-                row["content"],
-                row["media_local_path"],
-                _parse_duration(row["content"], raw),
-            )
-            if kind == "voice":
-                transcript = transcriptions.get(row["msg_id"])
-                if transcript:
-                    text = transcript
+        processed = 0
+        try:
+            if should_cancel and should_cancel():
+                raise JobCancelled()
+            for row in src.execute(
+                "SELECT msg_id, conv_id, sender_uid, sender_name, content, msg_type,"
+                " media_url, media_local_path, timestamp, seq, raw_data, ref_msg"
+                " FROM messages ORDER BY conv_id, seq, timestamp"
+            ):
+                cid = conv_map.get(row["conv_id"])
+                if cid is None:
+                    continue
+                processed += 1
+                if should_cancel and processed % 2000 == 0 and should_cancel():
+                    raise JobCancelled()
 
-            media_rel = None
-            if row["media_local_path"]:
-                media_rel = "douyin/" + row["media_local_path"].replace("\\", "/").lstrip("/")
+                raw = _json_obj(row["raw_data"]) or {}
+                sender_uid = row["sender_uid"]
+                is_self = bool(self_uid) and sender_uid == self_uid
+                sender_name = (row["sender_name"] or "").strip() or (
+                    users.get(sender_uid or "", {}).get("nickname") or ""
+                )
 
-            inserted = db.add_message(
-                conn, cid, "douyin", row["msg_id"],
-                sender_uid=sender_uid,
-                sender_name="我" if is_self else sender_name,
-                is_self=is_self,
-                ts=int(row["timestamp"] or 0),
-                kind=kind,
-                text=text,
-                media_path=media_rel,
-                media_url=None,
-                duration=duration,
-                reply_to=_reply_preview(row["ref_msg"]),
-                seq=int(row["seq"] or 0) or None,
-                extra=json.dumps({"msg_type": int(row["msg_type"] or 0)},
-                                 ensure_ascii=False),
-            )
-            if inserted:
-                report["messages_added"] += 1
-            else:
-                report["messages_skipped"] += 1
+                kind, text, duration = classify(
+                    int(row["msg_type"] or 0),
+                    row["content"],
+                    row["media_local_path"],
+                    _parse_duration(row["content"], raw),
+                )
+                if kind == "voice":
+                    transcript = transcriptions.get(row["msg_id"])
+                    if transcript:
+                        text = transcript
 
-            if limit_messages and report["messages_added"] >= limit_messages:
-                break
+                media_rel = None
+                if row["media_local_path"]:
+                    media_rel = "douyin/" + row["media_local_path"].replace("\\", "/").lstrip("/")
 
-            if report["messages_added"] and report["messages_added"] % 20000 == 0:
-                conn.commit()
-                if progress:
-                    progress({"stage": "抖音导入", "total": total,
-                              "messages": report["messages_added"]})
+                inserted = db.add_message(
+                    conn, cid, "douyin", row["msg_id"],
+                    sender_uid=sender_uid,
+                    sender_name="我" if is_self else sender_name,
+                    is_self=is_self,
+                    ts=int(row["timestamp"] or 0),
+                    kind=kind,
+                    text=text,
+                    media_path=media_rel,
+                    media_url=None,
+                    duration=duration,
+                    reply_to=_reply_preview(row["ref_msg"]),
+                    seq=int(row["seq"] or 0) or None,
+                    extra=json.dumps({"msg_type": int(row["msg_type"] or 0)},
+                                     ensure_ascii=False),
+                )
+                if inserted:
+                    report["messages_added"] += 1
+                else:
+                    report["messages_skipped"] += 1
 
-        report["elapsed"] = round(time.time() - started, 1)
-        report["finished_at"] = int(time.time())
-        conn.execute(
-            "UPDATE import_runs SET status='ok', finished_at=?, conversations_added=?,"
-            " messages_added=?, messages_skipped=?, detail=? WHERE id=?",
-            (
-                report["finished_at"],
-                report["conversations_added"],
-                report["messages_added"],
-                report["messages_skipped"],
-                json.dumps(report, ensure_ascii=False),
-                run_id,
-            ),
-        )
-        conn.commit()
+                if limit_messages and report["messages_added"] >= limit_messages:
+                    break
+
+                if report["messages_added"] and report["messages_added"] % 20000 == 0:
+                    conn.commit()
+                    if progress:
+                        progress({"stage": "抖音导入", "total": total,
+                                  "messages": report["messages_added"]})
+        except JobCancelled:
+            report["cancelled"] = True
+            finish("cancelled")
+            raise
+
+        finish("ok")
 
     src.close()
-    threads.invalidate_cache()
 
     if self_uid:
         from .. import settings as settings_mod

@@ -19,7 +19,7 @@ os.environ["CHATWORK_DATA_DIR"] = str(_TMP)
 
 import pytest  # noqa: E402
 
-from app import db, paths, threads  # noqa: E402
+from app import db, paths  # noqa: E402
 from app.importers import douyin, wechat  # noqa: E402
 
 
@@ -57,9 +57,7 @@ def library(demo_sources):
         media_src=demo_sources["douyin"] / "media",
         copy_media=True,
     )
-    threads.invalidate_cache()
     yield {"wechat": r_wx, "douyin": r_dy}
-    threads.invalidate_cache()
 
 
 @pytest.fixture()

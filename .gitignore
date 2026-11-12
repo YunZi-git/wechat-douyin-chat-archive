@@ -27,6 +27,7 @@ build/
 *.spec
 .cache/
 _scratch/
+_audit/
 
 # ── 本地配置 / 密钥（永远不要提交）──
 config.json

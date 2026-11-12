@@ -25,11 +25,20 @@ async function refresh() {
   }
 }
 
-async function run(kind, title) {
+const STATUS_LABEL = {
+  queued: '排队中',
+  running: '进行中',
+  ok: '完成',
+  failed: '失败',
+  cancelled: '已取消',
+}
+
+async function run(kind, title, arg) {
   const fn = {
     wechatRefresh: () => api.wechatRefresh(),
-    wechatDomestic: () => api.wechatDecrypt(),
+    wechatDecrypt: () => api.wechatDecrypt(),
     wechatImport: () => api.importWechat(),
+    wechatImportOne: () => api.importWechat(arg),
     douyinRefresh: () => api.douyinRefresh({ incremental: true }),
     douyinImport: () => api.importDouyin({ copy_media: true }),
     douyinCustom: () => api.importDouyin({ chat_db: customDb.value.trim(), copy_media: true }),
@@ -102,6 +111,9 @@ onMounted(refresh)
                   {{ acc.shards }} 个分片 · {{ fmtBytes(acc.size) }} · {{ fmtDateTime(acc.mtime) }}
                 </div>
               </div>
+              <button class="btn sm" @click="run('wechatImportOne', `导入 ${acc.name}`, acc.path)">
+                导入
+              </button>
             </div>
           </div>
 
@@ -119,9 +131,6 @@ onMounted(refresh)
               @click="run('wechatImport', '导入已解密的微信数据')"
             >
               <Icon name="import" :size="14" /> 只导入已解密数据
-            </button>
-            <button class="btn ghost" :disabled="true" title="单个账号导入可在会话页完成后使用">
-              单账号导入
             </button>
           </div>
         </div>
@@ -185,7 +194,9 @@ onMounted(refresh)
               <div class="row-title">{{ j.title }}</div>
               <div class="row-sub">{{ fmtDateTime(j.started_at) }}</div>
             </div>
-            <span class="chip" :class="{ active: j.status === 'running' }">{{ j.status }}</span>
+            <span class="chip" :class="{ active: j.status === 'running' || j.status === 'queued' }">
+              {{ STATUS_LABEL[j.status] || j.status }}
+            </span>
             <button class="btn sm ghost" @click="(activeJob = j.id), (activeTitle = j.title)">日志</button>
           </div>
         </div>

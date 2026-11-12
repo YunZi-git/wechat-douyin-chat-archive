@@ -38,10 +38,11 @@ export const api = {
     return get(`/api/threads?${params}`)
   },
   thread: (id) => get(`/api/threads/${encodeURIComponent(id)}`),
-  messages: (id, { limit = 60, beforeTs, afterTs, platform } = {}) => {
+  messages: (id, { limit = 60, beforeTs, afterTs, aroundTs, platform } = {}) => {
     const params = new URLSearchParams({ limit })
     if (beforeTs) params.set('before_ts', beforeTs)
     if (afterTs) params.set('after_ts', afterTs)
+    if (aroundTs) params.set('around_ts', aroundTs)
     if (platform) params.set('platform', platform)
     return get(`/api/threads/${encodeURIComponent(id)}/messages?${params}`)
   },

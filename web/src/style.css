@@ -853,6 +853,14 @@ html[data-theme='light'] .log { background: #0e1420; }
 .mt20 { margin-top: 20px; }
 .nowrap { white-space: nowrap; }
 
+/* ── 紧凑模式 ─────────────────────────────────────────────── */
+html[data-density='compact'] .messages { padding: 12px 22px 24px; }
+html[data-density='compact'] .msg-row { margin-bottom: 8px; }
+html[data-density='compact'] .bubble { padding: 6px 11px; font-size: 13px; line-height: 1.5; }
+html[data-density='compact'] .day-sep { margin: 14px 0 10px; }
+html[data-density='compact'] .thread-item { padding: 7px 10px; }
+html[data-density='compact'] .thread-list { padding: 2px 8px 14px; }
+
 @media (max-width: 1080px) {
   .chats-layout, .chats-layout.with-info { grid-template-columns: 280px minmax(0, 1fr); }
   .info { display: none; }

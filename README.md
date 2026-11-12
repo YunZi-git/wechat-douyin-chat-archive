@@ -181,6 +181,9 @@ data/
 └─ logs/               日志
 ```
 
+**访问边界**：后端只监听 `127.0.0.1`，并且校验 Host 头（只接受本机名），
+防止恶意网页通过 DNS rebinding 读取本地数据；导出下载和静态文件都有路径校验。
+
 **备份**：直接复制整个 `data/` 目录。
 **换机**：把应用目录和 `data/` 一起带过去即可。
 
@@ -205,7 +208,9 @@ data/
 同一个 `contact` 下挂两个平台的 `conversations`，查询时把它们合并成一个
 「thread」，按 `ts` 排序就是交错时间线。群聊没有 `contact`，单独作为一条会话。
 
-更细的设计说明见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
+**性能**（61.8 万条消息实测）：会话列表 3 ms，单会话跳转 1 ms，
+导出 13.7 万条的会话 1.4 秒、内存占用 25 MB。做法是物化会话统计 + 流式导出，
+细节见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) 第 10、11 节。
 
 ---
 

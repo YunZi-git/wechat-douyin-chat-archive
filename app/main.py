@@ -23,6 +23,26 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(title="聊天信息工作台", version=api.VERSION, lifespan=lifespan)
+
+# 只接受本机 Host 头。防的是 DNS rebinding：恶意网页把自己的域名解析到
+# 127.0.0.1，就能以同源身份读走本地聊天库。testserver 是 TestClient 用的。
+_DEFAULT_HOSTS = {"127.0.0.1", "localhost", "::1", "testserver"}
+_TRUSTED_HOSTS = {
+    h.strip().lower()
+    for h in (os.environ.get("CHATWORK_TRUSTED_HOSTS") or "").split(",")
+    if h.strip()
+} or _DEFAULT_HOSTS
+
+
+@app.middleware("http")
+async def _host_guard(request, call_next):
+    raw = request.headers.get("host") or ""
+    name = raw.rsplit(":", 1)[0].strip("[]").lower() if raw else ""
+    if name not in _TRUSTED_HOSTS:
+        return JSONResponse({"error": "forbidden host"}, status_code=403)
+    return await call_next(request)
+
+
 app.include_router(api.router)
 
 

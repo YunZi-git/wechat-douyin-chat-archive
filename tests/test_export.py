@@ -12,7 +12,6 @@ def _merge_lin(library) -> str:
     wx = next(c for c in items if c["platforms"] == ["wechat"])
     dy = next(c for c in items if c["platforms"] == ["douyin"])
     contacts.merge_contacts(wx["id"], dy["id"])
-    threads.invalidate_cache()
     return f"contact:{wx['id']}"
 
 

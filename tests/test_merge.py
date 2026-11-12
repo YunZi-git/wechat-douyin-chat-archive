@@ -32,7 +32,6 @@ def test_merged_timeline_interleaves(library):
     wx = _find("林晓", "wechat")
     dy = _find("林晓", "douyin")
     contacts.merge_contacts(wx["id"], dy["id"])
-    threads.invalidate_cache()
 
     thread_id = f"contact:{wx['id']}"
     result = threads.thread_messages(thread_id, limit=100)
@@ -48,7 +47,6 @@ def test_platform_filter_narrows_timeline(library):
     wx = _find("林晓", "wechat")
     dy = _find("林晓", "douyin")
     contacts.merge_contacts(wx["id"], dy["id"])
-    threads.invalidate_cache()
 
     thread_id = f"contact:{wx['id']}"
     only_dy = threads.thread_messages(thread_id, limit=100, platform="douyin")["items"]
@@ -105,7 +103,6 @@ def test_thread_info_reports_sources(library):
     wx = _find("林晓", "wechat")
     dy = _find("林晓", "douyin")
     contacts.merge_contacts(wx["id"], dy["id"])
-    threads.invalidate_cache()
 
     info = threads.thread_info(f"contact:{wx['id']}")
     assert info["merged"] is True

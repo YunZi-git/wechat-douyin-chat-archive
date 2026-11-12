@@ -10,7 +10,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from . import db, threads
+from . import db
 
 
 def _contact(conn, contact_id: int) -> dict[str, Any] | None:
@@ -88,7 +88,6 @@ def merge_contacts(primary_id: int, secondary_id: int, *, display_name: str | No
         )
         conn.execute("DELETE FROM contacts WHERE id=?", (secondary_id,))
 
-    threads.invalidate_cache()
     return get_contact(primary_id) or {}
 
 
@@ -123,7 +122,6 @@ def unmerge_contact(contact_id: int, platform: str) -> dict[str, Any]:
             "UPDATE contacts SET updated_at=? WHERE id=?",
             (int(time.time()), contact_id),
         )
-    threads.invalidate_cache()
     return {"contact_id": new_id, "original": get_contact(contact_id)}
 
 
@@ -139,7 +137,6 @@ def rename_contact(contact_id: int, display_name: str, *, note: str | None = Non
         )
         if cur.rowcount == 0:
             raise ValueError("联系人不存在")
-    threads.invalidate_cache()
     return get_contact(contact_id) or {}
 
 

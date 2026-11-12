@@ -106,10 +106,16 @@ def thread_messages(
     limit: int = Query(60, ge=1, le=500),
     before_ts: int | None = Query(None),
     after_ts: int | None = Query(None),
+    around_ts: int | None = Query(None),
     platform: str | None = Query(None),
 ) -> dict[str, Any]:
     return threads.thread_messages(
-        thread_id, limit=limit, before_ts=before_ts, after_ts=after_ts, platform=platform
+        thread_id,
+        limit=limit,
+        before_ts=before_ts,
+        after_ts=after_ts,
+        around_ts=around_ts,
+        platform=platform,
     )
 
 

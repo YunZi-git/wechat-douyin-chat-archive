@@ -25,7 +25,8 @@ import time
 from pathlib import Path
 from typing import Any, Callable
 
-from .. import db, threads
+from .. import db
+from ..jobs import JobCancelled
 
 Progress = Callable[[dict[str, Any]], None] | None
 
@@ -180,12 +181,13 @@ def _shard_sort_key(path: Path) -> int:
     return int(m.group(1)) if m else 0
 
 
-def _message_rows(con: sqlite3.Connection, table: str) -> list[sqlite3.Row]:
+def _iter_message_rows(con: sqlite3.Connection, table: str) -> sqlite3.Cursor:
+    """流式返回消息游标：几万条的表也不一次性读进内存。"""
     return con.execute(
         f'SELECT local_id, server_id, local_type, real_sender_id, create_time,'
         f' message_content, compress_content, WCDB_CT_message_content'
         f' FROM "{table}" ORDER BY create_time, local_id'
-    ).fetchall()
+    )
 
 
 def import_account(
@@ -193,6 +195,7 @@ def import_account(
     *,
     progress: Progress = None,
     limit_messages: int | None = None,
+    should_cancel: Callable[[], bool] | None = None,
 ) -> dict[str, Any]:
     """把一个账号目录导入统一库，返回统计信息。"""
     account_dir = Path(account_dir)
@@ -229,6 +232,7 @@ def import_account(
             (str(account_dir), int(started)),
         ).lastrowid
         conv_cache: dict[str, int] = {}
+        touched: set[int] = set()
         total_seen = 0
 
         def conv_for(talker: str) -> int:
@@ -274,135 +278,146 @@ def import_account(
             if not existed:
                 report["conversations_added"] += 1
             conv_cache[talker] = cid
+            touched.add(cid)
             return cid
 
-        for shard_index, shard in enumerate(shards, 1):
-            scon = sqlite3.connect(f"file:{shard}?mode=ro", uri=True)
-            scon.row_factory = sqlite3.Row
-            n2i = {
-                r["rowid"]: r["user_name"]
-                for r in scon.execute("SELECT rowid, user_name FROM Name2Id")
-            }
-            by_md5 = {
-                hashlib.md5((u or "").encode()).hexdigest(): u
-                for u in n2i.values() if u
-            }
-            tables = [
-                r["name"] for r in scon.execute(
-                    "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'Msg_%'"
-                )
-            ]
-            if progress:
-                progress({
-                    "stage": "微信导入",
-                    "shard": shard.name,
-                    "shard_index": shard_index,
-                    "shards": len(shards),
-                    "messages": report["messages_added"],
-                })
+        def cancelled() -> bool:
+            return bool(should_cancel and should_cancel())
 
-            for table in tables:
-                talker = by_md5.get(table[4:].lower())
-                if not talker:
-                    continue
-                cid = conv_for(talker)
+        def finish(status: str) -> None:
+            report["messages_seen"] = total_seen
+            report["elapsed"] = round(time.time() - started, 1)
+            report["finished_at"] = int(time.time())
+            db.refresh_conversation_stats(conn, touched)
+            conn.execute(
+                "UPDATE import_runs SET status=?, finished_at=?, conversations_added=?,"
+                " messages_added=?, messages_skipped=?, detail=? WHERE id=?",
+                (
+                    status,
+                    report["finished_at"],
+                    report["conversations_added"],
+                    report["messages_added"],
+                    report["messages_skipped"],
+                    json.dumps(report, ensure_ascii=False),
+                    run_id,
+                ),
+            )
+            conn.commit()
+
+        try:
+            if cancelled():
+                raise JobCancelled()
+            for shard_index, shard in enumerate(shards, 1):
+                scon = sqlite3.connect(f"file:{shard}?mode=ro", uri=True)
                 try:
-                    rows = _message_rows(scon, table)
-                except sqlite3.Error as exc:
-                    print(f"[warn] {shard.name}/{table}: {exc}", file=sys.stderr)
-                    continue
+                    scon.row_factory = sqlite3.Row
+                    n2i = {
+                        r["rowid"]: r["user_name"]
+                        for r in scon.execute("SELECT rowid, user_name FROM Name2Id")
+                    }
+                    by_md5 = {
+                        hashlib.md5((u or "").encode()).hexdigest(): u
+                        for u in n2i.values() if u
+                    }
+                    tables = [
+                        r["name"] for r in scon.execute(
+                            "SELECT name FROM sqlite_master WHERE type='table'"
+                            " AND name LIKE 'Msg_%'"
+                        )
+                    ]
+                    if progress:
+                        progress({
+                            "stage": "微信导入",
+                            "shard": shard.name,
+                            "shard_index": shard_index,
+                            "shards": len(shards),
+                            "messages": report["messages_added"],
+                        })
 
-                for r in rows:
-                    total_seen += 1
-                    local_type = int(r["local_type"] or 0) & 0xFFFFFFFF
-                    kind = WECHAT_LOCAL_TYPES.get(local_type, "other")
-                    text = _decompress(
-                        r["message_content"], r["WCDB_CT_message_content"]
-                    )
-                    if not text and r["compress_content"]:
-                        text = _decompress(r["compress_content"], 1)
-                    text = _clean_text(text)
+                    for table in tables:
+                        talker = by_md5.get(table[4:].lower())
+                        if not talker:
+                            continue
+                        cid = conv_for(talker)
+                        try:
+                            rows = _iter_message_rows(scon, table)
+                        except sqlite3.Error as exc:
+                            print(f"[warn] {shard.name}/{table}: {exc}", file=sys.stderr)
+                            continue
 
-                    if kind == "text" and not text:
-                        kind = "other"
-                    if kind == "share" and text:
-                        title = _share_title(text)
-                        text = title or KIND_LABELS["share"]
-                    # 图片/语音等类型的 message_content 是 XML 或空，别把原始标记露给用户
-                    if kind not in ("text", "share") and text.lstrip().startswith(("<", "{")):
-                        text = ""
+                        for r in rows:
+                            total_seen += 1
+                            if total_seen % 3000 == 0 and cancelled():
+                                raise JobCancelled()
 
-                    sender = n2i.get(r["real_sender_id"], "") or ""
-                    is_self = bool(self_wxid) and sender == self_wxid
-                    if kind == "text":
-                        body = text
-                    else:
-                        body = text or KIND_LABELS.get(kind, "")
+                            local_type = int(r["local_type"] or 0) & 0xFFFFFFFF
+                            kind = WECHAT_LOCAL_TYPES.get(local_type, "other")
+                            text = _decompress(
+                                r["message_content"], r["WCDB_CT_message_content"]
+                            )
+                            if not text and r["compress_content"]:
+                                text = _decompress(r["compress_content"], 1)
+                            text = _clean_text(text)
 
-                    inserted = db.add_message(
-                        conn,
-                        cid,
-                        "wechat",
-                        f"{shard.name}:{table}:{r['local_id']}",
-                        sender_uid=sender or None,
-                        sender_name="我" if is_self else names.get(sender, sender),
-                        is_self=is_self,
-                        ts=int(r["create_time"] or 0),
-                        kind=kind,
-                        text=body,
-                        seq=int(r["server_id"] or 0) or None,
-                        extra=json.dumps(
-                            {"local_type": local_type, "shard": shard.name},
-                            ensure_ascii=False,
-                        ),
-                    )
-                    if inserted:
-                        report["messages_added"] += 1
-                    else:
-                        report["messages_skipped"] += 1
+                            if kind == "text" and not text:
+                                kind = "other"
+                            if kind == "share" and text:
+                                title = _share_title(text)
+                                text = title or KIND_LABELS["share"]
+                            # 图片/语音等类型的 message_content 是 XML 或空，别把原始标记露给用户
+                            if kind not in ("text", "share") and text.lstrip().startswith(("<", "{")):
+                                text = ""
 
-                    if limit_messages and report["messages_added"] >= limit_messages:
-                        break
+                            sender = n2i.get(r["real_sender_id"], "") or ""
+                            is_self = bool(self_wxid) and sender == self_wxid
+                            body = text if kind == "text" else (text or KIND_LABELS.get(kind, ""))
 
-                    if report["messages_added"] % 20000 == 0 and report["messages_added"]:
-                        conn.commit()
-                        if progress:
-                            progress({
-                                "stage": "微信导入",
-                                "shard": shard.name,
-                                "messages": report["messages_added"],
-                                "seen": total_seen,
-                            })
+                            inserted = db.add_message(
+                                conn,
+                                cid,
+                                "wechat",
+                                f"{shard.name}:{table}:{r['local_id']}",
+                                sender_uid=sender or None,
+                                sender_name="我" if is_self else names.get(sender, sender),
+                                is_self=is_self,
+                                ts=int(r["create_time"] or 0),
+                                kind=kind,
+                                text=body,
+                                seq=int(r["server_id"] or 0) or None,
+                                extra=json.dumps(
+                                    {"local_type": local_type, "shard": shard.name},
+                                    ensure_ascii=False,
+                                ),
+                            )
+                            if inserted:
+                                report["messages_added"] += 1
+                            else:
+                                report["messages_skipped"] += 1
+
+                            if limit_messages and report["messages_added"] >= limit_messages:
+                                break
+
+                            if report["messages_added"] % 20000 == 0 and report["messages_added"]:
+                                conn.commit()
+                                if progress:
+                                    progress({
+                                        "stage": "微信导入",
+                                        "shard": shard.name,
+                                        "messages": report["messages_added"],
+                                        "seen": total_seen,
+                                    })
+                        if limit_messages and report["messages_added"] >= limit_messages:
+                            break
+                finally:
+                    scon.close()
+                conn.commit()
                 if limit_messages and report["messages_added"] >= limit_messages:
                     break
-            scon.close()
-            conn.commit()
-            if limit_messages and report["messages_added"] >= limit_messages:
-                break
+        except JobCancelled:
+            report["cancelled"] = True
+            finish("cancelled")
+            raise
 
-        report["messages_seen"] = total_seen
-        report["elapsed"] = round(time.time() - started, 1)
-        report["finished_at"] = int(time.time())
-        conn.execute(
-            "UPDATE import_runs SET status='ok', finished_at=?, conversations_added=?,"
-            " messages_added=?, messages_skipped=?, detail=? WHERE id=?",
-            (
-                report["finished_at"],
-                report["conversations_added"],
-                report["messages_added"],
-                report["messages_skipped"],
-                json.dumps(report, ensure_ascii=False),
-                run_id,
-            ),
-        )
-        conn.commit()
+        finish("ok")
 
-    threads.invalidate_cache()
-
-    # 记下本人 wxid，方便以后增量判断
-    if self_wxid:
-        from .. import settings as settings_mod
-
-        if not settings_mod.load().get("wechat_self_wxid"):
-            settings_mod.save({"wechat_self_wxid": self_wxid})
     return report

@@ -6,23 +6,31 @@
 * ``conv:<id>``    —— 一个独立会话（群聊 / 系统会话）
 
 前端只认 thread_id，不需要知道底下有几个平台的会话。
+
+性能说明
+--------
+会话列表如果直接对 ``messages`` 做 ``COUNT/MAX/ROW_NUMBER``，几十万条消息时
+每次冷查询要半秒。所以每个会话的「条数 / 最后一条 / 最后一条内容」被物化到
+``conversation_stats``（导入结束时刷新），列表查询只扫几百行。
 """
 from __future__ import annotations
 
 import sqlite3
-import time
-from typing import Any
+from typing import Any, Iterator
 
 from . import db, paths
 
-# 会话列表是一条聚合查询（几十万条消息），给个短缓存让界面切换无感。
-# 导入 / 合并 / 拆分之后调用 invalidate_cache() 立刻失效。
-_CACHE_TTL = 25.0
-_cache: dict[tuple, tuple[float, dict[str, Any]]] = {}
 
+def like_pattern(value: str) -> str:
+    """把用户输入包成 LIKE 模式，并转义通配符。
 
-def invalidate_cache() -> None:
-    _cache.clear()
+    不转义的话，搜一个 ``%`` 会命中全库，既反直觉又慢。
+    调用方必须搭配 ``LIKE ? ESCAPE '\\'`` 使用。
+    """
+    escaped = (
+        value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    )
+    return f"%{escaped}%"
 
 
 def _platforms(raw: str | None) -> list[str]:
@@ -44,107 +52,89 @@ def list_threads(
     offset: int = 0,
 ) -> dict[str, Any]:
     """会话列表：联系人（含跨平台合并）在前，群聊在后，都按最近活跃排序。"""
-    key = (platform, (q or "").strip(), limit, offset)
-    cached = _cache.get(key)
-    if cached and time.time() - cached[0] < _CACHE_TTL:
-        return cached[1]
-    result = _list_threads_uncached(platform=platform, q=q, limit=limit, offset=offset)
-    _cache[key] = (time.time(), result)
-    return result
+    query = (q or "").strip()
+    pattern = like_pattern(query) if query else None
 
-
-def _list_threads_uncached(
-    *,
-    platform: str | None,
-    q: str | None,
-    limit: int,
-    offset: int,
-) -> dict[str, Any]:
-    like = f"%{q.strip()}%" if q and q.strip() else None
     with db.session(readonly=True) as conn:
         contact_rows = conn.execute(
             """
-            WITH msgs AS (
-                SELECT c.contact_id AS cid,
-                       COUNT(*) AS msg_count,
-                       MAX(m.ts) AS last_ts
-                  FROM messages m
-                  JOIN conversations c ON c.id = m.conversation_id
+            WITH conv AS (
+                SELECT c.contact_id            AS contact_id,
+                       c.id                    AS conv_id,
+                       c.platform              AS platform,
+                       COALESCE(s.msg_count, 0) AS msg_count,
+                       COALESCE(s.last_ts, 0)   AS last_ts,
+                       COALESCE(s.last_text, '') AS last_text,
+                       COALESCE(s.last_kind, 'text') AS last_kind
+                  FROM conversations c
+                  LEFT JOIN conversation_stats s ON s.conversation_id = c.id
                  WHERE c.contact_id IS NOT NULL
-                 GROUP BY c.contact_id
             ),
-            last AS (
-                SELECT cid, text, kind FROM (
-                    SELECT c.contact_id AS cid, m.text AS text, m.kind AS kind,
-                           ROW_NUMBER() OVER (
-                               PARTITION BY c.contact_id
-                               ORDER BY m.ts DESC, m.id DESC
-                           ) AS rn
-                      FROM messages m
-                      JOIN conversations c ON c.id = m.conversation_id
-                     WHERE c.contact_id IS NOT NULL
-                ) WHERE rn = 1
+            agg AS (
+                SELECT contact_id,
+                       SUM(msg_count)     AS msg_count,
+                       MAX(last_ts)       AS last_ts,
+                       GROUP_CONCAT(DISTINCT platform) AS platforms_raw
+                  FROM conv
+                 GROUP BY contact_id
+            ),
+            ranked AS (
+                SELECT contact_id, last_text, last_kind,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY contact_id
+                           ORDER BY last_ts DESC, conv_id DESC
+                       ) AS rn
+                  FROM conv
             )
-            SELECT 'contact:' || ct.id            AS thread_id,
-                   'contact'                      AS thread_kind,
-                   ct.id                          AS contact_id,
-                   NULL                           AS conversation_id,
-                   ct.display_name                AS title,
-                   ct.avatar_url                  AS avatar,
-                   'private'                      AS kind,
-                   NULL                           AS member_count,
-                   (SELECT GROUP_CONCAT(DISTINCT c2.platform)
-                      FROM conversations c2 WHERE c2.contact_id = ct.id)
-                                                  AS platforms_raw,
-                   COALESCE(msgs.msg_count, 0)    AS msg_count,
-                   COALESCE(msgs.last_ts, 0)      AS last_ts,
-                   last.text                      AS preview,
-                   last.kind                      AS preview_kind,
-                   (SELECT GROUP_CONCAT(DISTINCT c3.platform || ':' || c3.platform_conv_id)
-                      FROM conversations c3 WHERE c3.contact_id = ct.id)
-                                                  AS sources
+            SELECT 'contact:' || ct.id AS thread_id,
+                   'contact'           AS thread_kind,
+                   ct.id               AS contact_id,
+                   NULL                AS conversation_id,
+                   ct.display_name     AS title,
+                   ct.avatar_url       AS avatar,
+                   'private'           AS kind,
+                   NULL                AS member_count,
+                   agg.platforms_raw   AS platforms_raw,
+                   agg.msg_count       AS msg_count,
+                   agg.last_ts         AS last_ts,
+                   r.last_text         AS preview,
+                   r.last_kind         AS preview_kind
               FROM contacts ct
-              LEFT JOIN msgs ON msgs.cid = ct.id
-              LEFT JOIN last ON last.cid = ct.id
-             WHERE EXISTS (SELECT 1 FROM conversations c4 WHERE c4.contact_id = ct.id)
-               AND (? IS NULL OR ct.display_name LIKE ?)
+              JOIN agg ON agg.contact_id = ct.id
+              LEFT JOIN ranked r ON r.contact_id = ct.id AND r.rn = 1
+             WHERE (? IS NULL OR ct.display_name LIKE ? ESCAPE '\\')
             """,
-            (like, like),
+            (pattern, pattern),
         ).fetchall()
 
         group_rows = conn.execute(
             """
-            SELECT 'conv:' || cv.id              AS thread_id,
-                   'conv'                        AS thread_kind,
-                   cv.contact_id                 AS contact_id,
-                   cv.id                         AS conversation_id,
-                   cv.title                      AS title,
-                   cv.avatar_url                 AS avatar,
-                   cv.kind                       AS kind,
-                   cv.member_count               AS member_count,
-                   cv.platform                   AS platforms_raw,
-                   (SELECT COUNT(*) FROM messages m WHERE m.conversation_id = cv.id)
-                                                 AS msg_count,
-                   (SELECT MAX(m.ts) FROM messages m WHERE m.conversation_id = cv.id)
-                                                 AS last_ts,
-                   (SELECT m.text FROM messages m WHERE m.conversation_id = cv.id
-                     ORDER BY m.ts DESC, m.id DESC LIMIT 1) AS preview,
-                   (SELECT m.kind FROM messages m WHERE m.conversation_id = cv.id
-                     ORDER BY m.ts DESC, m.id DESC LIMIT 1) AS preview_kind,
-                   cv.platform || ':' || cv.platform_conv_id AS sources
+            SELECT 'conv:' || cv.id     AS thread_id,
+                   'conv'               AS thread_kind,
+                   cv.contact_id        AS contact_id,
+                   cv.id                AS conversation_id,
+                   cv.title             AS title,
+                   cv.avatar_url        AS avatar,
+                   cv.kind              AS kind,
+                   cv.member_count      AS member_count,
+                   cv.platform          AS platforms_raw,
+                   COALESCE(s.msg_count, 0) AS msg_count,
+                   COALESCE(s.last_ts, 0)   AS last_ts,
+                   s.last_text          AS preview,
+                   s.last_kind          AS preview_kind
               FROM conversations cv
+              LEFT JOIN conversation_stats s ON s.conversation_id = cv.id
              WHERE cv.contact_id IS NULL
                AND cv.kind IN ('group', 'system')
-               AND (? IS NULL OR cv.title LIKE ?)
+               AND (? IS NULL OR cv.title LIKE ? ESCAPE '\\')
             """,
-            (like, like),
+            (pattern, pattern),
         ).fetchall()
 
     items: list[dict[str, Any]] = []
     for row in [*contact_rows, *group_rows]:
         item = dict(row)
         item["platforms"] = _platforms(item.pop("platforms_raw", None))
-        item["sources"] = item.get("sources") or ""
         if platform and platform not in item["platforms"]:
             continue
         item["preview"] = (item.get("preview") or "").strip()[:120]
@@ -172,9 +162,12 @@ def thread_info(thread_id: str) -> dict[str, Any] | None:
             ).fetchall()
             convs = conn.execute(
                 """SELECT cv.*,
-                          (SELECT COUNT(*) FROM messages m WHERE m.conversation_id=cv.id) AS msg_count,
-                          (SELECT MAX(m.ts) FROM messages m WHERE m.conversation_id=cv.id) AS last_ts
-                     FROM conversations cv WHERE cv.contact_id=? ORDER BY last_ts DESC""",
+                          COALESCE(s.msg_count, 0) AS msg_count,
+                          COALESCE(s.last_ts, 0)   AS last_ts
+                     FROM conversations cv
+                     LEFT JOIN conversation_stats s ON s.conversation_id = cv.id
+                    WHERE cv.contact_id = ?
+                    ORDER BY last_ts DESC, cv.id DESC""",
                 (int(raw_id),),
             ).fetchall()
             platforms = sorted({c["platform"] for c in convs})
@@ -189,13 +182,20 @@ def thread_info(thread_id: str) -> dict[str, Any] | None:
             }
         if kind == "conv":
             conv = conn.execute(
-                "SELECT * FROM conversations WHERE id=?", (int(raw_id),)
+                """SELECT cv.*,
+                          COALESCE(s.msg_count, 0) AS msg_count,
+                          COALESCE(s.last_ts, 0)   AS last_ts
+                     FROM conversations cv
+                     LEFT JOIN conversation_stats s ON s.conversation_id = cv.id
+                    WHERE cv.id = ?""",
+                (int(raw_id),),
             ).fetchone()
             if not conv:
                 return None
             members = conn.execute(
                 """SELECT sender_uid AS uid, MAX(sender_name) AS name, COUNT(*) AS n
-                     FROM messages WHERE conversation_id=? AND is_self=0 AND sender_uid IS NOT NULL
+                     FROM messages
+                    WHERE conversation_id = ? AND is_self = 0 AND sender_uid IS NOT NULL
                     GROUP BY sender_uid ORDER BY n DESC LIMIT 50""",
                 (int(raw_id),),
             ).fetchall()
@@ -217,49 +217,78 @@ def _message_row(row: sqlite3.Row) -> dict[str, Any]:
     return item
 
 
+def _where(thread_id: str, platform: str | None) -> tuple[str, list[Any]] | None:
+    kind, _, raw_id = thread_id.partition(":")
+    if not raw_id.isdigit():
+        return None
+    if kind == "contact":
+        cond, args = "c.contact_id = ?", [int(raw_id)]
+    elif kind == "conv":
+        cond, args = "c.id = ?", [int(raw_id)]
+    else:
+        return None
+    if platform:
+        cond += " AND m.platform = ?"
+        args.append(platform)
+    return cond, args
+
+
+_MESSAGE_COLUMNS = """m.*, c.title AS conv_title, c.kind AS conv_kind,
+                      c.platform AS conv_platform"""
+
+
 def thread_messages(
     thread_id: str,
     *,
     limit: int = 60,
     before_ts: int | None = None,
     after_ts: int | None = None,
+    around_ts: int | None = None,
     platform: str | None = None,
 ) -> dict[str, Any]:
-    kind, _, raw_id = thread_id.partition(":")
-    if not raw_id.isdigit():
-        return {"items": [], "has_more_before": False, "has_more_after": False}
+    """取一页消息。
 
-    where = ["1=1"]
-    args: list[Any] = []
-    if kind == "contact":
-        where.append("c.contact_id = ?")
-        args.append(int(raw_id))
-    elif kind == "conv":
-        where.append("c.id = ?")
-        args.append(int(raw_id))
-    else:
+    ``around_ts`` 用于「搜索命中后跳过去」：以该时间点为中心取前后各一半，
+    并且 **包含** 那个时间点本身（before/after 单独用是开区间，容易漏掉目标）。
+    """
+    built = _where(thread_id, platform)
+    if built is None:
         return {"items": [], "has_more_before": False, "has_more_after": False}
-    if platform:
-        where.append("m.platform = ?")
-        args.append(platform)
-
+    cond, args = built
     limit = max(1, min(limit, 500))
+
     with db.session(readonly=True) as conn:
-        if after_ts is not None:
-            rows = conn.execute(
-                f"""SELECT m.*, c.title AS conv_title, c.kind AS conv_kind, c.platform AS conv_platform
+        if around_ts is not None:
+            half = max(1, limit // 2)
+            before = conn.execute(
+                f"""SELECT {_MESSAGE_COLUMNS}
                       FROM messages m JOIN conversations c ON c.id = m.conversation_id
-                     WHERE {' AND '.join(where)} AND m.ts > ?
+                     WHERE {cond} AND m.ts <= ?
+                     ORDER BY m.ts DESC, m.id DESC LIMIT ?""",
+                [*args, int(around_ts), half],
+            ).fetchall()
+            after = conn.execute(
+                f"""SELECT {_MESSAGE_COLUMNS}
+                      FROM messages m JOIN conversations c ON c.id = m.conversation_id
+                     WHERE {cond} AND m.ts > ?
+                     ORDER BY m.ts, m.id LIMIT ?""",
+                [*args, int(around_ts), limit - half],
+            ).fetchall()
+            rows = list(reversed(before)) + list(after)
+        elif after_ts is not None:
+            rows = conn.execute(
+                f"""SELECT {_MESSAGE_COLUMNS}
+                      FROM messages m JOIN conversations c ON c.id = m.conversation_id
+                     WHERE {cond} AND m.ts > ?
                      ORDER BY m.ts, m.id LIMIT ?""",
                 [*args, int(after_ts), limit],
             ).fetchall()
         elif before_ts is not None:
             rows = conn.execute(
                 f"""SELECT * FROM (
-                      SELECT m.*, c.title AS conv_title, c.kind AS conv_kind,
-                             c.platform AS conv_platform
+                      SELECT {_MESSAGE_COLUMNS}
                         FROM messages m JOIN conversations c ON c.id = m.conversation_id
-                       WHERE {' AND '.join(where)} AND m.ts < ?
+                       WHERE {cond} AND m.ts < ?
                        ORDER BY m.ts DESC, m.id DESC LIMIT ?)
                     ORDER BY ts, id""",
                 [*args, int(before_ts), limit],
@@ -267,10 +296,9 @@ def thread_messages(
         else:
             rows = conn.execute(
                 f"""SELECT * FROM (
-                      SELECT m.*, c.title AS conv_title, c.kind AS conv_kind,
-                             c.platform AS conv_platform
+                      SELECT {_MESSAGE_COLUMNS}
                         FROM messages m JOIN conversations c ON c.id = m.conversation_id
-                       WHERE {' AND '.join(where)}
+                       WHERE {cond}
                        ORDER BY m.ts DESC, m.id DESC LIMIT ?)
                     ORDER BY ts, id""",
                 [*args, limit],
@@ -283,13 +311,13 @@ def thread_messages(
         if oldest is not None:
             has_more_before = conn.execute(
                 f"""SELECT 1 FROM messages m JOIN conversations c ON c.id=m.conversation_id
-                     WHERE {' AND '.join(where)} AND m.ts < ? LIMIT 1""",
+                     WHERE {cond} AND m.ts < ? LIMIT 1""",
                 [*args, oldest],
             ).fetchone() is not None
         if newest is not None:
             has_more_after = conn.execute(
                 f"""SELECT 1 FROM messages m JOIN conversations c ON c.id=m.conversation_id
-                     WHERE {' AND '.join(where)} AND m.ts > ? LIMIT 1""",
+                     WHERE {cond} AND m.ts > ? LIMIT 1""",
                 [*args, newest],
             ).fetchone() is not None
 
@@ -298,6 +326,77 @@ def thread_messages(
         "has_more_before": has_more_before,
         "has_more_after": has_more_after,
     }
+
+
+def thread_platforms(thread_id: str, *, platform: str | None = None) -> list[str]:
+    """这个 thread 实际出现过消息的平台（按字母序）。"""
+    built = _where(thread_id, platform)
+    if built is None:
+        return []
+    cond, args = built
+    with db.session(readonly=True) as conn:
+        rows = conn.execute(
+            f"""SELECT DISTINCT m.platform AS platform
+                  FROM messages m JOIN conversations c ON c.id = m.conversation_id
+                 WHERE {cond}
+                 ORDER BY m.platform""",
+            args,
+        ).fetchall()
+    return [r["platform"] for r in rows]
+
+
+def iter_messages(
+    thread_id: str, *, platform: str | None = None
+) -> Iterator[dict[str, Any]]:
+    """流式遍历整个会话的消息（导出用，避免把几十万条一次性读进内存）。"""
+    built = _where(thread_id, platform)
+    if built is None:
+        return
+    cond, args = built
+    conn = db.connect(readonly=True)
+    try:
+        cursor = conn.execute(
+            f"""SELECT {_MESSAGE_COLUMNS}
+                  FROM messages m JOIN conversations c ON c.id = m.conversation_id
+                 WHERE {cond}
+                 ORDER BY m.ts, m.id""",
+            args,
+        )
+        for row in cursor:
+            yield _message_row(row)
+    finally:
+        conn.close()
+
+
+def iter_senders(
+    thread_id: str, *, platform: str | None = None
+) -> Iterator[dict[str, Any]]:
+    """会话里出现过的发送者（导出的 members 段用）。"""
+    built = _where(thread_id, platform)
+    if built is None:
+        return
+    cond, args = built
+    conn = db.connect(readonly=True)
+    try:
+        cursor = conn.execute(
+            f"""SELECT m.sender_uid AS uid,
+                       MAX(m.sender_name) AS name,
+                       MAX(m.is_self) AS is_self
+                  FROM messages m JOIN conversations c ON c.id = m.conversation_id
+                 WHERE {cond}
+                 GROUP BY m.sender_uid
+                 ORDER BY MIN(m.ts)""",
+            args,
+        )
+        for row in cursor:
+            yield dict(row)
+    finally:
+        conn.close()
+
+
+def all_messages(thread_id: str, *, platform: str | None = None) -> list[dict[str, Any]]:
+    """取全量消息（小会话 / 测试用；大导出请走 iter_messages）。"""
+    return list(iter_messages(thread_id, platform=platform))
 
 
 def search_messages(
@@ -310,8 +409,8 @@ def search_messages(
     q = (q or "").strip()
     if not q:
         return {"items": [], "total": 0}
-    where = ["m.text LIKE ?"]
-    args: list[Any] = [f"%{q}%"]
+    where = ["m.text LIKE ? ESCAPE '\\'"]
+    args: list[Any] = [like_pattern(q)]
     if platform:
         where.append("m.platform = ?")
         args.append(platform)
@@ -348,49 +447,15 @@ def search_messages(
     return {"items": items, "total": int(total)}
 
 
-def all_messages(thread_id: str, *, platform: str | None = None) -> list[dict[str, Any]]:
-    """取整个会话的全部消息（导出处用），按时间升序。"""
-    kind, _, raw_id = thread_id.partition(":")
-    if not raw_id.isdigit():
-        return []
-    if kind == "contact":
-        cond, arg = "c.contact_id = ?", int(raw_id)
-    elif kind == "conv":
-        cond, arg = "c.id = ?", int(raw_id)
-    else:
-        return []
-    sql = f"""SELECT m.*, c.title AS conv_title, c.kind AS conv_kind,
-                     c.platform AS conv_platform
-                FROM messages m JOIN conversations c ON c.id = m.conversation_id
-               WHERE {cond}"""
-    args: list[Any] = [arg]
-    if platform:
-        sql += " AND m.platform = ?"
-        args.append(platform)
-    sql += " ORDER BY m.ts, m.id"
-    with db.session(readonly=True) as conn:
-        rows = conn.execute(sql, args).fetchall()
-    return [_message_row(r) for r in rows]
-
-
 def day_counts(thread_id: str, *, platform: str | None = None) -> list[dict[str, Any]]:
     """按天聚合消息量，给日历/热力条用。"""
-    kind, _, raw_id = thread_id.partition(":")
-    if not raw_id.isdigit():
+    built = _where(thread_id, platform)
+    if built is None:
         return []
-    if kind == "contact":
-        cond, arg = "c.contact_id = ?", int(raw_id)
-    elif kind == "conv":
-        cond, arg = "c.id = ?", int(raw_id)
-    else:
-        return []
+    cond, args = built
     sql = f"""SELECT date(m.ts, 'unixepoch', '+8 hours') AS day, COUNT(*) AS n
                 FROM messages m JOIN conversations c ON c.id = m.conversation_id
-               WHERE {cond}"""
-    args: list[Any] = [arg]
-    if platform:
-        sql += " AND m.platform = ?"
-        args.append(platform)
-    sql += " GROUP BY day ORDER BY day"
+               WHERE {cond}
+               GROUP BY day ORDER BY day"""
     with db.session(readonly=True) as conn:
         return [dict(r) for r in conn.execute(sql, args)]

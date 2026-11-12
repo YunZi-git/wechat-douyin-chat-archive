@@ -2,22 +2,34 @@
 
 这一层负责“把外部工具串起来”，业务逻辑都留在导入器里。
 所有耗时操作都通过 :mod:`app.jobs` 跑在后台线程，前端轮询日志。
+
+两条硬约束：
+
+* **一次只跑一个重任务**。解密/采集/导入都会大量写 SQLite，并发会把
+  「database is locked」甩到用户脸上，所以用一把进程内互斥锁串行化。
+* **取消要真的生效**。长任务把自己的 ``job.cancelled`` 传给导入器，
+  导入器每处理若干条就检查一次，抛 ``JobCancelled`` 收尾。
 """
 from __future__ import annotations
 
+import contextlib
 import importlib.util
 import os
 import re
 import subprocess
 import sys
+import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 from . import jobs, paths
 from .importers import douyin as douyin_importer
 from .importers import wechat as wechat_importer
 
 _ANSI = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
+
+# 重任务串行锁：避免两个导入同时写库
+_HEAVY_LOCK = threading.Lock()
 
 
 def _clean(line: str) -> str:
@@ -31,6 +43,24 @@ def _base_env() -> dict[str, str]:
     env["PYTHONUTF8"] = "1"
     env["PYTHONUNBUFFERED"] = "1"
     return env
+
+
+@contextlib.contextmanager
+def _heavy_slot(job: jobs.Job, label: str) -> Iterator[None]:
+    """拿到执行重任务的独占名额；排队时也能被取消。"""
+    waited = False
+    while not _HEAVY_LOCK.acquire(timeout=0.5):
+        if not waited:
+            job.write("[i] 已有导入/采集任务在跑，排队等待…（可点取消）")
+            waited = True
+        if job.cancelled():
+            raise jobs.JobCancelled()
+    try:
+        if waited:
+            job.write(f"[i] 轮到执行：{label}")
+        yield
+    finally:
+        _HEAVY_LOCK.release()
 
 
 def _run_stream(cmd: list[str], *, cwd: Path, env: dict[str, str], job: jobs.Job) -> int:
@@ -133,23 +163,28 @@ def engine_status() -> dict[str, Any]:
 
 # ── 微信：解密 + 导入 ────────────────────────────────────────────────
 
+def _siwx_auto(job: jobs.Job, out_dir: Path) -> int:
+    run_py = paths.SIWX_DIR / "run.py"
+    if not run_py.exists():
+        raise FileNotFoundError("内置的 SIWX 解密组件缺失")
+    job.write("[i] 需要微信正在运行并已登录")
+    return _run_stream(
+        [sys.executable, str(run_py), "auto", "--out", str(out_dir)],
+        cwd=paths.SIWX_DIR,
+        env=_base_env(),
+        job=job,
+    )
+
+
 def start_wechat_decrypt(*, out_dir: Path | None = None) -> jobs.Job:
     out = out_dir or paths.WECHAT_DECRYPTED
 
     def target(job: jobs.Job) -> dict[str, Any]:
-        run_py = paths.SIWX_DIR / "run.py"
-        if not run_py.exists():
-            raise FileNotFoundError("内置的 SIWX 解密组件缺失")
-        job.write("[i] 需要微信正在运行并已登录")
-        code = _run_stream(
-            [sys.executable, str(run_py), "auto", "--out", str(out)],
-            cwd=paths.SIWX_DIR,
-            env=_base_env(),
-            job=job,
-        )
-        accounts = wechat_importer.detect_accounts(out)
-        job.write(f"[i] 解密结束（退出码 {code}），发现 {len(accounts)} 个账号目录")
-        return {"exit_code": code, "accounts": [a.name for a in accounts]}
+        with _heavy_slot(job, "微信解密"):
+            code = _siwx_auto(job, out)
+            accounts = wechat_importer.detect_accounts(out)
+            job.write(f"[i] 解密结束（退出码 {code}），发现 {len(accounts)} 个账号目录")
+            return {"exit_code": code, "accounts": [a.name for a in accounts]}
 
     return jobs.start("wechat-decrypt", "微信解密", target)
 
@@ -160,28 +195,28 @@ def start_wechat_import(account_dir: str | Path | None = None) -> jobs.Job:
         chosen = [Path(account_dir)]
     else:
         if not accounts:
-            raise FileNotFoundError(
-                "还没有解密好的微信数据，请先点「解密并导入」"
-            )
+            raise FileNotFoundError("还没有解密好的微信数据，请先点「解密并导入」")
         chosen = accounts
 
     def target(job: jobs.Job) -> dict[str, Any]:
-        reports = []
-        for account in chosen:
-            job.write(f"[i] 导入 {account.name}")
-            report = wechat_importer.import_account(
-                account,
-                progress=lambda p: (job.update(p), job.write(
-                    f"[+] {p.get('stage','')} {p.get('shard','')} "
-                    f"已写入 {p.get('messages', 0)} 条"
-                )),
-            )
-            reports.append(report)
-            job.write(
-                f"[✓] {account.name}: 会话 +{report['conversations_added']}, "
-                f"消息 +{report['messages_added']}"
-            )
-        return {"reports": reports}
+        with _heavy_slot(job, "导入微信"):
+            reports = []
+            for account in chosen:
+                job.write(f"[i] 导入 {account.name}")
+                report = wechat_importer.import_account(
+                    account,
+                    should_cancel=job.cancelled,
+                    progress=lambda p: (job.update(p), job.write(
+                        f"[+] {p.get('stage', '')} {p.get('shard', '')} "
+                        f"已写入 {p.get('messages', 0)} 条"
+                    )),
+                )
+                reports.append(report)
+                job.write(
+                    f"[✓] {account.name}: 会话 +{report['conversations_added']}, "
+                    f"消息 +{report['messages_added']}"
+                )
+            return {"reports": reports}
 
     return jobs.start("wechat-import", "导入微信聊天记录", target)
 
@@ -190,39 +225,30 @@ def start_wechat_refresh() -> jobs.Job:
     """一键：先解密，再把解出来的账号导入统一库。"""
 
     def target(job: jobs.Job) -> dict[str, Any]:
-        run_py = paths.SIWX_DIR / "run.py"
-        if not run_py.exists():
-            raise FileNotFoundError("内置的 SIWX 解密组件缺失")
-        job.write("[i] 第一步：从微信进程取密钥并解密数据库")
-        job.write("[i] 需要微信正在运行并已登录")
-        code = _run_stream(
-            [sys.executable, str(run_py), "auto", "--out", str(paths.WECHAT_DECRYPTED)],
-            cwd=paths.SIWX_DIR,
-            env=_base_env(),
-            job=job,
-        )
-        accounts = wechat_importer.detect_accounts(paths.WECHAT_DECRYPTED)
-        if not accounts:
-            raise RuntimeError(
-                f"没有解出任何账号（退出码 {code}）。确认微信已登录，"
-                "并查看上面的日志。"
-            )
-        job.write(f"[i] 第二步：导入 {len(accounts)} 个账号")
-        reports = []
-        for account in accounts:
-            if job.cancelled():
-                break
-            job.write(f"[i] 导入 {account.name}")
-            report = wechat_importer.import_account(
-                account,
-                progress=lambda p: job.update(p),
-            )
-            reports.append(report)
-            job.write(
-                f"[✓] {account.name}: 会话 +{report['conversations_added']}, "
-                f"消息 +{report['messages_added']}"
-            )
-        return {"exit_code": code, "reports": reports}
+        with _heavy_slot(job, "微信解密并导入"):
+            job.write("[i] 第一步：从微信进程取密钥并解密数据库")
+            code = _siwx_auto(job, paths.WECHAT_DECRYPTED)
+            accounts = wechat_importer.detect_accounts(paths.WECHAT_DECRYPTED)
+            if not accounts:
+                raise RuntimeError(
+                    f"没有解出任何账号（退出码 {code}）。确认微信已登录，"
+                    "并查看上面的日志。"
+                )
+            job.write(f"[i] 第二步：导入 {len(accounts)} 个账号")
+            reports = []
+            for account in accounts:
+                if job.cancelled():
+                    raise jobs.JobCancelled()
+                job.write(f"[i] 导入 {account.name}")
+                report = wechat_importer.import_account(
+                    account, should_cancel=job.cancelled, progress=job.update,
+                )
+                reports.append(report)
+                job.write(
+                    f"[✓] {account.name}: 会话 +{report['conversations_added']}, "
+                    f"消息 +{report['messages_added']}"
+                )
+            return {"exit_code": code, "reports": reports}
 
     return jobs.start("wechat-refresh", "微信：解密并导入", target)
 
@@ -241,46 +267,59 @@ def start_douyin_import(chat_db: str | Path | None = None, *,
         media = sibling if sibling.is_dir() and source != paths.DOUYIN_DB else paths.DOUYIN_MEDIA
 
     def target(job: jobs.Job) -> dict[str, Any]:
-        report = douyin_importer.import_chat_db(
-            source,
-            media_src=media,
-            copy_media=copy_media,
-            progress=lambda p: (job.update(p), job.write(
-                f"[+] {p.get('stage','')} 已写入 {p.get('messages', 0)} 条"
-            )),
-        )
-        job.write(
-            f"[✓] 会话 +{report['conversations_added']}, 消息 +{report['messages_added']}, "
-            f"跳过 {report['messages_skipped']}"
-        )
-        return {"report": report}
+        with _heavy_slot(job, "导入抖音"):
+            report = douyin_importer.import_chat_db(
+                source,
+                media_src=media,
+                copy_media=copy_media,
+                should_cancel=job.cancelled,
+                progress=lambda p: (job.update(p), job.write(
+                    f"[+] {p.get('stage', '')} 已写入 {p.get('messages', 0)} 条"
+                )),
+            )
+            job.write(
+                f"[✓] 会话 +{report['conversations_added']}, 消息 +{report['messages_added']}, "
+                f"跳过 {report['messages_skipped']}"
+            )
+            return {"report": report}
 
     return jobs.start("douyin-import", "导入抖音聊天记录", target)
 
 
+def _douyin_env() -> dict[str, str]:
+    env = _base_env()
+    env["CHATWORK_DOUYIN_DATA"] = str(paths.DOUYIN_DIR)
+    env["CHATWORK_DOUYIN_MEDIA"] = str(paths.DOUYIN_MEDIA)
+    return env
+
+
+def _douyin_collect_cmd(filters: str | None, incremental: bool) -> list[str]:
+    script = paths.DOUYIN_ENGINE_DIR / "extract.py"
+    if not script.exists():
+        raise FileNotFoundError("内置的抖音采集组件缺失")
+    if importlib.util.find_spec("playwright") is None:
+        raise RuntimeError(
+            "没有安装 Playwright，无法启动浏览器采集。"
+            "可以改为「导入已有数据库」，或安装采集依赖后重试。"
+        )
+    cmd = [sys.executable, str(script)]
+    if filters:
+        cmd += ["--filter", filters]
+    if incremental:
+        cmd.append("--incremental")
+    return cmd
+
+
 def start_douyin_collect(*, filters: str | None = None, incremental: bool = True) -> jobs.Job:
     def target(job: jobs.Job) -> dict[str, Any]:
-        script = paths.DOUYIN_ENGINE_DIR / "extract.py"
-        if not script.exists():
-            raise FileNotFoundError("内置的抖音采集组件缺失")
-        if importlib.util.find_spec("playwright") is None:
-            raise RuntimeError(
-                "没有安装 Playwright，无法启动浏览器采集。"
-                "可以改为「导入已有数据库」，或安装采集依赖后重试。"
+        with _heavy_slot(job, "抖音采集"):
+            cmd = _douyin_collect_cmd(filters, incremental)
+            job.write("[i] 会弹出浏览器，请在窗口里扫码登录抖音")
+            code = _run_stream(
+                cmd, cwd=paths.DOUYIN_ENGINE_DIR, env=_douyin_env(), job=job
             )
-        env = _base_env()
-        env["CHATWORK_DOUYIN_DATA"] = str(paths.DOUYIN_DIR)
-        env["CHATWORK_DOUYIN_MEDIA"] = str(paths.DOUYIN_MEDIA)
-        env["HEADLESS"] = "false"
-        cmd = [sys.executable, str(script)]
-        if filters:
-            cmd += ["--filter", filters]
-        if incremental:
-            cmd.append("--incremental")
-        job.write("[i] 会弹出浏览器，请在窗口里扫码登录抖音")
-        code = _run_stream(cmd, cwd=paths.DOUYIN_ENGINE_DIR, env=env, job=job)
-        job.write(f"[i] 采集结束（退出码 {code}）")
-        return {"exit_code": code}
+            job.write(f"[i] 采集结束（退出码 {code}）")
+            return {"exit_code": code}
 
     return jobs.start("douyin-collect", "采集抖音聊天记录", target)
 
@@ -290,31 +329,27 @@ def start_douyin_refresh(*, filters: str | None = None,
     """采集完顺手导入统一库。"""
 
     def target(job: jobs.Job) -> dict[str, Any]:
-        script = paths.DOUYIN_ENGINE_DIR / "extract.py"
-        if importlib.util.find_spec("playwright") is None:
-            raise RuntimeError("没有安装 Playwright，无法启动浏览器采集")
-        env = _base_env()
-        env["CHATWORK_DOUYIN_DATA"] = str(paths.DOUYIN_DIR)
-        env["CHATWORK_DOUYIN_MEDIA"] = str(paths.DOUYIN_MEDIA)
-        job.write("[i] 第一步：打开浏览器采集（需要扫码登录）")
-        cmd = [sys.executable, str(script)]
-        if filters:
-            cmd += ["--filter", filters]
-        if incremental:
-            cmd.append("--incremental")
-        code = _run_stream(cmd, cwd=paths.DOUYIN_ENGINE_DIR, env=env, job=job)
-        if code != 0:
-            raise RuntimeError(f"采集失败（退出码 {code}），详见上方日志")
-        job.write("[i] 第二步：导入统一库")
-        report = douyin_importer.import_chat_db(
-            paths.DOUYIN_DB,
-            media_src=paths.DOUYIN_MEDIA,
-            copy_media=False,
-            progress=lambda p: job.update(p),
-        )
-        job.write(
-            f"[✓] 会话 +{report['conversations_added']}, 消息 +{report['messages_added']}"
-        )
-        return {"exit_code": code, "report": report}
+        with _heavy_slot(job, "抖音采集并导入"):
+            cmd = _douyin_collect_cmd(filters, incremental)
+            job.write("[i] 第一步：打开浏览器采集（需要扫码登录）")
+            code = _run_stream(
+                cmd, cwd=paths.DOUYIN_ENGINE_DIR, env=_douyin_env(), job=job
+            )
+            if code != 0:
+                raise RuntimeError(f"采集失败（退出码 {code}），详见上方日志")
+            if job.cancelled():
+                raise jobs.JobCancelled()
+            job.write("[i] 第二步：导入统一库")
+            report = douyin_importer.import_chat_db(
+                paths.DOUYIN_DB,
+                media_src=paths.DOUYIN_MEDIA,
+                copy_media=False,
+                should_cancel=job.cancelled,
+                progress=job.update,
+            )
+            job.write(
+                f"[✓] 会话 +{report['conversations_added']}, 消息 +{report['messages_added']}"
+            )
+            return {"exit_code": code, "report": report}
 
     return jobs.start("douyin-refresh", "抖音：采集并导入", target)

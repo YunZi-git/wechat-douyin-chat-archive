@@ -106,28 +106,14 @@ async function jumpTo({ ts }) {
   if (!thread.value) return
   loadingMessages.value = true
   try {
-    const [before, after] = await Promise.all([
-      api.messages(thread.value.thread_id, {
-        limit: 40,
-        beforeTs: ts,
-        platform: messagePlatform.value || undefined,
-      }),
-      api.messages(thread.value.thread_id, {
-        limit: 40,
-        afterTs: ts,
-        platform: messagePlatform.value || undefined,
-      }),
-    ])
-    const seen = new Set()
-    const merged = []
-    for (const m of [...before.items, ...after.items]) {
-      if (seen.has(m.id)) continue
-      seen.add(m.id)
-      merged.push(m)
-    }
-    merged.sort((a, b) => a.ts - b.ts || a.id - b.id)
-    messages.value = merged
-    hasMoreBefore.value = before.has_more_before
+    // 一条请求拿到该时间点前后各一半，且一定包含目标本身
+    const res = await api.messages(thread.value.thread_id, {
+      limit: 80,
+      aroundTs: ts,
+      platform: messagePlatform.value || undefined,
+    })
+    messages.value = res.items
+    hasMoreBefore.value = res.has_more_before
   } catch (err) {
     toast(`跳转失败：${err.message}`, 'err')
   } finally {
@@ -172,6 +158,14 @@ function onQuery(value) {
 }
 
 watch(platform, loadThreads)
+
+// 在设置里改了每页条数，回到聊天页时按新值重新取
+watch(
+  () => store.settings.page_size,
+  () => {
+    if (thread.value) loadMessages(thread.value.thread_id)
+  }
+)
 watch(
   () => store.activeThreadId,
   (id) => {

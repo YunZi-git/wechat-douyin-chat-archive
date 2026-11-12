@@ -14,11 +14,11 @@ from __future__ import annotations
 import sqlite3
 import time
 from contextlib import contextmanager
-from typing import Any, Iterable, Iterator
+from typing import Any, Iterable, Iterator, Sequence
 
 from . import paths
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 SCHEMA_SQL = """
 PRAGMA journal_mode=WAL;
@@ -94,6 +94,16 @@ CREATE INDEX IF NOT EXISTS ix_messages_ts ON messages(ts);
 CREATE INDEX IF NOT EXISTS ix_messages_sender ON messages(sender_uid);
 CREATE INDEX IF NOT EXISTS ix_messages_kind ON messages(kind);
 
+-- 每个会话的物化统计：条数 / 最后一条。导入结束时刷新，
+-- 列表查询因此只需要扫几百行，而不是几十万条消息。
+CREATE TABLE IF NOT EXISTS conversation_stats (
+    conversation_id INTEGER PRIMARY KEY REFERENCES conversations(id) ON DELETE CASCADE,
+    msg_count       INTEGER NOT NULL DEFAULT 0,
+    last_ts         INTEGER NOT NULL DEFAULT 0,
+    last_text       TEXT,
+    last_kind       TEXT
+);
+
 CREATE TABLE IF NOT EXISTS import_runs (
     id                 INTEGER PRIMARY KEY AUTOINCREMENT,
     platform           TEXT NOT NULL,
@@ -142,10 +152,24 @@ def init() -> None:
     with session() as conn:
         conn.executescript(SCHEMA_SQL)
         row = conn.execute("SELECT v FROM meta WHERE k='schema_version'").fetchone()
+        version = int(row["v"]) if row else 0
         if row is None:
             conn.execute(
                 "INSERT INTO meta(k, v) VALUES ('schema_version', ?)",
                 (str(SCHEMA_VERSION),),
+            )
+        stats_empty = conn.execute(
+            "SELECT NOT EXISTS(SELECT 1 FROM conversation_stats)"
+        ).fetchone()[0]
+        has_messages = conn.execute(
+            "SELECT EXISTS(SELECT 1 FROM messages)"
+        ).fetchone()[0]
+        # 老库升级 / 统计表丢了：补一次物化
+        if has_messages and (version < SCHEMA_VERSION or stats_empty):
+            refresh_conversation_stats(conn)
+        if version and version < SCHEMA_VERSION:
+            conn.execute(
+                "UPDATE meta SET v=? WHERE k='schema_version'", (str(SCHEMA_VERSION),)
             )
 
 
@@ -274,6 +298,58 @@ def add_message(
          duration, reply_to, seq, extra),
     )
     return cur.rowcount > 0
+
+
+def refresh_conversation_stats(
+    conn: sqlite3.Connection,
+    conversation_ids: Sequence[int] | None = None,
+) -> int:
+    """重算 ``conversation_stats``（全量或指定会话）。
+
+    导入结束后调用一次即可；合并/拆分不改消息，所以不需要重算。
+    返回写入的行数。
+    """
+    if conversation_ids is None:
+        conn.execute("DELETE FROM conversation_stats")
+        conn.execute(
+            """
+            INSERT INTO conversation_stats
+                (conversation_id, msg_count, last_ts, last_text, last_kind)
+            SELECT a.conversation_id, a.msg_count, a.last_ts, m.text, m.kind
+              FROM (SELECT conversation_id, COUNT(*) AS msg_count, MAX(ts) AS last_ts
+                      FROM messages GROUP BY conversation_id) a
+              JOIN messages m
+                ON m.conversation_id = a.conversation_id
+               AND m.id = (SELECT m2.id FROM messages m2
+                            WHERE m2.conversation_id = a.conversation_id
+                            ORDER BY m2.ts DESC, m2.id DESC LIMIT 1)
+            """
+        )
+        return int(conn.execute("SELECT COUNT(*) FROM conversation_stats").fetchone()[0])
+
+    ids = [int(i) for i in conversation_ids]
+    if not ids:
+        return 0
+    marks = ",".join("?" for _ in ids)
+    conn.execute(f"DELETE FROM conversation_stats WHERE conversation_id IN ({marks})", ids)
+    conn.execute(
+        f"""
+        INSERT INTO conversation_stats
+            (conversation_id, msg_count, last_ts, last_text, last_kind)
+        SELECT a.conversation_id, a.msg_count, a.last_ts, m.text, m.kind
+          FROM (SELECT conversation_id, COUNT(*) AS msg_count, MAX(ts) AS last_ts
+                  FROM messages
+                 WHERE conversation_id IN ({marks})
+                 GROUP BY conversation_id) a
+          JOIN messages m
+            ON m.conversation_id = a.conversation_id
+           AND m.id = (SELECT m2.id FROM messages m2
+                        WHERE m2.conversation_id = a.conversation_id
+                        ORDER BY m2.ts DESC, m2.id DESC LIMIT 1)
+        """,
+        ids,
+    )
+    return len(ids)
 
 
 def iter_messages_for_contact(
