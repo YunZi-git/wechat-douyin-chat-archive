@@ -25,7 +25,7 @@ import time
 from pathlib import Path
 from typing import Any, Callable
 
-from .. import db, paths, threads
+from .. import db, threads
 
 Progress = Callable[[dict[str, Any]], None] | None
 

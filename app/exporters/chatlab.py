@@ -14,7 +14,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from .. import db, paths, settings, threads
+from .. import paths, settings, threads
 
 CHATLAB_VERSION = "0.0.2"
 GENERATOR = "chat-info-workbench"

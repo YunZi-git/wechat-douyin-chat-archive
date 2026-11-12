@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 import importlib.util
-import json
 import os
 import re
 import subprocess
@@ -14,12 +13,11 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from . import db, jobs, paths, settings
+from . import jobs, paths
 from .importers import douyin as douyin_importer
 from .importers import wechat as wechat_importer
 
 _ANSI = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
-_DURATION = re.compile(r"(\d+(?:\.\d+)?)\s*(?:秒|s\b)")
 
 
 def _clean(line: str) -> str:

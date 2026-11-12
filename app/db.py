@@ -14,7 +14,7 @@ from __future__ import annotations
 import sqlite3
 import time
 from contextlib import contextmanager
-from typing import Any, Iterable, Iterator, Sequence
+from typing import Any, Iterable, Iterator
 
 from . import paths
 

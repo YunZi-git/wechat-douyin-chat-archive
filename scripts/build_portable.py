@@ -92,14 +92,18 @@ def copy_project(dest: Path) -> None:
     log("[i] 复制程序文件")
     ignore = shutil.ignore_patterns(
         "__pycache__", "*.pyc", "*.pyo", ".git", ".venv", "node_modules",
-        "*.db", "*.db-wal", "*.db-shm", "data", "release", "_scratch", "logs",
+        "*.db-wal", "*.db-shm", "data", "release", "_scratch", "logs",
     )
     shutil.copytree(ROOT / "app", dest / "app", ignore=ignore)
     shutil.copytree(ROOT / "engines", dest / "engines", ignore=ignore)
     shutil.copytree(ROOT / "scripts", dest / "scripts", ignore=ignore)
     shutil.copytree(ROOT / "web" / "dist", dest / "web" / "dist")
     if (ROOT / "demo").is_dir():
-        shutil.copytree(ROOT / "demo", dest / "demo", ignore=ignore)
+        # demo/ 是合成数据，需要连同 .db 一起带上，否则新用户没法体验
+        shutil.copytree(
+            ROOT / "demo", dest / "demo",
+            ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
+        )
     for name in ("LICENSE", "NOTICE", "README.md", "requirements.txt"):
         src = ROOT / name
         if src.exists():
