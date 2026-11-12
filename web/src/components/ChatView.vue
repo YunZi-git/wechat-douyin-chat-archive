@@ -4,6 +4,7 @@ import { api } from '../lib/api'
 import { fmtDay, fmtCount, PLATFORM_META, initial, avatarColor, fmtTime } from '../lib/format'
 import Icon from './Icon.vue'
 import MessageBubble from './MessageBubble.vue'
+import MediaPanel from './MediaPanel.vue'
 
 const props = defineProps({
   thread: { type: Object, default: null },
@@ -20,6 +21,7 @@ const searchQuery = ref('')
 const searchResults = ref([])
 const searchTotal = ref(0)
 const searching = ref(false)
+const mediaOpen = ref(false)
 const calendarOpen = ref(false)
 const calendarLoading = ref(false)
 const dayList = ref([])
@@ -221,6 +223,9 @@ function toggleSearch() {
               @click="emit('update:platform', p)"
             >{{ PLATFORM_META[p]?.label }}</button>
           </div>
+          <button class="icon-btn" :class="{ on: mediaOpen }" title="媒体库" @click="mediaOpen = true">
+            <Icon name="image" :size="17" />
+          </button>
           <button class="icon-btn" :class="{ on: calendarOpen }" title="按日期跳转" @click="toggleCalendar">
             <Icon name="calendar" :size="17" />
           </button>
@@ -235,6 +240,13 @@ function toggleSearch() {
           </button>
         </div>
       </header>
+
+      <MediaPanel
+        v-if="mediaOpen"
+        :thread-id="info.thread_id"
+        @close="mediaOpen = false"
+        @open-image="emit('open-image', $event)"
+      />
 
       <div v-if="calendarOpen" class="cal-pop">
         <div class="cal-head">
@@ -368,6 +380,7 @@ function toggleSearch() {
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
 
 
+.chat { position: relative; }
 .cal-pop {
   position: absolute;
   top: 62px;

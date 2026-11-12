@@ -22,7 +22,7 @@ import threading
 from pathlib import Path
 from typing import Any, Iterator
 
-from . import asr, db, jobs, paths, settings
+from . import asr, db, jobs, paths, settings, wechat_media
 from .importers import douyin as douyin_importer
 from .importers import wechat as wechat_importer
 
@@ -463,6 +463,71 @@ def _douyin_collect_cmd(filters: str | None, incremental: bool) -> list[str]:
     if incremental:
         cmd.append("--incremental")
     return cmd
+
+
+def start_media_prewarm(*, thread_id: str | None = None,
+                        limit: int = 300) -> jobs.Job:
+    """把会话里还没落地的微信图片/表情/视频批量解密到本地缓存。"""
+
+    def target(job: jobs.Job) -> dict[str, Any]:
+        with _heavy_slot(job, "媒体缓存"):
+            return _prewarm_media(job, thread_id, limit)
+
+    return jobs.start("media-prewarm", "缓存媒体", target)
+
+
+def _prewarm_media(job: jobs.Job, thread_id: str | None,
+                   limit: int) -> dict[str, Any]:
+    where = ["m.platform = 'wechat'",
+             "m.kind IN ('image','sticker','video')",
+             "(m.media_path IS NULL OR m.media_path = '')"]
+    args: list[Any] = []
+    if thread_id:
+        kind, _, raw = thread_id.partition(":")
+        if kind == "contact" and raw.isdigit():
+            where.append("c.contact_id = ?")
+            args.append(int(raw))
+        elif kind == "conv" and raw.isdigit():
+            where.append("c.id = ?")
+            args.append(int(raw))
+    limit = max(1, min(int(limit), 2000))
+    sql = (
+        "SELECT m.id, m.kind FROM messages m"
+        " JOIN conversations c ON c.id = m.conversation_id"
+        f" WHERE {' AND '.join(where)} ORDER BY m.ts DESC LIMIT ?"
+    )
+    with db.session(readonly=True) as conn:
+        rows = conn.execute(sql, [*args, limit]).fetchall()
+
+    total = len(rows)
+    job.write(f"[i] 待缓存媒体：{total} 个")
+    job.update({"total": total, "done": 0, "ok": 0, "failed": 0})
+    ok = failed = 0
+    errors: list[str] = []
+    for index, row in enumerate(rows, 1):
+        if job.cancelled():
+            raise jobs.JobCancelled()
+        try:
+            if row["kind"] == "video":
+                wechat_media.fetch_video(int(row["id"]))
+            else:
+                wechat_media.fetch_image(int(row["id"]))
+            ok += 1
+        except wechat_media.MediaUnavailable as exc:
+            failed += 1
+            if len(errors) < 5:
+                errors.append(f"#{row['id']}: {exc}")
+        except Exception as exc:  # noqa: BLE001 - 单个失败不中断
+            failed += 1
+            if len(errors) < 5:
+                errors.append(f"#{row['id']}: {exc}")
+        if index % 10 == 0 or index == total:
+            job.update({"total": total, "done": index, "ok": ok, "failed": failed})
+            job.write(f"[i] {index}/{total}（成功 {ok}，失败 {failed}）")
+    for line in errors:
+        job.write(f"[warn] {line}")
+    job.write(f"[✓] 缓存完成：成功 {ok}，失败 {failed}")
+    return {"total": total, "ok": ok, "failed": failed, "errors": errors}
 
 
 def start_transcription(

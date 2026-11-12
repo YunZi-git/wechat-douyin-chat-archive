@@ -154,6 +154,30 @@ def thread_messages(
     )
 
 
+@router.get("/threads/{thread_id}/media")
+def thread_media(
+    thread_id: str,
+    kind: str | None = Query(None),
+    platform: str | None = Query(None),
+    limit: int = Query(60, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+) -> dict[str, Any]:
+    return threads.thread_media(
+        thread_id, kind=kind, platform=platform, limit=limit, offset=offset
+    )
+
+
+class MediaPrewarmBody(BaseModel):
+    thread_id: str | None = None
+    limit: int = 300
+
+
+@router.post("/media/prewarm")
+def media_prewarm(body: MediaPrewarmBody) -> dict[str, Any]:
+    job = services.start_media_prewarm(thread_id=body.thread_id, limit=body.limit)
+    return {"job": job.to_dict(with_log=False)}
+
+
 @router.get("/threads/{thread_id}/days")
 def thread_days(thread_id: str, platform: str | None = Query(None)) -> dict[str, Any]:
     return {"items": threads.day_counts(thread_id, platform=platform)}

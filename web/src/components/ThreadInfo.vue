@@ -1,12 +1,13 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { fmtCount, fmtDateTime, initial, avatarColor, PLATFORM_META } from '../lib/format'
+import { toast } from '../lib/store'
 import Icon from './Icon.vue'
 
 const props = defineProps({
   thread: { type: Object, default: null },
 })
-const emit = defineEmits(['close', 'rename', 'unmerge', 'export'])
+const emit = defineEmits(['close', 'rename', 'unmerge', 'export', 'open-thread'])
 
 const editing = ref(false)
 const draft = ref('')
@@ -20,10 +21,19 @@ const avatar = computed(() => (isContact.value ? contact.value.avatar_url : conv
 const identities = computed(() => props.thread?.identities || [])
 const conversations = computed(() => props.thread?.conversations || [])
 const members = computed(() => props.thread?.members || [])
+const showAllMembers = ref(false)
+const visibleMembers = computed(() => (showAllMembers.value ? members.value : members.value.slice(0, 10)))
+
+function openMember(m) {
+  if (m.thread_id) emit('open-thread', m.thread_id)
+  else toast('没有和 TA 的私聊记录', 'err')
+}
 const platforms = computed(() => props.thread?.platforms || [])
 
 const totalMessages = computed(() =>
-  conversations.value.reduce((sum, c) => sum + (c.msg_count || 0), 0)
+  isContact.value
+    ? conversations.value.reduce((sum, c) => sum + (c.msg_count || 0), 0)
+    : conversation.value.msg_count || 0
 )
 
 function startEdit() {
@@ -108,12 +118,25 @@ function shortUid(uid) {
     </div>
 
     <div v-if="members.length" class="info-block">
-      <h4>活跃成员</h4>
-      <div v-for="(m, idx) in members.slice(0, 10)" :key="m.uid" class="identity">
-        <span class="uid" style="width: 16px">{{ idx + 1 }}</span>
-        <span class="name">{{ m.name || m.uid }}</span>
+      <h4>{{ conversation.kind === 'group' ? '群成员' : '参与者' }} · {{ members.length }}</h4>
+      <button
+        v-for="(m, idx) in visibleMembers"
+        :key="m.uid + (m.platform || '')"
+        class="identity member-row"
+        :class="{ clickable: m.thread_id }"
+        :title="m.thread_id ? '打开和 TA 的私聊' : '没有私聊记录'"
+        @click="openMember(m)"
+      >
+        <span
+          class="mini-avatar"
+          :style="{ background: avatarColor(m.uid || m.name || String(idx)) }"
+        >{{ initial(m.name || m.uid) }}</span>
+        <span class="grow name">{{ m.name || m.uid }}</span>
         <span class="uid">{{ fmtCount(m.n) }}</span>
-      </div>
+      </button>
+      <button v-if="members.length > 10" class="btn sm ghost" @click="showAllMembers = !showAllMembers">
+        {{ showAllMembers ? '收起' : `查看全部 ${members.length} 人` }}
+      </button>
     </div>
 
     <div class="info-block" style="border-bottom: 0">
@@ -125,4 +148,29 @@ function shortUid(uid) {
 
 <style scoped>
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
+.member-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: default;
+  border-radius: 6px;
+}
+.member-row.clickable { cursor: pointer; }
+.member-row.clickable:hover { background: var(--panel-2); }
+.mini-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  color: #fff;
+  flex: none;
+}
 </style>

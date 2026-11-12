@@ -195,17 +195,39 @@ def thread_info(thread_id: str) -> dict[str, Any] | None:
             if not conv:
                 return None
             members = conn.execute(
-                """SELECT sender_uid AS uid, MAX(sender_name) AS name, COUNT(*) AS n
-                     FROM messages
-                    WHERE conversation_id = ? AND is_self = 0 AND sender_uid IS NOT NULL
-                    GROUP BY sender_uid ORDER BY n DESC LIMIT 50""",
+                """SELECT m.sender_uid AS uid, MAX(m.sender_name) AS name,
+                          m.platform AS platform, COUNT(*) AS n,
+                          MIN(m.ts) AS first_ts, MAX(m.ts) AS last_ts
+                     FROM messages m
+                    WHERE m.conversation_id = ? AND m.is_self = 0
+                      AND m.sender_uid IS NOT NULL
+                    GROUP BY m.sender_uid, m.platform
+                    ORDER BY n DESC LIMIT 200""",
                 (int(raw_id),),
             ).fetchall()
+            member_list = []
+            for row in members:
+                item = dict(row)
+                # 群成员 → 和 TA 的私聊（有就跳过去，没有就置灰）
+                if item["platform"] == "wechat":
+                    pv = conn.execute(
+                        """SELECT id, contact_id FROM conversations
+                            WHERE platform='wechat' AND kind='private'
+                              AND platform_conv_id=? LIMIT 1""",
+                        (item["uid"],),
+                    ).fetchone()
+                else:
+                    pv = None
+                item["thread_id"] = (
+                    (f"contact:{pv['contact_id']}" if pv["contact_id"] else f"conv:{pv['id']}")
+                    if pv else None
+                )
+                member_list.append(item)
             return {
                 "thread_id": thread_id,
                 "thread_kind": "conv",
                 "conversation": dict(conv),
-                "members": [dict(r) for r in members],
+                "members": member_list,
                 "platforms": [conv["platform"]],
                 "merged": False,
             }
@@ -540,6 +562,62 @@ def search_messages(
         "has_more": offset + len(items) < total,
         "groups": groups,
         "engine": engine,
+    }
+
+
+MEDIA_KINDS = ("image", "sticker", "video", "file")
+
+
+def thread_media(
+    thread_id: str,
+    *,
+    kind: str | None = None,
+    platform: str | None = None,
+    limit: int = 60,
+    offset: int = 0,
+) -> dict[str, Any]:
+    """会话内媒体页：图片/表情/视频/文件，按时间倒序分页。"""
+    built = _where(thread_id, platform)
+    if built is None:
+        return {"items": [], "total": 0, "counts": {}}
+    cond, args = built
+    kinds = [k for k in ([kind] if kind else MEDIA_KINDS) if k in MEDIA_KINDS]
+    if not kinds:
+        kinds = list(MEDIA_KINDS)
+    marks = ",".join("?" for _ in kinds)
+    limit = max(1, min(int(limit), 200))
+    offset = max(0, int(offset))
+    with db.session(readonly=True) as conn:
+        where = f"{cond} AND m.kind IN ({marks})"
+        conn_args = [*args, *kinds]
+        total = int(conn.execute(
+            f"SELECT COUNT(*) FROM messages m JOIN conversations c"
+            f" ON c.id = m.conversation_id WHERE {where}",
+            conn_args,
+        ).fetchone()[0])
+        counts = {
+            r["kind"]: int(r["n"])
+            for r in conn.execute(
+                f"""SELECT m.kind, COUNT(*) AS n FROM messages m
+                      JOIN conversations c ON c.id = m.conversation_id
+                     WHERE {where} GROUP BY m.kind""",
+                conn_args,
+            )
+        }
+        rows = conn.execute(
+            f"""SELECT {_MESSAGE_COLUMNS}
+                  FROM messages m JOIN conversations c ON c.id = m.conversation_id
+                 WHERE {where}
+                 ORDER BY m.ts DESC, m.id DESC
+                 LIMIT ? OFFSET ?""",
+            [*conn_args, limit, offset],
+        ).fetchall()
+    return {
+        "items": [_message_row(r) for r in rows],
+        "total": total,
+        "offset": offset,
+        "has_more": offset + len(rows) < total,
+        "counts": counts,
     }
 
 

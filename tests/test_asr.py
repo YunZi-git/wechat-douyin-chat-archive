@@ -118,10 +118,9 @@ def test_asr_single_message_rerun(client, library, monkeypatch):
 
 
 def test_asr_rejects_unknown_engine(client, library):
-    res = client.post("/api/asr/run", json={"engine": "local", "scope": "pending"})
-    # 本地引擎可用，所以这里测的是完全不存在的引擎（schema 层会 422）
-    assert res.status_code in (200, 400)
+    # 不存在的引擎在 schema 层就被拦下（422），不会真的起任务
     assert client.post("/api/asr/run", json={"engine": "nope"}).status_code == 422
+    assert client.post("/api/asr/run", json={"engine": "local", "scope": "nope"}).status_code == 422
 
 
 def test_auto_transcribe_after_import(library, monkeypatch):

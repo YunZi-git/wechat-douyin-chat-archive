@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref, watch, computed, nextTick } from 'vue'
 import { api } from '../lib/api'
-import { store, toast, refreshStats } from '../lib/store'
+import { store, toast, refreshStats, openThread } from '../lib/store'
 import ThreadList from '../components/ThreadList.vue'
 import ChatView from '../components/ChatView.vue'
 import ThreadInfo from '../components/ThreadInfo.vue'
@@ -257,6 +257,7 @@ onMounted(async () => {
     />
 
     <ThreadInfo
+      @open-thread="openThread"
       v-if="infoOpen && thread"
       :thread="thread"
       @close="infoOpen = false"

@@ -46,6 +46,13 @@ export const api = {
     if (platform) params.set('platform', platform)
     return get(`/api/threads/${encodeURIComponent(id)}/messages?${params}`)
   },
+  threadMedia: (id, { kind, platform, limit = 60, offset = 0 } = {}) => {
+    const params = new URLSearchParams({ limit, offset })
+    if (kind) params.set('kind', kind)
+    if (platform) params.set('platform', platform)
+    return get(`/api/threads/${encodeURIComponent(id)}/media?${params}`)
+  },
+  mediaPrewarm: (body) => post('/api/media/prewarm', body),
   days: (id, platform) => {
     const params = new URLSearchParams()
     if (platform) params.set('platform', platform)
