@@ -226,7 +226,8 @@ data/
 
 **性能**（61.8 万条消息实测）：会话列表 3 ms，单会话跳转 1 ms，
 导出 13.7 万条的会话 1.4 秒、内存占用 25 MB。做法是物化会话统计 + 流式导出，
-细节见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) 第 10、11 节。
+细节见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)；接手维护请看
+[docs/HANDOVER.md](docs/HANDOVER.md)（当前状态、常见坑、下一阶段路线图）。
 
 ---
 
@@ -256,7 +257,7 @@ data/
 │  └─ launcher.py           便携包入口
 ├─ demo/                    合成演示数据（可直接导入）
 ├─ tests/                   pytest
-├─ docs/                    架构与截图
+├─ docs/                    架构、交接文档与截图
 └─ requirements.txt         运行依赖（含抖音采集所需的浏览器自动化）
 ```
 

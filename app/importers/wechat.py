@@ -258,6 +258,55 @@ def _extract_voice_files(
     return mapping
 
 
+def _ensure_talker_conversation(
+    conn: sqlite3.Connection,
+    talker: str,
+    *,
+    names: dict[str, str],
+    member_counts: dict[str, int],
+    self_wxid: str,
+) -> tuple[int, bool]:
+    """确保 talker 对应的会话（以及私聊联系人）存在。
+
+    返回 ``(conversation_id, 是否新建)``。重复导入时复用已有身份，
+    不会每次导入都造一批新联系人。
+    """
+    is_group = talker.endswith("@chatroom")
+    is_system = talker in SYSTEM_TALKERS
+    title = names.get(talker, talker)
+
+    contact_id = None
+    if not is_group and not is_system:
+        ident = conn.execute(
+            "SELECT contact_id FROM identities WHERE platform='wechat'"
+            " AND platform_uid=?",
+            (talker,),
+        ).fetchone()
+        if ident:
+            contact_id = int(ident["contact_id"])
+        else:
+            contact_id = db.ensure_contact(conn, title)
+            db.ensure_identity(conn, contact_id, "wechat", talker, platform_name=title)
+
+    kind = "group" if is_group else ("system" if is_system else "private")
+    existed = conn.execute(
+        "SELECT 1 FROM conversations WHERE platform='wechat' AND platform_conv_id=?",
+        (talker,),
+    ).fetchone()
+    cid = db.ensure_conversation(
+        conn,
+        "wechat",
+        talker,
+        kind=kind,
+        title=title,
+        contact_id=contact_id,
+        member_count=member_counts.get(talker),
+        self_uid=self_wxid,
+        extra=json.dumps({"talker": talker}, ensure_ascii=False),
+    )
+    return cid, not bool(existed)
+
+
 def import_account(
     account_dir: Path | str,
     *,
@@ -299,57 +348,10 @@ def import_account(
             " VALUES ('wechat', ?, 'full', 'running', ?)",
             (str(account_dir), int(started)),
         ).lastrowid
-        conv_cache: dict[str, int] = {}
         touched: set[int] = set()
         total_seen = 0
         voices = _extract_voice_files(account_dir, progress=progress)
         report["voices_found"] = len(voices)
-
-        def conv_for(talker: str) -> int:
-            nonlocal report
-            if talker in conv_cache:
-                return conv_cache[talker]
-            is_group = talker.endswith("@chatroom")
-            is_system = talker in SYSTEM_TALKERS
-            title = names.get(talker, talker)
-            contact_id = None
-            avatar = None
-            if not is_group and not is_system:
-                # 重复导入时复用已有身份，避免每次导入都造一个新的联系人
-                ident = conn.execute(
-                    "SELECT contact_id FROM identities WHERE platform='wechat'"
-                    " AND platform_uid=?",
-                    (talker,),
-                ).fetchone()
-                if ident:
-                    contact_id = int(ident["contact_id"])
-                else:
-                    contact_id = db.ensure_contact(conn, title, avatar_url=avatar)
-                    db.ensure_identity(
-                        conn, contact_id, "wechat", talker, platform_name=title
-                    )
-            kind = "group" if is_group else ("system" if is_system else "private")
-            existed = conn.execute(
-                "SELECT 1 FROM conversations WHERE platform='wechat'"
-                " AND platform_conv_id=?",
-                (talker,),
-            ).fetchone()
-            cid = db.ensure_conversation(
-                conn,
-                "wechat",
-                talker,
-                kind=kind,
-                title=title,
-                contact_id=contact_id,
-                member_count=member_counts.get(talker),
-                self_uid=self_wxid,
-                extra=json.dumps({"talker": talker}, ensure_ascii=False),
-            )
-            if not existed:
-                report["conversations_added"] += 1
-            conv_cache[talker] = cid
-            touched.add(cid)
-            return cid
 
         def cancelled() -> bool:
             return bool(should_cancel and should_cancel())
@@ -408,7 +410,16 @@ def import_account(
                         talker = by_md5.get(table[4:].lower())
                         if not talker:
                             continue
-                        cid = conv_for(talker)
+                        cid, created = _ensure_talker_conversation(
+                            conn,
+                            talker,
+                            names=names,
+                            member_counts=member_counts,
+                            self_wxid=self_wxid,
+                        )
+                        if created:
+                            report["conversations_added"] += 1
+                        touched.add(cid)
                         try:
                             rows = _iter_message_rows(scon, table)
                         except sqlite3.Error as exc:

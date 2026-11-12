@@ -141,6 +141,8 @@ media_*.db: VoiceInfo(chat_name_id, local_id, svr_id, voice_data)
 - **转写单独一张表** `voice_transcriptions(message_id, engine, status, text, error)`：
   抖音原生识别、本地 whisper、腾讯云、旧项目回填都写它，同一条消息只留最后一次结果。
 - **搜索会命中转写**：`search_messages` 同时匹配 `messages.text` 和转写文本。
+- **缓存可清理**：`POST /api/voice/cache/clear`（设置页有按钮），只删 WAV 缓存，
+  原始 SILK 不受影响，下次播放自动重建。
 
 已实现：微信语音落盘 + 播放、旧 `voice_api.jsonl` 回填。
 待实现：本地 faster-whisper、腾讯云一句话识别、批量任务与重试。

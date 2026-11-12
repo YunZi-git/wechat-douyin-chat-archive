@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 import time
+import uuid
 import wave
 from pathlib import Path
 from typing import Any, Iterable
@@ -83,8 +84,10 @@ def transcode_silk(silk_path: Path, cache_key: str) -> tuple[Path, float | None]
     raw = silk_path.read_bytes()
     payload = strip_silk_prefix(raw)
 
-    tmp_silk = VOICE_CACHE / f"{cache_key}.tmp.silk"
-    tmp_wav = VOICE_CACHE / f"{cache_key}.tmp.wav"
+    # 并发请求同一条语音时各写各的临时文件，最后 rename 覆盖，避免互相踩踏
+    nonce = uuid.uuid4().hex[:8]
+    tmp_silk = VOICE_CACHE / f"{cache_key}.{nonce}.silk"
+    tmp_wav = VOICE_CACHE / f"{cache_key}.{nonce}.wav"
     try:
         tmp_silk.write_bytes(payload)
         pilk.silk_to_wav(str(tmp_silk), str(tmp_wav), rate=16000)
@@ -99,6 +102,35 @@ def transcode_silk(silk_path: Path, cache_key: str) -> tuple[Path, float | None]
     if not target.is_file() or target.stat().st_size <= 44:
         raise RuntimeError("语音解码结果为空（文件可能不完整）")
     return target, wav_duration(target)
+
+
+def cache_stats() -> dict[str, int]:
+    """语音缓存占了多少空间（前端设置页展示 / 清理用）。"""
+    if not VOICE_CACHE.is_dir():
+        return {"files": 0, "bytes": 0}
+    files = 0
+    size = 0
+    for p in VOICE_CACHE.iterdir():
+        try:
+            if p.is_file():
+                files += 1
+                size += p.stat().st_size
+        except OSError:
+            continue
+    return {"files": files, "bytes": size}
+
+
+def clear_cache() -> dict[str, int]:
+    """删掉转码缓存（不影响原始 SILK，下一次播放会重新生成）。"""
+    before = cache_stats()
+    if VOICE_CACHE.is_dir():
+        for p in VOICE_CACHE.iterdir():
+            try:
+                if p.is_file():
+                    p.unlink()
+            except OSError:
+                continue
+    return {"removed_files": before["files"], "freed_bytes": before["bytes"]}
 
 
 def resolve_media_path(rel_path: str) -> Path | None:
@@ -172,6 +204,14 @@ def import_legacy_transcripts(jsonl_path: Path | str) -> dict[str, Any]:
     if not records:
         return {"total": 0, "matched": 0, "unmatched": 0, "updated": 0}
 
+    total_lines = 0
+    empty_text = 0
+    with path.open(encoding="utf-8") as fh:
+        for line in fh:
+            if line.strip():
+                total_lines += 1
+    empty_text = total_lines - len(records)
+
     matched = 0
     updated = 0
     unmatched: list[str] = []
@@ -209,7 +249,9 @@ def import_legacy_transcripts(jsonl_path: Path | str) -> dict[str, Any]:
                         (float(duration), message_id),
                     )
     return {
+        "lines": total_lines,
         "total": len(records),
+        "empty": max(0, empty_text),
         "matched": matched,
         "unmatched": len(unmatched),
         "updated": updated,

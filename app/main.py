@@ -40,6 +40,14 @@ async def _host_guard(request, call_next):
     name = raw.rsplit(":", 1)[0].strip("[]").lower() if raw else ""
     if name not in _TRUSTED_HOSTS:
         return JSONResponse({"error": "forbidden host"}, status_code=403)
+
+    # 写接口必须是 JSON：浏览器对「跨源 + JSON」会先发预检，而我们没有 CORS，
+    # 于是恶意页面无法用表单直接触发解密/导入这类操作（简单请求绕过预检）。
+    if request.method in {"POST", "PUT", "PATCH", "DELETE"} and request.url.path.startswith("/api/"):
+        ctype = (request.headers.get("content-type") or "").split(";")[0].strip().lower()
+        if ctype != "application/json":
+            return JSONResponse({"error": "content-type must be application/json"},
+                                status_code=415)
     return await call_next(request)
 
 

@@ -70,7 +70,8 @@ async function importVoice() {
   if (!path) return
   try {
     const res = await api.importVoiceJsonl(path)
-    toast(`语音转写已导入：匹配 ${res.matched} / 共 ${res.total} 条`, 'ok')
+    const extra = res.empty ? `（${res.empty} 条空文本已跳过）` : ''
+    toast(`语音转写已导入：匹配 ${res.matched} / 共 ${res.total} 条${extra}`, 'ok')
   } catch (err) {
     toast(err.message, 'err')
   }

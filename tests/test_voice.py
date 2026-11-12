@@ -117,6 +117,46 @@ def test_transcript_is_searchable_and_returned(client, library, tmp_path):
     assert matched and matched[0]["transcript"] == "独一无二的转写内容"
 
 
+def test_stats_include_voice_metrics(client, library):
+    stats = client.get("/api/stats").json()
+    assert stats["voice_messages"] >= 1
+    assert stats["voice_with_audio"] >= 1
+    assert "transcripts" in stats
+    assert {"files", "bytes"} <= set(stats["voice_cache"])
+
+
+def test_clear_voice_cache(client, library):
+    # 演示语音是 WAV 直出、不进缓存，这里手工造一个缓存文件来验证清理
+    voice.VOICE_CACHE.mkdir(parents=True, exist_ok=True)
+    (voice.VOICE_CACHE / "dummy-test.wav").write_bytes(b"RIFF0000")
+    assert voice.cache_stats()["files"] >= 1
+
+    res = client.post("/api/voice/cache/clear", json={}).json()
+    assert res["removed_files"] >= 1
+    assert res["freed_bytes"] >= 8
+    assert voice.cache_stats()["files"] == 0
+
+
+def test_import_voice_jsonl_rejects_non_json(client):
+    res = client.post("/api/voice/import-jsonl", json={"path": "C:/tmp/a.txt"})
+    assert res.status_code == 400
+
+
+def test_import_voice_jsonl_reports_empty(client, library, tmp_path):
+    row = _voice_messages(1)[0]
+    jsonl = tmp_path / "v.jsonl"
+    jsonl.write_text(
+        json.dumps({"id": row["platform_msg_id"], "text": "有内容"}, ensure_ascii=False) + "\n"
+        + json.dumps({"id": "message_0.db:Msg_x:1", "text": ""}, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    res = client.post("/api/voice/import-jsonl", json={"path": str(jsonl)}).json()
+    assert res["lines"] == 2
+    assert res["total"] == 1
+    assert res["empty"] == 1
+    assert res["matched"] == 1
+
+
 def test_import_voice_jsonl_missing_file(client):
     res = client.post("/api/voice/import-jsonl", json={"path": "C:/nope/voice.jsonl"})
     assert res.status_code == 400

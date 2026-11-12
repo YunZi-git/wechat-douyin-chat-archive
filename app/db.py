@@ -419,7 +419,22 @@ def stats() -> dict[str, Any]:
             "SELECT COUNT(*) FROM (SELECT contact_id FROM identities"
             " GROUP BY contact_id HAVING COUNT(DISTINCT platform) > 1)"
         )
+        voice_cache = {"files": 0, "bytes": 0}
+        try:
+            from .voice import cache_stats
+
+            voice_cache = cache_stats()
+        except Exception:  # noqa: BLE001 - 统计失败不该拖垮接口
+            pass
         return {
+            "voice_messages": one("SELECT COUNT(*) FROM messages WHERE kind='voice'"),
+            "voice_with_audio": one(
+                "SELECT COUNT(*) FROM messages WHERE kind='voice' AND media_path IS NOT NULL"
+            ),
+            "transcripts": one(
+                "SELECT COUNT(*) FROM voice_transcriptions WHERE status='success'"
+            ),
+            "voice_cache": voice_cache,
             "contacts": one("SELECT COUNT(*) FROM contacts"),
             "merged_contacts": merged,
             "conversations": one("SELECT COUNT(*) FROM conversations"),

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException, Query
@@ -325,10 +326,19 @@ def message_audio(msg_id: int) -> FileResponse:
 @router.post("/voice/import-jsonl")
 def import_voice_jsonl(body: VoiceImportBody) -> dict[str, Any]:
     """回填旧项目 voice_api.jsonl 里的微信语音转写。"""
+    path = Path(body.path)
+    if path.suffix.lower() not in (".jsonl", ".json"):
+        raise HTTPException(400, "只接受 .jsonl / .json 文件")
     try:
-        return voice_mod.import_legacy_transcripts(body.path)
+        return voice_mod.import_legacy_transcripts(path)
     except FileNotFoundError as exc:
         raise HTTPException(400, str(exc)) from exc
+
+
+@router.post("/voice/cache/clear")
+def clear_voice_cache() -> dict[str, Any]:
+    """清掉 SILK 转码缓存；原始语音不受影响，下次播放会重新生成。"""
+    return voice_mod.clear_cache()
 
 
 # ── 导出 ────────────────────────────────────────────────────────────

@@ -155,6 +155,14 @@ def test_host_guard_rejects_foreign_host(client):
     assert res.status_code == 403
 
 
+def test_write_requires_json_content_type(client):
+    # 跨源表单（text/plain、application/x-www-form-urlencoded）不能触发写接口
+    for ctype in ("text/plain", "application/x-www-form-urlencoded", "multipart/form-data"):
+        res = client.post("/api/voice/cache/clear", headers={"content-type": ctype}, content=b"")
+        assert res.status_code == 415, (ctype, res.status_code)
+    assert client.post("/api/voice/cache/clear", json={}).status_code == 200
+
+
 def test_host_guard_allows_loopback(client):
     for host in ("127.0.0.1", "127.0.0.1:8000", "localhost", "localhost:8765"):
         assert client.get("/api/health", headers={"host": host}).status_code == 200

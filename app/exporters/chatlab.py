@@ -14,7 +14,7 @@ import mimetypes
 import re
 import time
 from pathlib import Path
-from typing import Any, Iterable, Iterator
+from typing import Any
 
 from .. import paths, settings, threads
 
@@ -113,9 +113,12 @@ def _message_content(msg: dict[str, Any], budget: _ImageBudget) -> str:
                 return data
         return text or "[图片]"
     if kind == "voice":
+        # 有转写就用转写，没有才退回时长标签
+        transcript = (msg.get("transcript") or "").strip()
+        if transcript:
+            return transcript
         duration = msg.get("duration")
-        label = f"[语音 {duration:g}秒]" if duration else "[语音]"
-        return text.strip() if text and not text.startswith("[语音") else label
+        return f"[语音 {duration:g}秒]" if duration else "[语音]"
     return text or ""
 
 

@@ -36,7 +36,6 @@ KIND_LABELS = {
     "other": "[消息]",
 }
 
-MEDIA_DIRS = {"emoji": "sticker", "images": "image", "voice": "voice", "videos": "video"}
 VOICE_EXT = {".mp3", ".mpeg", ".m4a", ".aac", ".silk", ".amr", ".wav", ".ogg"}
 VIDEO_EXT = {".mp4", ".mov", ".m4v", ".webm"}
 IMAGE_EXT = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".heic", ".bmp"}

@@ -13,6 +13,7 @@ const THEMES = [
 ]
 
 const saving = ref(false)
+const clearing = ref(false)
 const health = ref(null)
 const lastImport = computed(() => store.stats?.last_import)
 
@@ -36,6 +37,19 @@ async function setTheme(key) {
 async function setDensity(value) {
   applyDensity(value)
   await save({ density: value })
+}
+
+async function clearCache() {
+  clearing.value = true
+  try {
+    const res = await api.clearVoiceCache()
+    toast(`已清理 ${fmtBytes(res.freed_bytes)} 的语音缓存`, 'ok')
+    await refreshStats()
+  } catch (err) {
+    toast(`清理失败：${err.message}`, 'err')
+  } finally {
+    clearing.value = false
+  }
 }
 
 async function setPageSize(event) {
@@ -135,6 +149,23 @@ onMounted(async () => {
         <div class="kv"><span>数据目录</span><span class="mono" style="font-size: 11.5px">{{ health?.data_dir || 'data/' }}</span></div>
         <div class="kv"><span>微信消息</span><span>{{ fmtCount(store.stats?.messages_by_platform?.wechat) }}</span></div>
         <div class="kv"><span>抖音消息</span><span>{{ fmtCount(store.stats?.messages_by_platform?.douyin) }}</span></div>
+        <div class="kv">
+          <span>微信语音</span>
+          <span>
+            {{ fmtCount(store.stats?.voice_messages) }} 条
+            （{{ fmtCount(store.stats?.voice_with_audio) }} 条有音频）
+          </span>
+        </div>
+        <div class="kv"><span>语音转写</span><span>{{ fmtCount(store.stats?.transcripts) }} 条</span></div>
+        <div class="kv">
+          <span>转码缓存</span>
+          <span class="row" style="gap: 8px">
+            {{ fmtBytes(store.stats?.voice_cache?.bytes) }}
+            <button class="btn sm ghost" :disabled="clearing || !store.stats?.voice_cache?.bytes" @click="clearCache">
+              清理
+            </button>
+          </span>
+        </div>
         <div class="kv" v-if="lastImport">
           <span>最近一次导入</span>
           <span>{{ lastImport.platform === 'wechat' ? '微信' : '抖音' }} · {{ fmtDateTime(lastImport.finished_at) }} · +{{ fmtCount(lastImport.messages_added) }} 条</span>

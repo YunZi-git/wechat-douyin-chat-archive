@@ -90,6 +90,7 @@ export const api = {
   cancelJob: (id) => post(`/api/jobs/${id}/cancel`),
 
   importVoiceJsonl: (path) => post('/api/voice/import-jsonl', { path }),
+  clearVoiceCache: () => post('/api/voice/cache/clear'),
 
   exportThread: (threadId, format, platform) =>
     post('/api/export', { thread_id: threadId, format, platform: platform || null }),
