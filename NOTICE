@@ -44,11 +44,17 @@
    ------------------------------------------------------------------
    pilk —— 微信 SILK 语音转 WAV，https://github.com/foyoux/pilk
 
-6. 前端依赖
+6. 本地语音识别
+   ------------------------------------------------------------------
+   faster-whisper（MIT）、ctranslate2（MIT）、onnxruntime（MIT）、
+   av / PyAV（BSD-3-Clause）、tokenizers（Apache-2.0）、
+   huggingface_hub（Apache-2.0）、numpy（BSD-3-Clause）、tqdm（MPL-2.0）。
+
+7. 前端依赖
    ------------------------------------------------------------------
    Vue 3（MIT）、Vite（MIT）、@vitejs/plugin-vue（MIT）。
 
-7. 后端依赖
+8. 后端依赖
    ------------------------------------------------------------------
    FastAPI（MIT）、Starlette（BSD-3-Clause）、Uvicorn（BSD-3-Clause）、
    pywebview（BSD-3-Clause）、pythonnet（MIT）、pydantic（MIT）、

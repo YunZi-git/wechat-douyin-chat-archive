@@ -50,6 +50,10 @@ def library(demo_sources):
         target = Path(str(paths.UNIFIED_DB) + suffix)
         if target.exists():
             target.unlink()
+    # 每个测试从干净配置开始：避免密钥/设置串到别的用例
+    for cfg in (paths.SETTINGS_PATH, paths.DATA_DIR / "secrets.json"):
+        if cfg.exists():
+            cfg.unlink()
     db.init()
     r_wx = wechat.import_account(demo_sources["wechat"])
     r_dy = douyin.import_chat_db(

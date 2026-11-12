@@ -22,6 +22,13 @@ DEFAULTS: dict[str, Any] = {
     "douyin_self_uid": "",
     # 导入时是否把音频/图片一并带过来（后续版本使用）
     "import_media": True,
+    # ── 语音识别 ──
+    "asr_engine": "off",              # off | tencent | local
+    "asr_auto_after_import": False,   # 导入完成后自动识别新语音
+    "asr_concurrency": 2,             # 云端并发（本地会强制为 1）
+    "whisper_model": "small",         # base | small | medium
+    "whisper_model_dir": "",          # 可指定模型下载/缓存目录
+    "whisper_endpoint": "",           # HuggingFace 镜像；国内建议 https://hf-mirror.com
 }
 
 

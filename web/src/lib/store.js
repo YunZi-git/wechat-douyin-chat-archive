@@ -52,7 +52,7 @@ export async function refreshStats() {
 
 export async function boot() {
   const view = new URLSearchParams(location.search).get('view')
-  if (['chats', 'merge', 'import', 'export', 'settings'].includes(view)) {
+  if (['chats', 'voice', 'merge', 'import', 'export', 'settings'].includes(view)) {
     store.view = view
   }
   try {

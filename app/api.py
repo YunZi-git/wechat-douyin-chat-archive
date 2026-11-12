@@ -10,7 +10,10 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from . import contacts as contacts_mod
+from . import asr
+from . import secrets as secrets_mod
 from . import voice as voice_mod
+from . import wechat_media
 from . import db, jobs, paths, services, settings, threads
 from .exporters import chatlab
 
@@ -59,6 +62,29 @@ class ExportBody(BaseModel):
 
 class VoiceImportBody(BaseModel):
     path: str
+
+
+class AsrConfigBody(BaseModel):
+    engine: Literal["off", "tencent", "local"] | None = None
+    auto_after_import: bool | None = None
+    concurrency: int | None = Field(default=None, ge=1, le=4)
+    whisper_model: Literal["base", "small", "medium"] | None = None
+    whisper_model_dir: str | None = None
+    tencent_secret_id: str | None = None
+    tencent_secret_key: str | None = None
+    tencent_region: str | None = None
+
+
+class AsrTestBody(BaseModel):
+    engine: Literal["tencent", "local"]
+
+
+class AsrRunBody(BaseModel):
+    engine: Literal["tencent", "local"] | None = None
+    scope: Literal["pending", "failed", "all"] = "pending"
+    conversation_id: int | None = None
+    message_ids: list[int] | None = None
+    limit: int | None = Field(default=None, ge=1, le=5000)
 
 
 class SettingsBody(BaseModel):
@@ -323,6 +349,31 @@ def message_audio(msg_id: int) -> FileResponse:
     raise HTTPException(415, f"不支持的音频格式：{suffix}")
 
 
+@router.get("/messages/{msg_id}/image")
+def message_image(msg_id: int) -> FileResponse:
+    """微信图片/表情按需解密；失败返回 404 + 原因。"""
+    try:
+        path, content_type = wechat_media.fetch_image(msg_id)
+    except wechat_media.MediaUnavailable as exc:
+        raise HTTPException(404, str(exc)) from exc
+    return FileResponse(
+        path, media_type=content_type,
+        headers={"Cache-Control": "public, max-age=86400"},
+    )
+
+
+@router.get("/messages/{msg_id}/video")
+def message_video(msg_id: int) -> FileResponse:
+    try:
+        path, content_type = wechat_media.fetch_video(msg_id)
+    except wechat_media.MediaUnavailable as exc:
+        raise HTTPException(404, str(exc)) from exc
+    return FileResponse(
+        path, media_type=content_type,
+        headers={"Cache-Control": "public, max-age=86400"},
+    )
+
+
 @router.post("/voice/import-jsonl")
 def import_voice_jsonl(body: VoiceImportBody) -> dict[str, Any]:
     """回填旧项目 voice_api.jsonl 里的微信语音转写。"""
@@ -333,6 +384,73 @@ def import_voice_jsonl(body: VoiceImportBody) -> dict[str, Any]:
         return voice_mod.import_legacy_transcripts(path)
     except FileNotFoundError as exc:
         raise HTTPException(400, str(exc)) from exc
+
+
+@router.get("/asr/status")
+def asr_status() -> dict[str, Any]:
+    return {
+        "engines": asr.engine_info(),
+        "counts": asr.counts(),
+        "secrets": secrets_mod.public_view(),
+    }
+
+
+@router.put("/asr/config")
+def asr_config(body: AsrConfigBody) -> dict[str, Any]:
+    settings_patch: dict[str, Any] = {}
+    if body.engine is not None:
+        settings_patch["asr_engine"] = body.engine
+    if body.auto_after_import is not None:
+        settings_patch["asr_auto_after_import"] = body.auto_after_import
+    if body.concurrency is not None:
+        settings_patch["asr_concurrency"] = body.concurrency
+    if body.whisper_model is not None:
+        settings_patch["whisper_model"] = body.whisper_model
+    if body.whisper_model_dir is not None:
+        settings_patch["whisper_model_dir"] = body.whisper_model_dir
+    if settings_patch:
+        settings.save(settings_patch)
+
+    secret_patch: dict[str, str] = {}
+    if body.tencent_secret_id is not None:
+        secret_patch["secret_id"] = body.tencent_secret_id
+    if body.tencent_secret_key is not None:
+        secret_patch["secret_key"] = body.tencent_secret_key
+    if body.tencent_region is not None:
+        secret_patch["region"] = body.tencent_region
+    if secret_patch:
+        secrets_mod.save({"tencent": secret_patch})
+
+    return {
+        "engines": asr.engine_info(),
+        "counts": asr.counts(),
+        "secrets": secrets_mod.public_view(),
+    }
+
+
+@router.post("/asr/test")
+def asr_test(body: AsrTestBody) -> dict[str, Any]:
+    if body.engine == "tencent":
+        return asr.test_tencent()
+    return {
+        "ok": asr.local_ready(),
+        "note": "本地模型会在第一次识别时下载（base≈150MB / small≈500MB / medium≈1.5GB）",
+    }
+
+
+@router.post("/asr/run")
+def asr_run(body: AsrRunBody) -> dict[str, Any]:
+    try:
+        job = services.start_transcription(
+            engine=body.engine,
+            scope=body.scope,
+            conversation_id=body.conversation_id,
+            message_ids=body.message_ids,
+            limit=body.limit,
+        )
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(400, str(exc)) from exc
+    return {"job": job.to_dict(with_log=False)}
 
 
 @router.post("/voice/cache/clear")

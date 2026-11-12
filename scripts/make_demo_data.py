@@ -166,7 +166,8 @@ def build_wechat(out: Path) -> Path:
     contact_dir.mkdir(parents=True, exist_ok=True)
 
     # 重复运行时先清掉上一次的库，保证结果可复现
-    for stale in [contact_dir / "contact.db", *msg_dir.glob("message_*.db")]:
+    for stale in [contact_dir / "contact.db",
+                  *msg_dir.glob("message_*.db"), *msg_dir.glob("media_*.db")]:
         if stale.exists():
             stale.unlink()
 
@@ -236,7 +237,8 @@ def build_wechat(out: Path) -> Path:
         CREATE TABLE Name2Id(rowid INTEGER PRIMARY KEY AUTOINCREMENT, user_name TEXT, is_session INTEGER);
         CREATE TABLE IF NOT EXISTS Msg_seed(local_id INTEGER PRIMARY KEY AUTOINCREMENT,
             server_id INTEGER, local_type INTEGER, real_sender_id INTEGER, create_time INTEGER,
-            message_content BLOB, compress_content BLOB, WCDB_CT_message_content INTEGER);
+            message_content BLOB, compress_content BLOB, WCDB_CT_message_content INTEGER,
+            packed_info_data BLOB);
         """
     )
     name2id: dict[str, int] = {}
@@ -276,7 +278,7 @@ def build_wechat(out: Path) -> Path:
             f'CREATE TABLE "{table}"(local_id INTEGER PRIMARY KEY AUTOINCREMENT,'
             " server_id INTEGER, local_type INTEGER, real_sender_id INTEGER,"
             " create_time INTEGER, message_content BLOB, compress_content BLOB,"
-            " WCDB_CT_message_content INTEGER)"
+            " WCDB_CT_message_content INTEGER, packed_info_data BLOB)"
         )
         ts = day + random.randint(0, 3600)
         for i, line in enumerate(lines):
@@ -285,18 +287,35 @@ def build_wechat(out: Path) -> Path:
                 speaker = random.choice([wx_usernames[m] for m in members] + [SELF_WXID])
             local_type = 1
             content: bytes | str = line
+            packed = None
             is_voice = i == 1  # 每条会话放一条语音，用来演示播放
             if is_voice:
                 local_type = 34
                 content = '<msg><voicemsg length="1200" /></msg>'
+            elif i == 2:
+                local_type = 47  # 表情：md5 用来演示按需解密
+                digest = hashlib.md5(f"emoji:{talker}:{i}".encode()).hexdigest()
+                content = f'<msg><emoji md5="{digest}" len="562825" /></msg>'
+                packed = b"\x08\x02\x10\x04"
             elif i == 3 and conv_key.startswith("private:"):
-                local_type = 3  # 一条图片占位
-                content = b"<msg><img /></msg>"
+                local_type = 3  # 图片
+                digest = hashlib.md5(f"img:{talker}:{i}".encode()).hexdigest()
+                content = (
+                    f'<msg><img md5="{digest}" aeskey="'
+                    + hashlib.md5(f"aes:{talker}".encode()).hexdigest()
+                    + '" /></msg>'
+                )
+                packed = b"\x08\x04\x10\x02\x1a\x22\x22 " + digest.encode()
+            elif i == 4:
+                local_type = 43  # 视频
+                digest = hashlib.md5(f"video:{talker}:{i}".encode()).hexdigest()
+                content = f'<msg><videomsg md5="{digest}" length="3798003" playlength="32" /></msg>'
+                packed = b"\x08\x04\x10\x02\x22\x22\x42 " + digest.encode()
             cur = shard.execute(
                 f'INSERT INTO "{table}"(server_id, local_type, real_sender_id, create_time,'
-                " message_content, compress_content, WCDB_CT_message_content)"
-                " VALUES (?,?,?,?,?,NULL,0)",
-                (1000 + i, local_type, name2id[speaker], ts, content),
+                " message_content, compress_content, WCDB_CT_message_content, packed_info_data)"
+                " VALUES (?,?,?,?,?,NULL,0,?)",
+                (1000 + i, local_type, name2id[speaker], ts, content, packed),
             )
             if is_voice and talker in media_n2i:
                 media.execute(

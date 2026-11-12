@@ -10,6 +10,9 @@ psutil>=5.9
 openpyxl>=3.1
 pilk>=0.2.4
 
+# 本地语音识别（可选但默认装好）
+faster-whisper>=1.0
+
 # 抖音采集引擎的依赖（采集是可选功能，但默认一起装好，
 # 免得用户还要额外折腾）。浏览器优先用系统 Edge，不下载 Chromium。
 playwright>=1.40

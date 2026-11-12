@@ -90,6 +90,10 @@ export const api = {
   cancelJob: (id) => post(`/api/jobs/${id}/cancel`),
 
   importVoiceJsonl: (path) => post('/api/voice/import-jsonl', { path }),
+  asrStatus: () => get('/api/asr/status'),
+  saveAsrConfig: (body) => patch('/api/asr/config', body),
+  testAsr: (engine) => post('/api/asr/test', { engine }),
+  runAsr: (body) => post('/api/asr/run', body),
   clearVoiceCache: () => post('/api/voice/cache/clear'),
 
   exportThread: (threadId, format, platform) =>

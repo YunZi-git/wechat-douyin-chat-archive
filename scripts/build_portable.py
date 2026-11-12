@@ -38,6 +38,8 @@ APP_NAME = "聊天信息工作台"
 EXCLUDE_SITE = {
     "pip", "setuptools", "pkg_resources", "_distutils_hack", "wheel",
     "pytest", "_pytest", "iniconfig", "pluggy", "py.py", "pytest.ini",
+    # 只有 VAD 会用到；我们关掉了 vad_filter
+    "onnxruntime", "onnxruntime_c_api.dll", "onnxruntime_providers_shared.dll",
     "distutils-precedence.pth", "easy-install.pth",
 }
 EXCLUDE_PATTERNS = ("__pycache__", "*.pyc", "*.pyo", "*.dist-info/RECORD")

@@ -147,7 +147,38 @@ media_*.db: VoiceInfo(chat_name_id, local_id, svr_id, voice_data)
 已实现：微信语音落盘 + 播放、旧 `voice_api.jsonl` 回填。
 待实现：本地 faster-whisper、腾讯云一句话识别、批量任务与重试。
 
-## 10. 加一个新平台要改什么
+## 10. 语音识别
+
+```
+voice_transcriptions(message_id, engine, status, text, error)
+   ↑ tencent（腾讯云一句话识别）
+   ↑ local（faster-whisper，CPU int8）
+   ↑ legacy（旧项目 voice_api.jsonl 回填）
+   ↑ native_douyin（抖音采集自带）
+```
+
+- `app/asr.py`：选消息（pending/failed/all/指定 id）→ 准备音频（SILK 走转码缓存）
+  → 引擎识别 → 写表；并发只在云端启用，本地串行（模型不是线程安全的）。
+- 腾讯云：TC3-HMAC-SHA256，`SentenceRecognition / 16k_zh`，按次计费。
+- 本地：`WhisperModel(model, device="cpu", compute_type="int8")`，懒加载并缓存；
+  HuggingFace 镜像通过 `HF_ENDPOINT` 注入（设置项 `whisper_endpoint`）。
+- 凭据：`app/secrets.py` → `data/secrets.json`，环境变量优先，界面只显示打码值。
+- 任务：复用 `jobs.py`，导入结束后可自动跑一批（`asr_auto_after_import`）。
+
+## 11. 微信图片 / 表情 / 视频
+
+导入时只记定位信息（`messages.extra` 里的 `wx_md5` / `wx_bubble_md5` / `wx_aeskey`），
+不搬文件；显示时：
+
+- 图片/表情：`/api/messages/{id}/image` → SIWX `media.get_image()` 解密 → 落盘
+  `data/media/wechat/media/<md5>.<ext>` → 写回 `media_path`，下次直接读缓存
+- 视频：`/api/messages/{id}/video` → 在账号目录 `msg/video`、`msg/attach` 里按 md5 找，
+  找到后复制进统一媒体目录
+- 拿不到时返回 404 + 中文原因，前端显示占位（不会出现坏图/死播放器）
+
+限制：依赖微信自己的数据目录（缓存/附件）；账号数据被清理后就取不到。
+
+## 12. 加一个新平台要改什么
 
 1. 写 `app/importers/<platform>.py`：把平台数据映射成 contact / identity /
    conversation / message 四张表
@@ -158,7 +189,7 @@ media_*.db: VoiceInfo(chat_name_id, local_id, svr_id, voice_data)
 聚合查询、合并、导出都不需要改 —— 它们只依赖统一模型。
 
 
-## 11. 性能取舍（实测 61.8 万条消息 / 285 个会话）
+## 13. 性能取舍（实测 61.8 万条消息 / 285 个会话）
 
 | 场景 | 之前 | 现在 |
 |---|---|---|
@@ -176,7 +207,7 @@ media_*.db: VoiceInfo(chat_name_id, local_id, svr_id, voice_data)
 3. **重复导入靠唯一约束** —— `INSERT OR IGNORE` + `UNIQUE(platform, platform_msg_id)`，
    不需要额外去重逻辑。
 
-## 12. 安全边界
+## 14. 安全边界
 
 这是个本机应用，但它读写的是最敏感的数据，所以边界画得比较紧：
 

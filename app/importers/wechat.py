@@ -183,10 +183,17 @@ def _shard_sort_key(path: Path) -> int:
 
 
 def _iter_message_rows(con: sqlite3.Connection, table: str) -> sqlite3.Cursor:
-    """流式返回消息游标：几万条的表也不一次性读进内存。"""
+    """流式返回消息游标：几万条的表也不一次性读进内存。
+
+    不同微信小版本的 Msg_* 列不完全一致（`packed_info_data` 是 4.x 才有的），
+    这里按实际列拼 SQL，缺列时用 NULL 占位。
+    """
+    columns = {row[1] for row in con.execute(f"PRAGMA table_info('{table}')")}
+    packed = "packed_info_data" if "packed_info_data" in columns else "NULL AS packed_info_data"
     return con.execute(
         f'SELECT local_id, server_id, local_type, real_sender_id, create_time,'
-        f' message_content, compress_content, WCDB_CT_message_content'
+        f' message_content, compress_content, {packed},'
+        f' WCDB_CT_message_content'
         f' FROM "{table}" ORDER BY create_time, local_id'
     )
 
@@ -258,6 +265,33 @@ def _extract_voice_files(
     return mapping
 
 
+_HEX32 = re.compile(r"\b[0-9a-f]{32}\b")
+_XML_MD5 = re.compile(r'md5\s*=\s*"([0-9a-f]{32})"')
+_XML_AESKEY = re.compile(r'aeskey\s*=\s*"([0-9a-f]{32})"')
+
+
+def _media_meta(kind: str, xml_text: str, packed: Any) -> dict[str, str]:
+    """从消息 XML / packed_info 里抠出图片/视频/表情的定位信息。"""
+    meta: dict[str, str] = {}
+    if kind not in ("image", "video", "sticker"):
+        return meta
+    match = _XML_MD5.search(xml_text or "")
+    if match:
+        meta["wx_md5"] = match.group(1)
+    aes = _XML_AESKEY.search(xml_text or "")
+    if aes:
+        meta["wx_aeskey"] = aes.group(1)
+    if isinstance(packed, bytes):
+        found = _HEX32.findall(packed.decode("latin-1", "ignore"))
+    elif isinstance(packed, str):
+        found = _HEX32.findall(packed)
+    else:
+        found = []
+    if found:
+        meta["wx_bubble_md5"] = found[0]
+    return meta
+
+
 def _ensure_talker_conversation(
     conn: sqlite3.Connection,
     talker: str,
@@ -265,6 +299,7 @@ def _ensure_talker_conversation(
     names: dict[str, str],
     member_counts: dict[str, int],
     self_wxid: str,
+    account_name: str = "",
 ) -> tuple[int, bool]:
     """确保 talker 对应的会话（以及私聊联系人）存在。
 
@@ -302,7 +337,9 @@ def _ensure_talker_conversation(
         contact_id=contact_id,
         member_count=member_counts.get(talker),
         self_uid=self_wxid,
-        extra=json.dumps({"talker": talker}, ensure_ascii=False),
+        extra=json.dumps(
+            {"talker": talker, "account": account_name}, ensure_ascii=False
+        ),
     )
     return cid, not bool(existed)
 
@@ -416,6 +453,7 @@ def import_account(
                             names=names,
                             member_counts=member_counts,
                             self_wxid=self_wxid,
+                            account_name=account_dir.name,
                         )
                         if created:
                             report["conversations_added"] += 1
@@ -440,6 +478,7 @@ def import_account(
                                 text = _decompress(r["compress_content"], 1)
                             text = _clean_text(text)
 
+                            raw_xml = text
                             if kind == "text" and not text:
                                 kind = "other"
                             if kind == "share" and text:
@@ -474,7 +513,11 @@ def import_account(
                                 media_path=media_rel,
                                 seq=int(r["server_id"] or 0) or None,
                                 extra=json.dumps(
-                                    {"local_type": local_type, "shard": shard.name},
+                                    {
+                                        "local_type": local_type,
+                                        "shard": shard.name,
+                                        **_media_meta(kind, raw_xml, r["packed_info_data"]),
+                                    },
                                     ensure_ascii=False,
                                 ),
                             )

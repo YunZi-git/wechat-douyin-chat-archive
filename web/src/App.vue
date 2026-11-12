@@ -3,6 +3,7 @@ import { onMounted } from 'vue'
 import { store, boot } from './lib/store'
 import SideRail from './components/SideRail.vue'
 import ChatsPage from './pages/ChatsPage.vue'
+import VoicePage from './pages/VoicePage.vue'
 import MergePage from './pages/MergePage.vue'
 import ImportPage from './pages/ImportPage.vue'
 import ExportPage from './pages/ExportPage.vue'
@@ -16,6 +17,7 @@ onMounted(boot)
     <SideRail />
 
     <ChatsPage v-if="store.view === 'chats'" />
+    <VoicePage v-else-if="store.view === 'voice'" />
     <MergePage v-else-if="store.view === 'merge'" />
     <ImportPage v-else-if="store.view === 'import'" />
     <ExportPage v-else-if="store.view === 'export'" />

@@ -14,6 +14,90 @@ const THEMES = [
 
 const saving = ref(false)
 const clearing = ref(false)
+
+// ── 语音识别 ──
+const asr = ref(null)
+const asrForm = ref({
+  engine: 'off',
+  auto_after_import: false,
+  concurrency: 2,
+  whisper_model: 'small',
+  whisper_model_dir: '',
+  whisper_endpoint: '',
+  tencent_secret_id: '',
+  tencent_secret_key: '',
+  tencent_region: 'ap-shanghai',
+})
+const asrSaving = ref(false)
+const asrTesting = ref(false)
+const asrMessage = ref('')
+
+async function loadAsr() {
+  try {
+    asr.value = await api.asrStatus()
+    const engines = asr.value.engines
+    asrForm.value.engine = engines.current || 'off'
+    asrForm.value.auto_after_import = !!engines.auto
+    asrForm.value.concurrency = engines.concurrency || 2
+    asrForm.value.whisper_model = engines.local?.model || 'small'
+    asrForm.value.whisper_endpoint = asr.value.engines?.local?.endpoint || ''
+    asrForm.value.tencent_region = asr.value.secrets?.tencent?.region || 'ap-shanghai'
+  } catch (err) {
+    asrMessage.value = `读取识别配置失败：${err.message}`
+  }
+}
+
+async function saveAsr() {
+  asrSaving.value = true
+  asrMessage.value = ''
+  try {
+    const body = {
+      engine: asrForm.value.engine,
+      auto_after_import: asrForm.value.auto_after_import,
+      concurrency: Number(asrForm.value.concurrency) || 2,
+      whisper_model: asrForm.value.whisper_model,
+      whisper_model_dir: asrForm.value.whisper_model_dir,
+      whisper_endpoint: asrForm.value.whisper_endpoint,
+      tencent_region: asrForm.value.tencent_region,
+    }
+    // 留空表示不修改已保存的密钥
+    if (asrForm.value.tencent_secret_id) body.tencent_secret_id = asrForm.value.tencent_secret_id
+    if (asrForm.value.tencent_secret_key) body.tencent_secret_key = asrForm.value.tencent_secret_key
+    const res = await api.saveAsrConfig(body)
+    asr.value = { engines: res.engines, counts: res.counts, secrets: res.secrets }
+    asrForm.value.tencent_secret_id = ''
+    asrForm.value.tencent_secret_key = ''
+    asrMessage.value = '已保存'
+    toast('语音识别配置已保存', 'ok')
+  } catch (err) {
+    asrMessage.value = `保存失败：${err.message}`
+  } finally {
+    asrSaving.value = false
+  }
+}
+
+async function testAsr() {
+  asrTesting.value = true
+  asrMessage.value = ''
+  try {
+    const res = await api.testAsr('tencent')
+    asrMessage.value = res.ok ? '腾讯云连接成功' : `腾讯云测试失败：${res.error}`
+  } catch (err) {
+    asrMessage.value = `测试失败：${err.message}`
+  } finally {
+    asrTesting.value = false
+  }
+}
+
+async function clearAsrKeys() {
+  try {
+    const res = await api.saveAsrConfig({ tencent_secret_id: '', tencent_secret_key: '' })
+    asr.value = { engines: res.engines, counts: res.counts, secrets: res.secrets }
+    asrMessage.value = '密钥已清除'
+  } catch (err) {
+    asrMessage.value = `清除失败：${err.message}`
+  }
+}
 const health = ref(null)
 const lastImport = computed(() => store.stats?.last_import)
 
@@ -65,6 +149,7 @@ onMounted(async () => {
     /* 忽略 */
   }
   await refreshStats()
+  await loadAsr()
 })
 </script>
 
@@ -120,6 +205,135 @@ onMounted(async () => {
             <option :value="100">100 条</option>
             <option :value="200">200 条</option>
           </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>语音识别</h2>
+      <div class="card">
+        <div class="field">
+          <label>默认引擎</label>
+          <div class="row wrap" style="gap: 8px">
+            <button class="chip" :class="{ active: asrForm.engine === 'off' }" @click="asrForm.engine = 'off'">关闭</button>
+            <button class="chip" :class="{ active: asrForm.engine === 'tencent' }" @click="asrForm.engine = 'tencent'">腾讯云</button>
+            <button class="chip" :class="{ active: asrForm.engine === 'local' }" @click="asrForm.engine = 'local'">本地 whisper</button>
+          </div>
+          <div class="hint mt12">
+            「关闭」只是不默认使用；导入后自动识别也依赖它。
+          </div>
+        </div>
+
+        <div class="divider" />
+
+        <div class="row" style="margin-bottom: 10px">
+          <span class="grow" style="font-weight: 550">腾讯云一句话识别</span>
+          <span class="chip" :class="{ active: asr?.engines?.tencent?.available }">
+            {{ asr?.engines?.tencent?.available ? '已配置' : '未配置' }}
+          </span>
+        </div>
+
+        <div class="grid two" style="gap: 12px">
+          <div class="field" style="margin-bottom: 0">
+            <label>SecretId</label>
+            <input
+              v-model="asrForm.tencent_secret_id"
+              class="input"
+              :placeholder="asr?.secrets?.tencent?.secret_id_masked || 'AKID...'"
+            />
+          </div>
+          <div class="field" style="margin-bottom: 0">
+            <label>SecretKey</label>
+            <input
+              v-model="asrForm.tencent_secret_key"
+              class="input"
+              type="password"
+              :placeholder="asr?.secrets?.tencent?.secret_key_masked || '留空表示不修改'"
+            />
+          </div>
+        </div>
+        <div class="field mt12" style="max-width: 220px">
+          <label>地域</label>
+          <input v-model="asrForm.tencent_region" class="input" placeholder="ap-shanghai" />
+        </div>
+
+        <div class="row wrap" style="gap: 8px">
+          <button class="btn sm" :disabled="asrTesting" @click="testAsr">
+            <span v-if="asrTesting" class="spinner" />
+            <Icon v-else name="link" :size="13" /> 测试连接
+          </button>
+          <button class="btn sm ghost danger" @click="clearAsrKeys">清除密钥</button>
+          <span class="hint">密钥存在 data/secrets.json，不进仓库；云端约 1 元/千次。</span>
+        </div>
+
+        <div class="divider" />
+
+        <div class="row" style="margin-bottom: 10px">
+          <span class="grow" style="font-weight: 550">本地 faster-whisper</span>
+          <span class="chip" :class="{ active: asr?.engines?.local?.available }">
+            {{ asr?.engines?.local?.available ? '可用' : '未安装' }}
+          </span>
+        </div>
+
+        <div class="grid two" style="gap: 12px">
+          <div class="field" style="margin-bottom: 0">
+            <label>模型大小</label>
+            <select v-model="asrForm.whisper_model" class="select">
+              <option value="base">base（最快，准确率一般）</option>
+              <option value="small">small（推荐）</option>
+              <option value="medium">medium（更准，更慢）</option>
+            </select>
+          </div>
+          <div class="field" style="margin-bottom: 0">
+            <label>模型目录（可选）</label>
+            <input v-model="asrForm.whisper_model_dir" class="input" placeholder="留空用默认缓存目录" />
+          </div>
+          <div class="field" style="margin-bottom: 0">
+            <label>模型下载镜像（可选）</label>
+            <input
+              v-model="asrForm.whisper_endpoint"
+              class="input"
+              placeholder="https://hf-mirror.com"
+            />
+          </div>
+        </div>
+        <div class="hint mt12">
+          首次识别会自动下载模型（base≈150MB / small≈500MB / medium≈1.5GB），之后完全离线。
+          国内网络建议把「下载镜像」填成 https://hf-mirror.com（改完重启应用生效）。
+        </div>
+
+        <div class="divider" />
+
+        <div class="row">
+          <div class="grow">
+            <div style="font-weight: 550">导入后自动识别新语音</div>
+            <div class="hint">每次导入结束自动跑一批待转写语音（最多 200 条）</div>
+          </div>
+          <button
+            class="switch"
+            :class="{ on: asrForm.auto_after_import }"
+            @click="asrForm.auto_after_import = !asrForm.auto_after_import"
+          />
+        </div>
+
+        <div class="row mt12">
+          <div class="grow">
+            <div style="font-weight: 550">云端并发</div>
+            <div class="hint">本地识别固定串行，避免抢 CPU</div>
+          </div>
+          <select v-model.number="asrForm.concurrency" class="select" style="max-width: 110px">
+            <option :value="1">1</option>
+            <option :value="2">2</option>
+            <option :value="4">4</option>
+          </select>
+        </div>
+
+        <div class="row mt20" style="gap: 10px">
+          <button class="btn primary" :disabled="asrSaving" @click="saveAsr">
+            <span v-if="asrSaving" class="spinner" />
+            保存识别配置
+          </button>
+          <span v-if="asrMessage" class="hint">{{ asrMessage }}</span>
         </div>
       </div>
     </div>

@@ -22,7 +22,7 @@ import threading
 from pathlib import Path
 from typing import Any, Iterator
 
-from . import jobs, paths
+from . import asr, jobs, paths, settings
 from .importers import douyin as douyin_importer
 from .importers import wechat as wechat_importer
 
@@ -267,7 +267,8 @@ def start_wechat_import(account_dir: str | Path | None = None) -> jobs.Job:
                     f"[✓] {account.name}: 会话 +{report['conversations_added']}, "
                     f"消息 +{report['messages_added']}"
                 )
-            return {"reports": reports}
+            auto = asr.auto_transcribe(job)
+            return {"reports": reports, "auto_transcribe": auto}
 
     return jobs.start("wechat-import", "导入微信聊天记录", target)
 
@@ -299,7 +300,8 @@ def start_wechat_refresh() -> jobs.Job:
                     f"[✓] {account.name}: 会话 +{report['conversations_added']}, "
                     f"消息 +{report['messages_added']}"
                 )
-            return {"exit_code": code, "reports": reports}
+            auto = asr.auto_transcribe(job)
+            return {"exit_code": code, "reports": reports, "auto_transcribe": auto}
 
     return jobs.start("wechat-refresh", "微信：解密并导入", target)
 
@@ -332,7 +334,8 @@ def start_douyin_import(chat_db: str | Path | None = None, *,
                 f"[✓] 会话 +{report['conversations_added']}, 消息 +{report['messages_added']}, "
                 f"跳过 {report['messages_skipped']}"
             )
-            return {"report": report}
+            auto = asr.auto_transcribe(job)
+            return {"report": report, "auto_transcribe": auto}
 
     return jobs.start("douyin-import", "导入抖音聊天记录", target)
 
@@ -365,6 +368,37 @@ def _douyin_collect_cmd(filters: str | None, incremental: bool) -> list[str]:
     if incremental:
         cmd.append("--incremental")
     return cmd
+
+
+def start_transcription(
+    *,
+    engine: str | None = None,
+    scope: str = "pending",
+    conversation_id: int | None = None,
+    message_ids: list[int] | None = None,
+    limit: int | None = None,
+) -> jobs.Job:
+    """批量语音识别（腾讯云 / 本地 whisper）。"""
+    chosen = engine or settings.load().get("asr_engine", "off")
+    if chosen not in asr.ENGINES:
+        raise ValueError("还没有选择语音识别引擎（设置 → 语音识别）")
+    info = asr.engine_info()
+    if not info.get(chosen, {}).get("available"):
+        raise ValueError(f"{chosen} 当前不可用，请先在设置里配置")
+
+    def target(job: jobs.Job) -> dict[str, Any]:
+        with _heavy_slot(job, "语音转写"):
+            return asr.run_batch(
+                job,
+                engine=chosen,
+                scope=scope,
+                conversation_id=conversation_id,
+                message_ids=message_ids,
+                limit=limit,
+                should_cancel=job.cancelled,
+            )
+
+    return jobs.start("asr-transcribe", f"语音转写（{chosen}）", target)
 
 
 def start_douyin_collect(*, filters: str | None = None, incremental: bool = True) -> jobs.Job:
@@ -407,6 +441,7 @@ def start_douyin_refresh(*, filters: str | None = None,
             job.write(
                 f"[✓] 会话 +{report['conversations_added']}, 消息 +{report['messages_added']}"
             )
-            return {"exit_code": code, "report": report}
+            auto = asr.auto_transcribe(job)
+            return {"exit_code": code, "report": report, "auto_transcribe": auto}
 
     return jobs.start("douyin-refresh", "抖音：采集并导入", target)

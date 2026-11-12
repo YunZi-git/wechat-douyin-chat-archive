@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { fmtTime, initial, avatarColor, PLATFORM_META, kindLabel } from '../lib/format'
 import Icon from './Icon.vue'
 
@@ -15,7 +15,25 @@ const plat = computed(() => PLATFORM_META[m.value.platform] || { label: m.value.
 const color = computed(() => avatarColor(m.value.sender_uid || m.value.sender_name || 'self'))
 
 const isImage = computed(() => ['image', 'sticker'].includes(m.value.kind))
-const imageSrc = computed(() => m.value.media_url || '')
+const imgBroken = ref(false)
+const videoBroken = ref(false)
+const videoRequested = ref(!!props.message.media_url)
+
+// 微信图片/表情的媒体文件是导入后才按需解密的，走 /image 接口
+const imageSrc = computed(() => {
+  if (m.value.media_url) return m.value.media_url
+  if (m.value.platform === 'wechat' && ['image', 'sticker'].includes(m.value.kind)) {
+    return `/api/messages/${m.value.id}/image`
+  }
+  return ''
+})
+const videoSrc = computed(() => {
+  if (m.value.media_url) return m.value.media_url
+  if (m.value.platform === 'wechat' && m.value.kind === 'video') {
+    return `/api/messages/${m.value.id}/video`
+  }
+  return ''
+})
 const isVoice = computed(() => m.value.kind === 'voice')
 const isVideo = computed(() => m.value.kind === 'video')
 const voiceText = computed(() => (m.value.transcript || '').trim())
@@ -55,11 +73,12 @@ const hasAudio = computed(() => !!m.value.media_url)
         <!-- 图片 / 表情 -->
         <template v-if="isImage">
           <img
-            v-if="imageSrc"
+            v-if="imageSrc && !imgBroken"
             class="media"
             :class="{ sticker: m.kind === 'sticker' }"
             :src="imageSrc"
             loading="lazy"
+            @error="imgBroken = true"
             @click="emit('open-image', imageSrc)"
           />
           <span v-else class="faint">{{ m.text || kindLabel }}</span>
@@ -78,7 +97,17 @@ const hasAudio = computed(() => !!m.value.media_url)
 
         <!-- 视频 -->
         <template v-else-if="isVideo">
-          <video v-if="m.media_url" :src="m.media_url" controls preload="none" />
+          <video
+            v-if="videoSrc && videoRequested && !videoBroken"
+            :src="videoSrc"
+            controls
+            autoplay
+            preload="metadata"
+            @error="videoBroken = true"
+          />
+          <button v-else-if="videoSrc && !videoBroken" class="btn sm ghost" @click="videoRequested = true">
+            <Icon name="play" :size="13" /> 加载视频
+          </button>
           <span v-else class="faint">{{ m.text || '[视频]' }}</span>
         </template>
 

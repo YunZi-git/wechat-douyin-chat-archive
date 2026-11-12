@@ -17,8 +17,10 @@
 - 外部引擎：微信解密 `engines/siwx`（AGPL）、抖音采集 `engines/douyin`（MIT）
 - 打包：`scripts/build_portable.py` → `release/聊天信息工作台.zip`（80 MB）
 
-**现在的状态**：文本 / 合并 / 搜索 / 导出 / 微信语音播放 / 旧转写回填 都已可用；
-**语音识别（本地 + 云端）与微信图片/表情/视频还没做**，这是下一步。
+**现在的状态**：文本 / 合并 / 搜索 / 导出 / 微信语音播放 / 语音识别（腾讯云 + 本地）
+都已可用；微信图片/表情/视频支持**按需解密**，但依赖微信本地缓存仍然存在。
+
+下一步建议：语音识别的重试/计费体验打磨、微信媒体批量预热、AI 归纳（可选）。
 
 ---
 
@@ -29,10 +31,10 @@
 | 导入 | ✅ 内置 SIWX 解密后读明文库 | ✅ 内置采集（Edge）或导入已有 `chat.db` |
 | 文本消息 | ✅ | ✅ |
 | 语音播放 | ✅ SILK 按需转 WAV | ✅ mpeg 直出 |
-| 语音转写结果 | ⚠️ 只支持回填旧 `voice_api.jsonl` | ✅ 抖音原生识别 |
-| 图片 | ❌ 占位 `[图片]` | ✅ |
-| 视频 | ❌ 占位 `[视频]` | ✅（引擎支持，需采集时下载） |
-| 动画表情 | ❌ 占位 `[表情]` | ✅ gif/webp 会动 |
+| 语音转写 | ✅ 旧数据回填 + 腾讯云 + 本地 whisper（批量/重试/自动） | ✅ 抖音原生识别 |
+| 图片 | ✅ 按需解密（需微信缓存） | ✅ |
+| 视频 | ✅ 按需定位（需微信缓存） | ✅（引擎支持，需采集时下载） |
+| 动画表情 | ⚠️ 按需解密，表情包命中率取决于缓存 | ✅ gif/webp 会动 |
 | 群聊 | ✅ 独立会话展示 | ✅ |
 | 跨平台合并 | ✅ 手动 + 可解绑 | ✅ |
 | 导出 | ✅ ChatLab JSON/JSONL + Markdown | 同左 |
@@ -57,6 +59,9 @@
 | `app/importers/wechat.py` | 微信库 → 统一库（含语音落盘） | 最复杂的一个文件 |
 | `app/importers/douyin.py` | 抖音 chat.db → 统一库 | 含消息类型归一化 |
 | `app/voice.py` | 语音落盘路径、SILK→WAV、转写回填、缓存 | 新功能都加这里 |
+| `app/asr.py` | 腾讯云 / 本地 whisper 识别、批量编排、自动转写 | 引擎都在这 |
+| `app/secrets.py` | `data/secrets.json` 读写、打码视图 | 密钥不落日志 |
+| `app/wechat_media.py` | 微信图片/表情/视频按需解密与缓存 | 依赖微信缓存 |
 | `app/services.py` | 串外部引擎、后台任务编排、重任务串行锁 | |
 | `app/exporters/chatlab.py` | ChatLab / Markdown 导出（流式） | |
 | `app/jobs.py` | 进程内任务表、日志、取消 | `JobCancelled` 在这里 |
@@ -65,7 +70,7 @@
 | `web/src/components/ChatView.vue` | 消息流、会话内搜索、跳转 | |
 | `scripts/make_demo_data.py` | 生成合成演示数据（可 `--import`） | demo 数据全靠它 |
 | `scripts/build_portable.py` | 嵌入式 Python + 依赖 + 启动脚本 | |
-| `tests/` | 69 个 pytest 用例 | 全用合成数据 |
+| `tests/` | 82 个 pytest 用例 | 全用合成数据 |
 
 ---
 
@@ -125,23 +130,39 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 - `.silk` → `voice.transcode_silk()`：剥掉 `\x02` 前缀 → pilk 转 16 kHz WAV → 缓存到 `data/media/voice_cache/<id>.wav` → 回填 `messages.duration`
 - 并发安全靠「唯一临时文件 + `os.replace`」
 
-### 4.5 转写
+### 4.5 语音识别
 
-统一表 `voice_transcriptions`，`engine` 取值 `legacy | native_douyin | local_whisper | tencent`。
-现在只有 `legacy`（回填旧 `voice_api.jsonl`）与抖音原生。
-导入接口：`POST /api/voice/import-jsonl`；搜索会同时匹配消息文本与转写。
+统一表 `voice_transcriptions(message_id, engine, status, text, error)`，
+`engine` 取值 `legacy | native_douyin | tencent | local_whisper`。
+入口 `app/asr.py::run_batch()`，由后台任务调用：
 
-### 4.6 导出
+1. 按 scope 选消息：`pending`（没记录）/ `failed`（失败或空文本）/ `all` / `message_ids`
+2. 准备音频：SILK 走 `voice.transcode_silk()` 的 WAV 缓存；其它格式直接用
+3. 云端（腾讯云）可并发；本地 whisper 串行（模型不是线程安全的）
+4. 每条结果立即写库；取消在批次之间检查
+
+导入完成后如果开了「自动识别」，会再跑一批 pending（最多 200 条）。
+
+### 4.6 微信图片 / 表情 / 视频
+
+导入时只记 md5（`messages.extra`），显示时按需取：
+
+- 图片/表情：`/api/messages/{id}/image` → SIWX `media.get_image()` → 落盘并回写 `media_path`
+- 视频：`/api/messages/{id}/video` → 在账号目录 `msg/video`、`msg/attach` 里按 md5 找
+- 失败返回 404 + 原因，前端显示占位（不会出现坏图）
+
+### 4.7 导出
+### 4.7 导出
 
 `exporters/chatlab.py` 全流式：先写 header/members，再逐条写消息，几十万条也不吃内存。
 语音内容优先用转写文本，没有才写 `[语音 X秒]`。图片内嵌有总量上限（120 MB）。
 
-### 4.7 后台任务
+### 4.8 后台任务
 
 `jobs.start()` 起线程，前端轮询 `/api/jobs/{id}`。
 重任务（解密/采集/导入）共用一把进程内锁，排队时也能取消。
 
-### 4.8 打包
+### 4.9 打包
 
 `scripts/build_portable.py`：
 
@@ -184,7 +205,7 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 
 ---
 
-## 6. 必须知道的 12 个坑
+## 6. 必须知道的 15 个坑
 
 1. **只能 Python 3.11**：pilk 没有 3.12+ 的轮子。
 2. **子进程要 UTF-8**：`PYTHONIOENCODING=utf-8`，否则 SIWX 的中文日志在 GBK 控制台直接崩。
@@ -198,6 +219,9 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 10. **微信版本耦合**：SIWX 只适配到 4.1.15.13 这个量级，微信升级后可能取不到密钥。
 11. **抖音采集依赖登录**：登录态在 `data/douyin/browser_profile/`，接口变更会失效，但「导入已有 chat.db」不受影响。
 12. **`data/` 永远不能提交**：里面有真实聊天记录、语音、数据库。`.gitignore` 已覆盖。
+13. **HuggingFace 直连会超时**：本地识别首次下载模型要设 `whisper_endpoint=https://hf-mirror.com`（改完重启）。
+14. **微信媒体依赖本机缓存**：账号目录/缓存被清理后，图片视频解密会失败——这是数据问题，不是代码问题。
+15. **消息表列不完全一致**：`packed_info_data` 只有部分微信 4.x 版本有，导入器已按实际列拼 SQL。
 
 ---
 
@@ -231,40 +255,16 @@ python scripts/build_portable.py --zip
 
 ## 8. 下一阶段路线图
 
-已确认的产品决策（来自需求）：
-**语音要能像微信一样播放原文件 + 本地/云端两套识别（云端用旧项目的腾讯云 API，应用内可配）+ 以后支持表情/视频/图片。**
+已完成的（本轮）：腾讯云转写、本地 faster-whisper、任务面板（待转写/失败重试/全部）、
+导入后自动转写、微信图片/表情/视频按需解密。
 
-### M2 云端转写（腾讯云）
+建议接下来做：
 
-- 新 `app/asr/tencent.py`：`SentenceRecognition`，`16k_zh`，`ap-shanghai`，TC3-HMAC-SHA256
-- 输入用 `voice.resolve_media_path()` 拿 SILK → 复用 `transcode_silk()` 出 WAV → base64
-- 结果写 `voice_transcriptions(engine='tencent')`
-- 密钥存 `data/secrets.json`（**不要进仓库**），设置页填 SecretId/SecretKey/Region
-- 注意：接口按次计费（约 1 元/千次），必须让用户显式点「开始转写」并显示预计条数
-
-### M3 本地转写（faster-whisper）
-
-- 模型 `small`/`medium` 可选，首次下载提示体积
-- CPU 推理约 4.8× 实时，批量任务要能暂停/取消/断点续跑
-- 依赖体积较大（ctranslate2/onnxruntime），打包前评估是否做成可选组件
-
-### M4 微信图片
-
-- 复用 SIWX `media.get_image()` / `attach_paths()`，按消息 md5（在 `message_content` XML 或 `packed_info` 里）关联
-- 落到 `data/media/wechat/images/`，`media_path` 直接可被 `<img>` 使用
-- 缩略图优先，原图按需
-
-### M5 微信表情 / 视频
-
-- 表情：`emoticon.db` + 本地文件；GIF/WebP 浏览器原生播放
-- 视频：`media_backup.backup_videos()` 是文件级备份，按 md5 匹配；匹配不到保留占位
-
-### 通用
-
-- 统一「媒体/转写」任务面板（复用 `jobs.py`）
-- `voice_transcriptions` 增加重试计数/耗时字段（如需要）
-
----
+1. **识别体验**：按会话筛选、预计费用显示、失败原因分类（密钥错/欠费/网络/格式）
+2. **媒体预热**：后台批量解密某个会话的图片，避免滚动时一张张加载
+3. **表情包**：目前靠通用图片解密，命中率一般；要做完整支持得解析 `emoticon.db`
+4. **AI 归纳**（可选，来自旧项目）：事实抽取 + 人物画像
+5. **打包瘦身**：faster-whisper 让包大了约 90MB，可考虑做成可选组件
 
 ## 9. 隐私与安全约定
 
@@ -292,7 +292,7 @@ git grep -n -I -E "wxid_[a-z0-9]{10,}|sk-[A-Za-z0-9]{20,}|AKID[A-Za-z0-9]{10,}|C
 ## 10. 验收清单（改完代码跑一遍）
 
 ```bash
-.venv\Scripts\python -m pytest -q          # 69 passed
+.venv\Scripts\python -m pytest -q          # 82 passed
 python scripts/build_portable.py --no-build-web   # 能打包
 ```
 
@@ -304,6 +304,8 @@ python scripts/build_portable.py --no-build-web   # 能打包
 4. 搜「转场」→ 点结果能跳到那条
 5. 导出 JSONL → 文件头是 `{"_type": "header", "chatlab": ...}`
 6. 设置改主题 / 清理语音缓存
+7. 「语音识别」页能选引擎、开始识别（没有真实密钥时只验证界面与报错）
+8. 微信图片消息点开能显示（本机微信缓存还在时）
 
 ---
 

@@ -9,6 +9,7 @@ const NEXT_LABEL = { dark: '浅色', light: '暖棕', warm: '紫夜', purple: '�
 
 const items = [
   { key: 'chats', icon: 'chat', label: '聊天' },
+  { key: 'voice', icon: 'mic', label: '语音识别' },
   { key: 'merge', icon: 'merge', label: '合并好友' },
   { key: 'import', icon: 'import', label: '导入数据' },
   { key: 'export', icon: 'export', label: '导出' },
