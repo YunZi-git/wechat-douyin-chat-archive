@@ -335,7 +335,8 @@ def start_wechat_decrypt(*, out_dir: Path | None = None) -> jobs.Job:
     return jobs.start("wechat-decrypt", "微信解密", target)
 
 
-def start_wechat_import(account_dir: str | Path | None = None) -> jobs.Job:
+def start_wechat_import(account_dir: str | Path | None = None,
+                        incremental: bool = False) -> jobs.Job:
     accounts = wechat_importer.detect_accounts(paths.WECHAT_DECRYPTED)
     if account_dir:
         chosen = [Path(account_dir)]
@@ -351,6 +352,7 @@ def start_wechat_import(account_dir: str | Path | None = None) -> jobs.Job:
                 job.write(f"[i] 导入 {account.name}")
                 report = wechat_importer.import_account(
                     account,
+                    incremental=incremental,
                     should_cancel=job.cancelled,
                     progress=lambda p: (job.update(p), job.write(
                         f"[+] {p.get('stage', '')} {p.get('shard', '')} "
@@ -368,7 +370,7 @@ def start_wechat_import(account_dir: str | Path | None = None) -> jobs.Job:
     return jobs.start("wechat-import", "导入微信聊天记录", target)
 
 
-def start_wechat_refresh() -> jobs.Job:
+def start_wechat_refresh(incremental: bool = False) -> jobs.Job:
     """一键：先解密，再把解出来的账号导入统一库。"""
 
     def target(job: jobs.Job) -> dict[str, Any]:
@@ -388,7 +390,8 @@ def start_wechat_refresh() -> jobs.Job:
                     raise jobs.JobCancelled()
                 job.write(f"[i] 导入 {account.name}")
                 report = wechat_importer.import_account(
-                    account, should_cancel=job.cancelled, progress=job.update,
+                    account, incremental=incremental,
+                    should_cancel=job.cancelled, progress=job.update,
                 )
                 reports.append(report)
                 job.write(

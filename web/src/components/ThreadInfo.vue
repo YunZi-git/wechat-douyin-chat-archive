@@ -89,6 +89,10 @@ function shortUid(uid) {
         <span>群成员</span><span>{{ conversation.member_count }}</span>
       </div>
       <div class="kv" v-if="isContact"><span>会话数</span><span>{{ conversations.length }}</span></div>
+      <div class="kv" v-if="!isContact && conversation.self_uid">
+        <span>所属账号</span>
+        <span :title="conversation.self_uid">{{ shortUid(conversation.self_uid) }}</span>
+      </div>
     </div>
 
     <div v-if="identities.length" class="info-block">
@@ -112,7 +116,10 @@ function shortUid(uid) {
       <h4>来源会话</h4>
       <div v-for="c in conversations" :key="c.id" class="identity">
         <span class="plat-dot" :class="PLATFORM_META[c.platform]?.cls">{{ PLATFORM_META[c.platform]?.short }}</span>
-        <span class="name">{{ c.kind === 'group' ? '群聊' : c.title || '私聊' }}</span>
+        <span class="name">
+          {{ c.kind === 'group' ? '群聊' : c.title || '私聊' }}
+          <span v-if="c.self_uid" class="faint" :title="c.self_uid">@{{ shortUid(c.self_uid) }}</span>
+        </span>
         <span class="uid">{{ fmtCount(c.msg_count) }}</span>
       </div>
     </div>

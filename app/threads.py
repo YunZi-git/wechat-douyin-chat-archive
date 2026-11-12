@@ -49,6 +49,7 @@ def _platforms(raw: str | None) -> list[str]:
 def list_threads(
     *,
     platform: str | None = None,
+    account: str | None = None,
     q: str | None = None,
     limit: int = 200,
     offset: int = 0,
@@ -105,8 +106,11 @@ def list_threads(
               JOIN agg ON agg.contact_id = ct.id
               LEFT JOIN ranked r ON r.contact_id = ct.id AND r.rn = 1
              WHERE (? IS NULL OR ct.display_name LIKE ? ESCAPE '\\')
+               AND (? IS NULL OR EXISTS (
+                     SELECT 1 FROM conversations c2
+                      WHERE c2.contact_id = ct.id AND c2.self_uid = ?))
             """,
-            (pattern, pattern),
+            (pattern, pattern, account, account),
         ).fetchall()
 
         group_rows = conn.execute(
@@ -129,8 +133,9 @@ def list_threads(
              WHERE cv.contact_id IS NULL
                AND cv.kind IN ('group', 'system')
                AND (? IS NULL OR cv.title LIKE ? ESCAPE '\\')
+               AND (? IS NULL OR cv.self_uid = ?)
             """,
-            (pattern, pattern),
+            (pattern, pattern, account, account),
         ).fetchall()
 
     items: list[dict[str, Any]] = []
@@ -145,6 +150,24 @@ def list_threads(
     items.sort(key=lambda x: (x.get("last_ts") or 0, x.get("msg_count") or 0), reverse=True)
     total = len(items)
     return {"items": items[offset: offset + limit], "total": total}
+
+
+def list_accounts() -> list[dict[str, Any]]:
+    """导入过的微信账号（按最近活跃排序），用于会话列表按账号筛选。"""
+    with db.session(readonly=True) as conn:
+        rows = conn.execute(
+            """SELECT c.self_uid AS uid,
+                      COUNT(*) AS conversations,
+                      COALESCE(SUM(COALESCE(s.msg_count, 0)), 0) AS messages,
+                      MAX(COALESCE(s.last_ts, 0)) AS last_ts
+                 FROM conversations c
+                 LEFT JOIN conversation_stats s ON s.conversation_id = c.id
+                WHERE c.platform = 'wechat' AND c.self_uid IS NOT NULL
+                  AND c.self_uid != ''
+                GROUP BY c.self_uid
+                ORDER BY last_ts DESC"""
+        ).fetchall()
+    return [dict(r) for r in rows]
 
 
 def thread_info(thread_id: str) -> dict[str, Any] | None:

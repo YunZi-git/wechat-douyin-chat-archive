@@ -250,6 +250,7 @@ def build_wechat(out: Path) -> Path:
         name2id[gname] = cur.lastrowid
 
     # 语音：微信把 blob 放在 media_*.db 的 VoiceInfo 里
+    emoji_digests: list[tuple[str, str]] = []
     media = sqlite3.connect(msg_dir / "media_0.db")
     media.executescript(
         """
@@ -297,6 +298,7 @@ def build_wechat(out: Path) -> Path:
                 digest = hashlib.md5(f"emoji:{talker}:{i}".encode()).hexdigest()
                 content = f'<msg><emoji md5="{digest}" len="562825" /></msg>'
                 packed = b"\x08\x02\x10\x04"
+                emoji_digests.append((digest, ("猫猫", "笑哭", "狗头")[i % 3]))
             elif i == 3 and conv_key.startswith("private:"):
                 local_type = 3  # 图片
                 digest = hashlib.md5(f"img:{talker}:{i}".encode()).hexdigest()
@@ -328,6 +330,18 @@ def build_wechat(out: Path) -> Path:
     shard.close()
     media.commit()
     media.close()
+    # 表情说明库（真实微信里就是 emoticon.db 的 kNonStoreEmoticonTable）
+    emoticon_dir = account / "emoticon"
+    emoticon_dir.mkdir(parents=True, exist_ok=True)
+    emo = sqlite3.connect(emoticon_dir / "emoticon.db")
+    emo.executescript(
+        "DROP TABLE IF EXISTS kNonStoreEmoticonTable;"
+        "CREATE TABLE kNonStoreEmoticonTable(md5 TEXT, caption TEXT);"
+    )
+    emo.executemany("INSERT INTO kNonStoreEmoticonTable(md5, caption) VALUES (?,?)",
+                    emoji_digests)
+    emo.commit()
+    emo.close()
     return account
 
 

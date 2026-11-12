@@ -76,7 +76,7 @@
 | `web/src/components/ChatView.vue` | 消息流、会话内搜索、跳转 | |
 | `scripts/make_demo_data.py` | 生成合成演示数据（可 `--import`） | demo 数据全靠它 |
 | `scripts/build_portable.py` | 嵌入式 Python + 依赖 + 启动脚本 | |
-| `tests/` | 133 个 pytest 用例 | 全用合成数据 |
+| `tests/` | 137 个 pytest 用例 | 全用合成数据 |
 
 ---
 
@@ -152,12 +152,23 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
   返回 total/ok/failed，失败原因写进任务日志
 - 前端：会话头部「媒体库」覆盖层，含分类、缩略图、视频播放、缓存按钮与进度
 
-### 4.6 合并 / 解绑
+### 4.6 多账号、增量导入与表情
+
+- 多账号：`conversations.self_uid` 记录消息所属微信账号；`GET /api/accounts` 汇总，
+  会话列表可按账号筛选；来源会话和概览里显示账号尾号
+- 增量导入：导入结束把最大 `create_time` 写进 `meta:wx_wm:<wxid>`；下次开启增量时
+  只读 `watermark - 86400` 之后的消息（回退一天防漏），`report.scan_after_ts` 可核对；
+  需要补旧媒体/旧语音时用全量重扫
+- 表情：表情图片是微信私有封装（SIWX 也解不开），但 `emoticon.db` 的
+  `kNonStoreEmoticonTable` 有说明文字；导入时按 md5 写入 `meta.sticker.caption`，
+  取不到图片时显示「狗头」这类说明而不是干巴巴的 `[表情]`
+
+### 4.7 合并 / 解绑
 
 合并 = 把 `identities` 和 `conversations` 的 `contact_id` 改到主联系人 + 删掉次联系人；
 解绑 = 给指定平台新建一个联系人并迁走。**不动任何消息**。
 
-### 4.7 语音播放
+### 4.8 语音播放
 
 `GET /api/messages/{id}/audio`：
 
@@ -165,7 +176,7 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 - `.silk` → `voice.transcode_silk()`：剥掉 `\x02` 前缀 → pilk 转 16 kHz WAV → 缓存到 `data/media/voice_cache/<id>.wav` → 回填 `messages.duration`
 - 并发安全靠「唯一临时文件 + `os.replace`」
 
-### 4.8 语音识别
+### 4.9 语音识别
 
 统一表 `voice_transcriptions(message_id, engine, status, text, error)`，
 `engine` 取值 `legacy | native_douyin | tencent | local_whisper`。
@@ -178,7 +189,7 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 
 导入完成后如果开了「自动识别」，会再跑一批 pending（最多 200 条）。
 
-### 4.9 微信图片 / 表情 / 视频
+### 4.10 微信图片 / 表情 / 视频
 
 导入时只记 md5（`messages.extra`），显示时按需取：
 
@@ -186,18 +197,18 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 - 视频：`/api/messages/{id}/video` → 在账号目录 `msg/video`、`msg/attach` 里按 md5 找
 - 失败返回 404 + 原因，前端显示占位（不会出现坏图）
 
-### 4.10 导出
+### 4.11 导出
 ### 4.7 导出
 
 `exporters/chatlab.py` 全流式：先写 header/members，再逐条写消息，几十万条也不吃内存。
 语音内容优先用转写文本，没有才写 `[语音 X秒]`。图片内嵌有总量上限（120 MB）。
 
-### 4.11 后台任务
+### 4.12 后台任务
 
 `jobs.start()` 起线程，前端轮询 `/api/jobs/{id}`。
 重任务（解密/采集/导入）共用一把进程内锁，排队时也能取消。
 
-### 4.12 打包
+### 4.13 打包
 
 `scripts/build_portable.py`：
 
@@ -259,7 +270,11 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 15. **消息表列不完全一致**：`packed_info_data` 只有部分微信 4.x 版本有，导入器已按实际列拼 SQL。
 16. **外观数据是生成物**：`app/data/stylekit_themes.json` 由脚本从 StyleKit 拉取并归一化；
     上游风格更新时重跑脚本即可，不要手改 JSON。
-17. **主题的深浅是推导出来的**：上游只给 primary/secondary + Tailwind token，
+17. **增量导入是粗粒度水位**：按创建时间回退一天，不保证「删除/编辑」同步；
+    补旧媒体或旧语音必须跑全量。
+18. **表情图片解不开是上游限制**：微信表情是私有容器，任何本地工具都只能拿到说明文字；
+    能显示的表情来自普通图片缓存，属于碰运气。
+19. **主题的深浅是推导出来的**：上游只给 primary/secondary + Tailwind token，
     半透明配色按深色玻璃处理；换主题后如果觉得对比度不对，改归一化脚本里的推导规则。
 
 ---
@@ -331,7 +346,7 @@ git grep -n -I -E "wxid_[a-z0-9]{10,}|sk-[A-Za-z0-9]{20,}|AKID[A-Za-z0-9]{10,}|C
 ## 10. 验收清单（改完代码跑一遍）
 
 ```bash
-.venv\Scripts\python -m pytest -q          # 133 passed
+.venv\Scripts\python -m pytest -q          # 137 passed
 python scripts/build_portable.py --no-build-web   # 能打包
 ```
 

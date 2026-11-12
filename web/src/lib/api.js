@@ -28,10 +28,12 @@ const patch = (path, body) =>
 export const api = {
   health: () => get('/api/health'),
   stats: () => get('/api/stats'),
+  accounts: () => get('/api/accounts'),
 
-  threads: ({ platform, q, limit = 300, offset = 0 } = {}) => {
+  threads: ({ platform, account, q, limit = 300, offset = 0 } = {}) => {
     const params = new URLSearchParams()
     if (platform) params.set('platform', platform)
+    if (account) params.set('account', account)
     if (q) params.set('q', q)
     params.set('limit', limit)
     params.set('offset', offset)
@@ -95,8 +97,9 @@ export const api = {
 
   sources: () => get('/api/sources'),
   wechatDecrypt: () => post('/api/wechat/decrypt'),
-  wechatRefresh: () => post('/api/wechat/refresh'),
-  importWechat: (accountDir) => post('/api/import/wechat', { account_dir: accountDir || null }),
+  wechatRefresh: (body) => post('/api/wechat/refresh', body || {}),
+  importWechat: (accountDir, incremental = false) =>
+    post('/api/import/wechat', { account_dir: accountDir || null, incremental }),
   importDouyin: (body) => post('/api/import/douyin', body || {}),
   douyinConversations: () => get('/api/douyin/conversations'),
   douyinCollect: (body) => post('/api/douyin/collect', body || {}),

@@ -42,6 +42,7 @@ class RenameBody(BaseModel):
 
 class WeChatImportBody(BaseModel):
     account_dir: str | None = None
+    incremental: bool = False
 
 
 class DouyinImportBody(BaseModel):
@@ -120,11 +121,19 @@ def get_stats() -> dict[str, Any]:
 @router.get("/threads")
 def list_threads(
     platform: str | None = Query(None),
+    account: str | None = Query(None),
     q: str | None = Query(None),
     limit: int = Query(200, ge=1, le=1000),
     offset: int = Query(0, ge=0),
 ) -> dict[str, Any]:
-    return threads.list_threads(platform=platform, q=q, limit=limit, offset=offset)
+    return threads.list_threads(
+        platform=platform, account=account, q=q, limit=limit, offset=offset
+    )
+
+
+@router.get("/accounts")
+def list_accounts() -> dict[str, Any]:
+    return {"items": threads.list_accounts()}
 
 
 @router.get("/threads/{thread_id}")
@@ -290,9 +299,11 @@ def wechat_decrypt() -> dict[str, Any]:
 
 
 @router.post("/wechat/refresh")
-def wechat_refresh() -> dict[str, Any]:
+def wechat_refresh(body: WeChatImportBody | None = None) -> dict[str, Any]:
     try:
-        job = services.start_wechat_refresh()
+        job = services.start_wechat_refresh(
+            incremental=bool(body.incremental) if body else False
+        )
     except FileNotFoundError as exc:
         raise HTTPException(400, str(exc)) from exc
     return {"job": job.to_dict(with_log=False)}
@@ -301,7 +312,7 @@ def wechat_refresh() -> dict[str, Any]:
 @router.post("/import/wechat")
 def import_wechat(body: WeChatImportBody) -> dict[str, Any]:
     try:
-        job = services.start_wechat_import(body.account_dir)
+        job = services.start_wechat_import(body.account_dir, incremental=body.incremental)
     except FileNotFoundError as exc:
         raise HTTPException(400, str(exc)) from exc
     return {"job": job.to_dict(with_log=False)}

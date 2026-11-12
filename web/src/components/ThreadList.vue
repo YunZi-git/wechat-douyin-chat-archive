@@ -11,8 +11,10 @@ const props = defineProps({
   query: { type: String, default: '' },
   activeId: { type: String, default: '' },
   mergedOnly: { type: Boolean, default: false },
+  accounts: { type: Array, default: () => [] },
+  account: { type: String, default: '' },
 })
-const emit = defineEmits(['select', 'update:platform', 'update:query', 'update:merged-only', 'refresh'])
+const emit = defineEmits(['select', 'update:platform', 'update:query', 'update:merged-only', 'update:account', 'refresh'])
 
 const mediaUrl = (p) => (p ? `/media/${p}` : '')
 
@@ -74,6 +76,20 @@ const counts = computed(() => {
       <button class="chip" :class="{ active: mergedOnly }" @click="emit('update:merged-only', !mergedOnly)">
         已合并 {{ counts.merged }}
       </button>
+    </div>
+
+    <div v-if="accounts.length > 1" class="filter-row" style="padding-top: 0">
+      <select
+        class="select"
+        style="width: 100%"
+        :value="account"
+        @change="emit('update:account', $event.target.value)"
+      >
+        <option value="">全部微信账号</option>
+        <option v-for="a in accounts" :key="a.uid" :value="a.uid">
+          {{ a.uid.slice(0, 12) }}… · {{ fmtCount(a.messages) }} 条
+        </option>
+      </select>
     </div>
 
     <div class="thread-list">

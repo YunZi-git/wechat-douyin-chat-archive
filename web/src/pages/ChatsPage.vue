@@ -12,6 +12,8 @@ const threads = ref([])
 const total = ref(0)
 const loadingThreads = ref(false)
 const platform = ref('')
+const accounts = ref([])
+const account = ref('')
 const query = ref('')
 const mergedOnly = ref(false)
 
@@ -34,7 +36,12 @@ const pageSize = computed(() => store.settings.page_size || 60)
 async function loadThreads() {
   loadingThreads.value = true
   try {
-    const res = await api.threads({ platform: platform.value || undefined, q: query.value || undefined, limit: 400 })
+    const res = await api.threads({
+      platform: platform.value || undefined,
+      account: account.value || undefined,
+      q: query.value || undefined,
+      limit: 400,
+    })
     threads.value = res.items
     total.value = res.total
     if (!store.activeThreadId && res.items.length) {
@@ -164,6 +171,16 @@ function onQuery(value) {
 }
 
 watch(platform, loadThreads)
+watch(account, loadThreads)
+
+async function loadAccounts() {
+  try {
+    const res = await api.accounts()
+    accounts.value = res.items || []
+  } catch {
+    accounts.value = []
+  }
+}
 
 // 在设置里改了每页条数，回到聊天页时按新值重新取
 watch(
@@ -201,6 +218,7 @@ watch(
 )
 
 onMounted(async () => {
+  loadAccounts()
   // 支持 ?thread=contact:12 深链，方便从合并页/导出直接定位
   const deep = new URLSearchParams(location.search).get('thread')
   if (deep) {
@@ -228,6 +246,9 @@ onMounted(async () => {
 
   <div v-else class="chats-layout" :class="{ 'with-info': infoOpen && thread }">
     <ThreadList
+      :accounts="accounts"
+      :account="account"
+      @update:account="account = $event"
       :threads="threads"
       :total="total"
       :loading="loadingThreads"

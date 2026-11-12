@@ -183,7 +183,8 @@ def _shard_sort_key(path: Path) -> int:
     return int(m.group(1)) if m else 0
 
 
-def _iter_message_rows(con: sqlite3.Connection, table: str) -> sqlite3.Cursor:
+def _iter_message_rows(con: sqlite3.Connection, table: str,
+                       after_ts: int = 0) -> sqlite3.Cursor:
     """流式返回消息游标：几万条的表也不一次性读进内存。
 
     不同微信小版本的 Msg_* 列不完全一致（`packed_info_data` 是 4.x 才有的），
@@ -191,12 +192,55 @@ def _iter_message_rows(con: sqlite3.Connection, table: str) -> sqlite3.Cursor:
     """
     columns = {row[1] for row in con.execute(f"PRAGMA table_info('{table}')")}
     packed = "packed_info_data" if "packed_info_data" in columns else "NULL AS packed_info_data"
+    where = "WHERE create_time > ?" if after_ts else ""
+    params = (after_ts,) if after_ts else ()
     return con.execute(
         f'SELECT local_id, server_id, local_type, real_sender_id, create_time,'
         f' message_content, compress_content, {packed},'
         f' WCDB_CT_message_content'
-        f' FROM "{table}" ORDER BY create_time, local_id'
+        f' FROM "{table}" {where} ORDER BY create_time, local_id',
+        params,
     )
+
+
+def _load_watermark(conn: sqlite3.Connection, account: str) -> int:
+    row = conn.execute(
+        "SELECT v FROM meta WHERE k=?", (f"wx_wm:{account}",)
+    ).fetchone()
+    try:
+        return int(row["v"]) if row else 0
+    except (TypeError, ValueError):
+        return 0
+
+
+def _save_watermark(conn: sqlite3.Connection, account: str, ts: int) -> None:
+    if ts <= 0:
+        return
+    conn.execute(
+        "INSERT INTO meta(k, v) VALUES (?, ?)"
+        " ON CONFLICT(k) DO UPDATE SET v=excluded.v",
+        (f"wx_wm:{account}", str(int(ts))),
+    )
+
+
+def _load_emoticon_captions(account_dir: Path) -> dict[str, str]:
+    """表情说明：微信的 emoji 图片是私有封装解不开，但表情库里有说明文字。"""
+    path = account_dir / "emoticon" / "emoticon.db"
+    if not path.is_file():
+        return {}
+    try:
+        con = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+        con.row_factory = sqlite3.Row
+        try:
+            rows = con.execute(
+                "SELECT md5, caption FROM kNonStoreEmoticonTable"
+                " WHERE md5 IS NOT NULL AND caption IS NOT NULL AND caption != ''"
+            ).fetchall()
+        finally:
+            con.close()
+    except sqlite3.Error:
+        return {}
+    return {str(r["md5"]).lower(): str(r["caption"]).strip() for r in rows}
 
 
 def _extract_voice_files(
@@ -350,9 +394,14 @@ def import_account(
     *,
     progress: Progress = None,
     limit_messages: int | None = None,
+    incremental: bool = False,
     should_cancel: Callable[[], bool] | None = None,
 ) -> dict[str, Any]:
-    """把一个账号目录导入统一库，返回统计信息。"""
+    """把一个账号目录导入统一库，返回统计信息。
+
+    ``incremental=True`` 时只读上次水位之后的（回退一天防漏），
+    老数据的语音/媒体补全需要全量导入。
+    """
     account_dir = Path(account_dir)
     msg_dir = account_dir / "message"
     if not msg_dir.is_dir():
@@ -381,13 +430,19 @@ def import_account(
     }
 
     with db.session() as conn:
+        watermark = _load_watermark(conn, self_wxid) if incremental else 0
+        after_ts = max(0, watermark - 86400) if watermark else 0
+        report["incremental"] = bool(incremental and watermark)
+        report["scan_after_ts"] = after_ts
         run_id = conn.execute(
             "INSERT INTO import_runs(platform, source, mode, status, started_at)"
-            " VALUES ('wechat', ?, 'full', 'running', ?)",
-            (str(account_dir), int(started)),
+            " VALUES ('wechat', ?, ?, 'running', ?)",
+            (str(account_dir), "incremental" if incremental else "full", int(started)),
         ).lastrowid
         touched: set[int] = set()
         total_seen = 0
+        max_ts = 0
+        emoticons = _load_emoticon_captions(account_dir)
         voices = _extract_voice_files(account_dir, progress=progress)
         report["voices_found"] = len(voices)
 
@@ -460,7 +515,7 @@ def import_account(
                             report["conversations_added"] += 1
                         touched.add(cid)
                         try:
-                            rows = _iter_message_rows(scon, table)
+                            rows = _iter_message_rows(scon, table, after_ts)
                         except sqlite3.Error as exc:
                             print(f"[warn] {shard.name}/{table}: {exc}", file=sys.stderr)
                             continue
@@ -470,6 +525,7 @@ def import_account(
                             if total_seen % 3000 == 0 and cancelled():
                                 raise JobCancelled()
 
+                            max_ts = max(max_ts, int(r["create_time"] or 0))
                             local_type = int(r["local_type"] or 0) & 0xFFFFFFFF
                             kind = WECHAT_LOCAL_TYPES.get(local_type, "other")
                             text = _decompress(
@@ -500,6 +556,13 @@ def import_account(
                                 kind = "revoke"
                             if kind == "revoke" and not text:
                                 text = "撤回了一条消息"
+                            if kind == "sticker" and emoticons:
+                                sticker = meta.setdefault("sticker", {})
+                                md5 = (sticker.get("md5")
+                                       or _media_meta(kind, raw_xml, r["packed_info_data"]).get("wx_md5"))
+                                caption = emoticons.get(str(md5 or "").lower())
+                                if caption:
+                                    sticker["caption"] = caption
 
                             sender = n2i.get(r["real_sender_id"], "") or ""
                             is_self = bool(self_wxid) and sender == self_wxid
@@ -574,6 +637,8 @@ def import_account(
             finish("cancelled")
             raise
 
+        _save_watermark(conn, self_wxid, max_ts)
+        report["watermark"] = max_ts
         finish("ok")
 
     return report

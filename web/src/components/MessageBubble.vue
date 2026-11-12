@@ -93,7 +93,11 @@ const miniMeta = computed(() => meta.value.miniprogram || null)
             @error="imgBroken = true"
             @click="emit('open-image', imageSrc)"
           />
-          <span v-else class="faint">{{ m.text || kindLabel }}</span>
+          <span v-else class="faint">
+            {{ m.kind === 'sticker'
+              ? (m.meta?.sticker?.caption || m.text || '表情')
+              : (m.text || kindLabel) }}
+          </span>
         </template>
 
         <!-- 语音：SILK 会在后端按需转 WAV -->

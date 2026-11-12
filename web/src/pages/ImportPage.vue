@@ -15,6 +15,7 @@ const customDb = ref('')
 const voiceJsonl = ref('')
 
 // ── 抖音采集范围 ──
+const wxIncremental = ref(true)
 const dyConvs = ref([])
 const dyConvReady = ref(false)
 const dyLoading = ref(false)
@@ -89,10 +90,10 @@ const STATUS_LABEL = {
 
 async function run(kind, title, arg) {
   const fn = {
-    wechatRefresh: () => api.wechatRefresh(),
+    wechatRefresh: () => api.wechatRefresh({ incremental: wxIncremental.value }),
     wechatDecrypt: () => api.wechatDecrypt(),
-    wechatImport: () => api.importWechat(),
-    wechatImportOne: () => api.importWechat(arg),
+    wechatImport: () => api.importWechat(null, wxIncremental.value),
+    wechatImportOne: () => api.importWechat(arg, wxIncremental.value),
     douyinRefresh: () => api.douyinRefresh({
       incremental: dyIncremental.value,
       mode: dyMode.value,
