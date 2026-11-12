@@ -20,6 +20,9 @@ const searchQuery = ref('')
 const searchResults = ref([])
 const searchTotal = ref(0)
 const searching = ref(false)
+const calendarOpen = ref(false)
+const calendarLoading = ref(false)
+const dayList = ref([])
 const prevHeight = ref(0)
 const pendingRestore = ref(false)
 const firstLoad = ref(true)
@@ -135,6 +138,37 @@ async function runSearch() {
   }
 }
 
+const calendarGroups = computed(() => {
+  const map = new Map()
+  // 最近的在最前面
+  for (const d of [...dayList.value].reverse()) {
+    const month = d.day.slice(0, 7)
+    if (!map.has(month)) map.set(month, [])
+    map.get(month).push(d)
+  }
+  return [...map.entries()]
+})
+
+async function toggleCalendar() {
+  calendarOpen.value = !calendarOpen.value
+  if (!calendarOpen.value || dayList.value.length || !info.value) return
+  calendarLoading.value = true
+  try {
+    const res = await api.days(info.value.thread_id, props.platform || undefined)
+    dayList.value = res.items || []
+  } catch (err) {
+    /* 日期列表失败不阻断阅读 */
+  } finally {
+    calendarLoading.value = false
+  }
+}
+
+function jumpToDay(day) {
+  calendarOpen.value = false
+  const ts = Math.floor(new Date(`${day}T00:00:00+08:00`).getTime() / 1000)
+  if (Number.isFinite(ts)) emit('jump-to', { ts })
+}
+
 function jumpTo(item) {
   searchOpen.value = false
   emit('jump-to', { ts: item.ts, msgId: item.id })
@@ -187,6 +221,9 @@ function toggleSearch() {
               @click="emit('update:platform', p)"
             >{{ PLATFORM_META[p]?.label }}</button>
           </div>
+          <button class="icon-btn" :class="{ on: calendarOpen }" title="按日期跳转" @click="toggleCalendar">
+            <Icon name="calendar" :size="17" />
+          </button>
           <button class="icon-btn" :class="{ on: searchOpen }" title="在会话内查找" @click="toggleSearch">
             <Icon name="search" :size="17" />
           </button>
@@ -198,6 +235,34 @@ function toggleSearch() {
           </button>
         </div>
       </header>
+
+      <div v-if="calendarOpen" class="cal-pop">
+        <div class="cal-head">
+          <span class="grow">按日期跳转</span>
+          <button class="icon-btn" style="width: 22px; height: 22px" @click="calendarOpen = false">
+            <Icon name="close" :size="13" />
+          </button>
+        </div>
+        <div v-if="calendarLoading" class="hint" style="padding: 8px 4px">读取日期…</div>
+        <div v-else class="cal-body">
+          <div v-for="[month, days] in calendarGroups" :key="month" class="cal-month">
+            <div class="cal-month-title">{{ month }}</div>
+            <div class="cal-days">
+              <button
+                v-for="d in days"
+                :key="d.day"
+                class="cal-day"
+                :title="`${d.day} · ${d.n} 条`"
+                @click="jumpToDay(d.day)"
+              >
+                {{ Number(d.day.slice(8)) }}
+                <span class="faint">{{ d.n }}</span>
+              </button>
+            </div>
+          </div>
+          <div v-if="!calendarGroups.length" class="hint" style="padding: 8px 4px">没有日期数据</div>
+        </div>
+      </div>
 
       <div v-if="searchOpen" class="search-pop">
         <div class="search-box">
@@ -301,4 +366,39 @@ function toggleSearch() {
   min-height: 28px;
 }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+
+.cal-pop {
+  position: absolute;
+  top: 62px;
+  right: 76px;
+  width: 322px;
+  max-height: 420px;
+  overflow: auto;
+  background: var(--panel);
+  border: var(--border-w, 1px) solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 10px;
+  z-index: 30;
+}
+.cal-head { display: flex; align-items: center; margin-bottom: 8px; font-weight: 600; font-size: 13px; }
+.cal-month { margin-bottom: 10px; }
+.cal-month-title { font-size: 11px; color: var(--text-faint); margin-bottom: 4px; }
+.cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 4px 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+}
+.cal-day:hover { border-color: var(--accent); }
+.cal-day .faint { font-size: 9px; }
 </style>

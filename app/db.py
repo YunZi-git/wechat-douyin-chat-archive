@@ -12,13 +12,14 @@
 from __future__ import annotations
 
 import sqlite3
+import sys
 import time
 from contextlib import contextmanager
 from typing import Any, Iterable, Iterator, Sequence
 
 from . import paths
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 
 SCHEMA_SQL = """
 PRAGMA journal_mode=WAL;
@@ -142,6 +143,61 @@ def connect(*, readonly: bool = False) -> sqlite3.Connection:
     return conn
 
 
+FTS_SQL = """
+CREATE VIRTUAL TABLE IF NOT EXISTS messages_fts USING fts5(
+    text, transcript,
+    message_id UNINDEXED,
+    conversation_id UNINDEXED,
+    platform UNINDEXED,
+    ts UNINDEXED,
+    kind UNINDEXED,
+    sender_name UNINDEXED,
+    sender_uid UNINDEXED,
+    tokenize = 'trigram'
+);
+CREATE TRIGGER IF NOT EXISTS messages_fts_delete AFTER DELETE ON messages BEGIN
+    DELETE FROM messages_fts WHERE message_id = old.id;
+END;
+CREATE TRIGGER IF NOT EXISTS messages_fts_update AFTER UPDATE OF text ON messages BEGIN
+    UPDATE messages_fts SET text = new.text WHERE message_id = new.id;
+END;
+"""
+
+_FTS_OK: bool | None = None
+
+
+def has_fts(conn: sqlite3.Connection | None = None) -> bool:
+    """当前库是否有 FTS5 索引（SQLite 编译时可能不带）。"""
+    if _FTS_OK is False:
+        return False
+    try:
+        if conn is None:
+            with session(readonly=True) as own:
+                return has_fts(own)
+        row = conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE type IN ('table','view') AND name='messages_fts'"
+        ).fetchone()
+        return bool(row)
+    except sqlite3.Error:
+        return False
+
+
+def _rebuild_fts(conn: sqlite3.Connection) -> None:
+    if not has_fts(conn):
+        return
+    conn.execute("DELETE FROM messages_fts")
+    conn.execute(
+        """INSERT INTO messages_fts
+             (text, transcript, message_id, conversation_id, platform, ts,
+              kind, sender_name, sender_uid)
+           SELECT COALESCE(m.text,''), COALESCE(vt.text,''), m.id,
+                  m.conversation_id, m.platform, m.ts, m.kind,
+                  COALESCE(m.sender_name,''), COALESCE(m.sender_uid,'')
+             FROM messages m
+             LEFT JOIN voice_transcriptions vt ON vt.message_id = m.id"""
+    )
+
+
 @contextmanager
 def session(*, readonly: bool = False, write: bool = True) -> Iterator[sqlite3.Connection]:
     """短连接上下文：正常结束提交，异常回滚。"""
@@ -160,8 +216,15 @@ def session(*, readonly: bool = False, write: bool = True) -> Iterator[sqlite3.C
 
 def init() -> None:
     paths.ensure_dirs()
+    global _FTS_OK
     with session() as conn:
         conn.executescript(SCHEMA_SQL)
+        try:
+            conn.executescript(FTS_SQL)
+            _FTS_OK = True
+        except sqlite3.OperationalError as exc:  # pragma: no cover - 取决于 SQLite 编译
+            _FTS_OK = False
+            print(f"[warn] FTS5 不可用，搜索回退 LIKE：{exc}", file=sys.stderr)
         row = conn.execute("SELECT v FROM meta WHERE k='schema_version'").fetchone()
         version = int(row["v"]) if row else 0
         if row is None:
@@ -310,6 +373,15 @@ def add_message(
          1 if is_self else 0, int(ts), kind, text, media_path, media_url,
          duration, reply_to, seq, extra),
     )
+    if cur.rowcount > 0 and _FTS_OK:
+        conn.execute(
+            """INSERT INTO messages_fts
+                 (text, transcript, message_id, conversation_id, platform, ts,
+                  kind, sender_name, sender_uid)
+               VALUES (?, '', ?, ?, ?, ?, ?, ?, ?)""",
+            (text or "", cur.lastrowid, conversation_id, platform, int(ts), kind,
+             sender_name or "", sender_uid or ""),
+        )
     return cur.rowcount > 0
 
 
@@ -330,6 +402,9 @@ NON_TEXT_LABELS = {
 
 def _migrate(conn: sqlite3.Connection, version: int) -> None:
     """按版本号做数据修正（只跑一次）。"""
+    if version < 5:
+        # v5：全文索引（trigram，支持中文子串）
+        _rebuild_fts(conn)
     if version < 4:
         # v3 之前的导入把 XML/JSON 原文写进了 text，界面上会露馅
         for kind, label in NON_TEXT_LABELS.items():

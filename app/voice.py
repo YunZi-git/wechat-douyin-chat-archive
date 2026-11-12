@@ -154,6 +154,17 @@ def set_duration(message_id: int, duration: float) -> None:
         )
 
 
+def _sync_fts_transcript(conn, message_id: int, text: str) -> None:
+    """转写变了就更新全文索引；FTS 不可用时静默跳过。"""
+    try:
+        conn.execute(
+            "UPDATE messages_fts SET transcript=? WHERE message_id=?",
+            (text or "", int(message_id)),
+        )
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def set_transcript(message_id: int, *, engine: str, text: str,
                    status: str = "success", error: str | None = None) -> None:
     with db.session() as conn:
@@ -169,6 +180,7 @@ def set_transcript(message_id: int, *, engine: str, text: str,
                    updated_at=excluded.updated_at""",
             (int(message_id), engine, status, text or "", error, int(time.time())),
         )
+        _sync_fts_transcript(conn, message_id, text or "")
 
 
 def _chunks(items: list, size: int) -> Iterable[list]:
@@ -243,6 +255,7 @@ def import_legacy_transcripts(jsonl_path: Path | str) -> dict[str, Any]:
                     (message_id, record["text"], now),
                 )
                 updated += 1
+                _sync_fts_transcript(conn, message_id, record["text"])
                 if duration is not None:
                     conn.execute(
                         "UPDATE messages SET duration=? WHERE id=? AND duration IS NULL",

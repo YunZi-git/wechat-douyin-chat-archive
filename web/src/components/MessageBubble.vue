@@ -50,13 +50,13 @@ const miniMeta = computed(() => meta.value.miniprogram || null)
 
 <template>
   <!-- 系统消息：居中的小字，不带头像 -->
-  <div v-if="isSystem" class="msg-row system">
+  <div v-if="isSystem" class="msg-row system" :data-msg-id="m.id">
     <div class="msg-body">
       <div class="bubble system">{{ m.text || '系统消息' }}</div>
     </div>
   </div>
 
-  <div v-else class="msg-row" :class="{ self: m.is_self }">
+  <div v-else class="msg-row" :data-msg-id="m.id" :class="{ self: m.is_self }">
     <div
       class="avatar"
       :style="{ background: m.is_self ? 'var(--panel-3)' : color + '22', color: m.is_self ? 'var(--text-dim)' : color }"

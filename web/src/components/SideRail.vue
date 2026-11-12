@@ -6,6 +6,7 @@ import Icon from './Icon.vue'
 
 const items = [
   { key: 'chats', icon: 'chat', label: '聊天' },
+  { key: 'search', icon: 'search', label: '搜索' },
   { key: 'voice', icon: 'mic', label: '语音识别' },
   { key: 'merge', icon: 'merge', label: '合并好友' },
   { key: 'import', icon: 'import', label: '导入数据' },

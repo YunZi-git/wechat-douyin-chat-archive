@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch, computed } from 'vue'
+import { onMounted, ref, watch, computed, nextTick } from 'vue'
 import { api } from '../lib/api'
 import { store, toast, refreshStats } from '../lib/store'
 import ThreadList from '../components/ThreadList.vue'
@@ -102,7 +102,7 @@ async function loadOlder() {
   }
 }
 
-async function jumpTo({ ts }) {
+async function jumpTo({ ts, msgId }) {
   if (!thread.value) return
   loadingMessages.value = true
   try {
@@ -114,6 +114,12 @@ async function jumpTo({ ts }) {
     })
     messages.value = res.items
     hasMoreBefore.value = res.has_more_before
+    if (msgId) {
+      await nextTick()
+      document
+        .querySelector(`[data-msg-id="${msgId}"]`)
+        ?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    }
   } catch (err) {
     toast(`跳转失败：${err.message}`, 'err')
   } finally {
@@ -177,6 +183,20 @@ watch(
   () => store.focusSeq,
   () => {
     if (store.activeThreadId) loadThread(store.activeThreadId)
+  }
+)
+
+// 从搜索页/日期跳转过来：先切会话，再定位到具体时间点
+watch(
+  () => store.pendingJump?.seq,
+  async () => {
+    const jump = store.pendingJump
+    if (!jump) return
+    store.pendingJump = null
+    if (thread.value?.thread_id !== jump.threadId) {
+      await loadThread(jump.threadId)
+    }
+    if (jump.ts) await jumpTo({ ts: jump.ts, msgId: jump.msgId })
   }
 )
 

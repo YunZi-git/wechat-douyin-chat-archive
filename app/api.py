@@ -164,9 +164,27 @@ def search(
     q: str = Query(..., min_length=1),
     platform: str | None = Query(None),
     thread_id: str | None = Query(None),
+    sender: str | None = Query(None),
+    kinds: str | None = Query(None, description="逗号分隔的消息类型"),
+    since_ts: int | None = Query(None, ge=0),
+    until_ts: int | None = Query(None, ge=0),
     limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    group: bool = Query(False),
 ) -> dict[str, Any]:
-    return threads.search_messages(q, platform=platform, thread_id=thread_id, limit=limit)
+    kind_list = [k.strip() for k in (kinds or "").split(",") if k.strip()]
+    return threads.search_messages(
+        q,
+        platform=platform,
+        thread_id=thread_id,
+        sender=sender,
+        kinds=kind_list or None,
+        since_ts=since_ts,
+        until_ts=until_ts,
+        limit=limit,
+        offset=offset,
+        group=group,
+    )
 
 
 # ── 联系人合并 ──────────────────────────────────────────────────────

@@ -21,6 +21,7 @@ export const store = reactive({
   toasts: [],
   activeThreadId: null,
   focusSeq: 0,
+  pendingJump: null,
 })
 
 let toastSeed = 0
@@ -84,7 +85,7 @@ export async function refreshStats() {
 
 export async function boot() {
   const view = new URLSearchParams(location.search).get('view')
-  if (['chats', 'voice', 'merge', 'import', 'export', 'appearance', 'settings'].includes(view)) {
+  if (['chats', 'search', 'voice', 'merge', 'import', 'export', 'appearance', 'settings'].includes(view)) {
     store.view = view
   }
   // 先把缓存的调色板贴上，避免首屏闪烁
@@ -104,8 +105,17 @@ export async function boot() {
   }
 }
 
+let jumpSeed = 0
+
 export function openThread(threadId) {
   store.activeThreadId = threadId
   store.focusSeq += 1
+  store.view = 'chats'
+}
+
+/** 打开会话并跳到某个时间点（搜索结果/日期跳转用）。 */
+export function openThreadAt(threadId, ts, msgId) {
+  store.activeThreadId = threadId
+  store.pendingJump = { threadId, ts, msgId, seq: ++jumpSeed }
   store.view = 'chats'
 }

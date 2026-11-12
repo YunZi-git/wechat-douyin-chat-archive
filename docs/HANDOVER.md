@@ -75,7 +75,7 @@
 | `web/src/components/ChatView.vue` | 消息流、会话内搜索、跳转 | |
 | `scripts/make_demo_data.py` | 生成合成演示数据（可 `--import`） | demo 数据全靠它 |
 | `scripts/build_portable.py` | 嵌入式 Python + 依赖 + 启动脚本 | |
-| `tests/` | 120 个 pytest 用例 | 全用合成数据 |
+| `tests/` | 129 个 pytest 用例 | 全用合成数据 |
 
 ---
 
@@ -135,12 +135,20 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 33/36 小程序、51 视频号、5 链接；42 名片、48 位置、43 视频（时长）、47 表情（md5）、
 10000 撤回。解析结果写进 `messages.extra`，`_message_row` 把它转成 `meta` 给前端。
 
-### 4.4 合并 / 解绑
+### 4.4 搜索（`threads.search_messages`）
+
+- 3 个字以上且 SQLite 带 FTS5 时走 `messages_fts`（trigram，中文子串可命中）；
+  更短的词退化为 LIKE
+- 语音转写参与匹配（`set_transcript` / 旧 JSONL 回填都会同步 FTS 的 transcript 列）
+- 过滤：平台、会话、发送者、类型、时间范围；分页 offset/limit；`group=true` 返回按会话聚合
+- 迁移：schema v5 时一次性重建索引（61 万条约十几秒，只发生一次）
+
+### 4.5 合并 / 解绑
 
 合并 = 把 `identities` 和 `conversations` 的 `contact_id` 改到主联系人 + 删掉次联系人；
 解绑 = 给指定平台新建一个联系人并迁走。**不动任何消息**。
 
-### 4.5 语音播放
+### 4.6 语音播放
 
 `GET /api/messages/{id}/audio`：
 
@@ -148,7 +156,7 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 - `.silk` → `voice.transcode_silk()`：剥掉 `\x02` 前缀 → pilk 转 16 kHz WAV → 缓存到 `data/media/voice_cache/<id>.wav` → 回填 `messages.duration`
 - 并发安全靠「唯一临时文件 + `os.replace`」
 
-### 4.6 语音识别
+### 4.7 语音识别
 
 统一表 `voice_transcriptions(message_id, engine, status, text, error)`，
 `engine` 取值 `legacy | native_douyin | tencent | local_whisper`。
@@ -161,7 +169,7 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 
 导入完成后如果开了「自动识别」，会再跑一批 pending（最多 200 条）。
 
-### 4.7 微信图片 / 表情 / 视频
+### 4.8 微信图片 / 表情 / 视频
 
 导入时只记 md5（`messages.extra`），显示时按需取：
 
@@ -169,18 +177,18 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 - 视频：`/api/messages/{id}/video` → 在账号目录 `msg/video`、`msg/attach` 里按 md5 找
 - 失败返回 404 + 原因，前端显示占位（不会出现坏图）
 
-### 4.8 导出
+### 4.9 导出
 ### 4.7 导出
 
 `exporters/chatlab.py` 全流式：先写 header/members，再逐条写消息，几十万条也不吃内存。
 语音内容优先用转写文本，没有才写 `[语音 X秒]`。图片内嵌有总量上限（120 MB）。
 
-### 4.9 后台任务
+### 4.10 后台任务
 
 `jobs.start()` 起线程，前端轮询 `/api/jobs/{id}`。
 重任务（解密/采集/导入）共用一把进程内锁，排队时也能取消。
 
-### 4.10 打包
+### 4.11 打包
 
 `scripts/build_portable.py`：
 
@@ -314,7 +322,7 @@ git grep -n -I -E "wxid_[a-z0-9]{10,}|sk-[A-Za-z0-9]{20,}|AKID[A-Za-z0-9]{10,}|C
 ## 10. 验收清单（改完代码跑一遍）
 
 ```bash
-.venv\Scripts\python -m pytest -q          # 120 passed
+.venv\Scripts\python -m pytest -q          # 129 passed
 python scripts/build_portable.py --no-build-web   # 能打包
 ```
 

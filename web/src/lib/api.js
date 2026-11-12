@@ -51,10 +51,18 @@ export const api = {
     if (platform) params.set('platform', platform)
     return get(`/api/threads/${encodeURIComponent(id)}/days?${params}`)
   },
-  search: ({ q, platform, threadId, limit = 50 }) => {
-    const params = new URLSearchParams({ q, limit })
+  search: ({
+    q, platform, threadId, sender, kinds, sinceTs, untilTs,
+    limit = 50, offset = 0, group = false,
+  }) => {
+    const params = new URLSearchParams({ q, limit, offset })
     if (platform) params.set('platform', platform)
     if (threadId) params.set('thread_id', threadId)
+    if (sender) params.set('sender', sender)
+    if (kinds) params.set('kinds', kinds)
+    if (sinceTs) params.set('since_ts', sinceTs)
+    if (untilTs) params.set('until_ts', untilTs)
+    if (group) params.set('group', 'true')
     return get(`/api/search?${params}`)
   },
 

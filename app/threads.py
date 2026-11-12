@@ -414,50 +414,133 @@ def search_messages(
     *,
     platform: str | None = None,
     thread_id: str | None = None,
+    sender: str | None = None,
+    kinds: list[str] | None = None,
+    since_ts: int | None = None,
+    until_ts: int | None = None,
     limit: int = 50,
+    offset: int = 0,
+    group: bool = False,
 ) -> dict[str, Any]:
+    """全文/模糊搜索，支持筛选、分页与按会话分组。
+
+    * 查询词 >= 3 个字符且 FTS 可用时走 trigram 索引（中文子串也能命中）
+    * 更短的词退化为 LIKE（trigram 要求至少 3 个字符）
+    * 语音转写文本参与匹配
+    """
     q = (q or "").strip()
+    offset = max(0, int(offset))
+    limit = max(1, min(int(limit), 200))
     if not q:
-        return {"items": [], "total": 0}
-    # 转写文本也参与搜索：按语音内容找得到那条语音
-    where = ["(m.text LIKE ? ESCAPE '\\' OR EXISTS ("
-             "SELECT 1 FROM voice_transcriptions vt2"
-             " WHERE vt2.message_id = m.id AND vt2.text LIKE ? ESCAPE '\\'))"]
-    args: list[Any] = [like_pattern(q), like_pattern(q)]
-    if platform:
-        where.append("m.platform = ?")
-        args.append(platform)
-    if thread_id:
-        kind, _, raw_id = thread_id.partition(":")
-        if kind == "contact" and raw_id.isdigit():
-            where.append("c.contact_id = ?")
-            args.append(int(raw_id))
-        elif kind == "conv" and raw_id.isdigit():
-            where.append("c.id = ?")
-            args.append(int(raw_id))
+        return {"items": [], "total": 0, "offset": offset, "has_more": False,
+                "groups": [], "engine": "none"}
+
+    where: list[str] = []
+    args: list[Any] = []
+    engine = "like"
     with db.session(readonly=True) as conn:
-        total = conn.execute(
-            f"""SELECT COUNT(*) FROM messages m JOIN conversations c ON c.id=m.conversation_id
-                 WHERE {' AND '.join(where)}""",
-            args,
-        ).fetchone()[0]
+        if len(q) >= 3 and db.has_fts(conn):
+            phrase = '"' + q.replace('"', '""') + '"'
+            where.append(
+                "m.id IN (SELECT message_id FROM messages_fts"
+                " WHERE messages_fts MATCH ?)"
+            )
+            args.append(phrase)
+            engine = "fts"
+        else:
+            where.append(
+                "(m.text LIKE ? ESCAPE '\\' OR EXISTS ("
+                "SELECT 1 FROM voice_transcriptions vt2"
+                " WHERE vt2.message_id = m.id AND vt2.text LIKE ? ESCAPE '\\'))"
+            )
+            args.extend([like_pattern(q), like_pattern(q)])
+
+        if platform:
+            where.append("m.platform = ?")
+            args.append(platform)
+        if thread_id:
+            kind, _, raw_id = thread_id.partition(":")
+            if kind == "contact" and raw_id.isdigit():
+                where.append("c.contact_id = ?")
+                args.append(int(raw_id))
+            elif kind == "conv" and raw_id.isdigit():
+                where.append("c.id = ?")
+                args.append(int(raw_id))
+        if sender:
+            where.append("(m.sender_name = ? OR m.sender_uid = ?)")
+            args.extend([sender, sender])
+        if kinds:
+            clean = [k for k in dict.fromkeys(kinds) if k]
+            if clean:
+                where.append(f"m.kind IN ({','.join('?' for _ in clean)})")
+                args.extend(clean)
+        if since_ts:
+            where.append("m.ts >= ?")
+            args.append(int(since_ts))
+        if until_ts:
+            where.append("m.ts < ?")
+            args.append(int(until_ts))
+
+        base_from = "FROM messages m JOIN conversations c ON c.id = m.conversation_id"
+        cond = " AND ".join(where)
+        total = int(conn.execute(
+            f"SELECT COUNT(*) {base_from} WHERE {cond}", args
+        ).fetchone()[0])
         rows = conn.execute(
-            f"""SELECT m.id, m.ts, m.platform, m.kind, m.text, m.sender_name, m.is_self,
-                       m.conversation_id, c.title AS conv_title, c.kind AS conv_kind,
-                       c.contact_id AS contact_id
-                  FROM messages m JOIN conversations c ON c.id=m.conversation_id
-                 WHERE {' AND '.join(where)}
-                 ORDER BY m.ts DESC LIMIT ?""",
-            [*args, max(1, min(limit, 200))],
+            f"""SELECT m.*, c.title AS conv_title, c.kind AS conv_kind,
+                       c.platform AS conv_platform,
+                       c.contact_id AS conv_contact_id,
+                       (SELECT vt.text FROM voice_transcriptions vt
+                         WHERE vt.message_id = m.id) AS transcript
+                  {base_from}
+                 WHERE {cond}
+                 ORDER BY m.ts DESC, m.id DESC
+                 LIMIT ? OFFSET ?""",
+            [*args, limit, offset],
         ).fetchall()
-    items = []
-    for r in rows:
-        item = dict(r)
-        item["thread_id"] = (
-            f"contact:{item['contact_id']}" if item["contact_id"] else f"conv:{item['conversation_id']}"
-        )
-        items.append(item)
-    return {"items": items, "total": int(total)}
+        items = []
+        for row in rows:
+            item = _message_row(row)
+            contact_id = item.pop("conv_contact_id", None)
+            item["thread_id"] = (
+                f"contact:{contact_id}" if contact_id else f"conv:{item['conversation_id']}"
+            )
+            items.append(item)
+
+        groups: list[dict[str, Any]] = []
+        if group:
+            grows = conn.execute(
+                f"""SELECT c.id AS conv_id, c.contact_id, c.title, c.kind, c.platform,
+                           COUNT(*) AS n, MAX(m.ts) AS last_ts
+                      {base_from}
+                     WHERE {cond}
+                     GROUP BY c.id
+                     ORDER BY n DESC, last_ts DESC
+                     LIMIT 30""",
+                args,
+            ).fetchall()
+            groups = [
+                {
+                    "thread_id": (
+                        f"contact:{g['contact_id']}" if g["contact_id"] else f"conv:{g['conv_id']}"
+                    ),
+                    "title": g["title"] or "未命名",
+                    "kind": g["kind"],
+                    "platform": g["platform"],
+                    "n": int(g["n"]),
+                    "last_ts": int(g["last_ts"] or 0),
+                }
+                for g in grows
+            ]
+
+    return {
+        "items": items,
+        "total": total,
+        "offset": offset,
+        "has_more": offset + len(items) < total,
+        "groups": groups,
+        "engine": engine,
+    }
 
 
 def day_counts(thread_id: str, *, platform: str | None = None) -> list[dict[str, Any]]:
