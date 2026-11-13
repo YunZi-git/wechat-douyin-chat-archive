@@ -118,6 +118,7 @@ async function run(kind, title, arg) {
       conversations: dySelected.value,
       download_images: dyDownloadImages.value,
     }),
+    douyinList: () => api.douyinList(),
     douyinRetry: () => api.douyinCollect({
       incremental: true,
       mode: 'include',
@@ -153,6 +154,7 @@ async function onJobDone() {
   await refresh()
   await refreshStats()
   await loadDouyinFailures()
+  await loadDouyinConversations()
   activeJob.value = null
 }
 
@@ -280,6 +282,9 @@ onMounted(async () => {
                 <Icon v-else name="refresh" :size="12" />
                 {{ dyConvReady ? t('刷新列表') : t('加载会话') }}
               </button>
+              <button class="btn sm" @click="run('douyinList', '抖音：获取会话列表')">
+                <Icon name="import" :size="12" /> 从抖音获取
+              </button>
             </div>
             <div class="hint mt12" v-if="dyMode === 'exclude'">
               排除模式基于本地已有会话列表；列表里的会话会全部重抓。
@@ -303,7 +308,8 @@ onMounted(async () => {
                 <span class="faint small nowrap">{{ fmtCount(c.message_count) }}</span>
               </label>
               <div v-if="!filteredConvs.length" class="hint" style="padding: 10px">
-                没有可选的会话：先采集一次，或导入本地 chat.db。
+                还没有会话列表。点「从抖音获取」扫码登录，拉一次列表（不会采集消息），
+                然后就能勾选范围了。
               </div>
             </div>
             <div class="hint" style="margin-top: 6px">

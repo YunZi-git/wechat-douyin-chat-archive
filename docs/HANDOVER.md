@@ -76,7 +76,7 @@
 | `web/src/components/ChatView.vue` | 消息流、会话内搜索、跳转 | |
 | `scripts/make_demo_data.py` | 生成合成演示数据（可 `--import`） | demo 数据全靠它 |
 | `scripts/build_portable.py` | 嵌入式 Python + 依赖 + 启动脚本 | |
-| `tests/` | 171 个 pytest 用例 + 4 个 E2E（默认跳过） | 全用合成数据 |
+| `tests/` | 177 个 pytest 用例 + 4 个 E2E（默认跳过） | 全用合成数据 |
 
 ---
 
@@ -175,6 +175,18 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 - 语音兜底：`asr_douyin_fallback`（默认开）控制自动转写是否包含抖音语音；
   原生识别失败 = 没有 voice_transcriptions 记录 = 属于 pending
 
+### 4.7.1 抖音分享、首次采集与原始载荷
+
+- 分享：`app/douyin_message.py` 把 content 里的 JSON 拆成标题/作者/封面，
+  `itemId` 或 `share_id` 末段生成 `https://www.douyin.com/video/<id>`；
+  气泡渲染成可点击卡片（无 URL 时退回普通文本）
+- 首次采集：`POST /api/douyin/list` 跑引擎 `--list-conversations`（只登录不采集），
+  列表存 `data/douyin/conversations_list.json`，采集范围即可勾选
+- 原始载荷：schema v6 的 `message_repair` 修复早期 XML/JSON 文本；无法解析的默认折叠，
+  点「查看原文」才显示
+- FTS：`messages_fts.rowid = messages.id`，文本/转写更新走 rowid（O(1)），
+  避免大库按 message_id 全表扫描
+
 ### 4.8 系统主题、更新检查与日志脱敏
 
 - 跟随系统：`theme=system` 时按 `prefers-color-scheme` 选内置深/浅色，并监听系统切换；
@@ -247,7 +259,6 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 - 失败返回 404 + 原因，前端显示占位（不会出现坏图）
 
 ### 4.14 导出
-### 4.7 导出
 
 `exporters/chatlab.py` 全流式：先写 header/members，再逐条写消息，几十万条也不吃内存。
 语音内容优先用转写文本，没有才写 `[语音 X秒]`。图片内嵌有总量上限（120 MB）。
@@ -405,7 +416,7 @@ git grep -n -I -E "wxid_[a-z0-9]{10,}|sk-[A-Za-z0-9]{20,}|AKID[A-Za-z0-9]{10,}|C
 ## 10. 验收清单（改完代码跑一遍）
 
 ```bash
-.venv\Scripts\python -m pytest -q          # 171 passed, 4 skipped（E2E 需 CHATWORK_E2E=1）
+.venv\Scripts\python -m pytest -q          # 177 passed, 4 skipped（E2E 需 CHATWORK_E2E=1）
 python scripts/build_portable.py --no-build-web   # 能打包
 ```
 

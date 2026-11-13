@@ -351,6 +351,15 @@ def douyin_conversations() -> dict[str, Any]:
     return services.douyin_conversations()
 
 
+@router.post("/douyin/list")
+def douyin_list() -> dict[str, Any]:
+    try:
+        job = services.start_douyin_list()
+    except (ValueError, RuntimeError, FileNotFoundError) as exc:
+        raise HTTPException(400, str(exc)) from exc
+    return {"job": job.to_dict(with_log=False)}
+
+
 @router.get("/douyin/failures")
 def douyin_failures() -> dict[str, Any]:
     return {"items": services.douyin_last_failures()}

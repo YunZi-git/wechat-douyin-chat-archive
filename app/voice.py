@@ -205,7 +205,7 @@ def _sync_fts_transcript(conn, message_id: int, text: str) -> None:
     """转写变了就更新全文索引；FTS 不可用时静默跳过。"""
     try:
         conn.execute(
-            "UPDATE messages_fts SET transcript=? WHERE message_id=?",
+            "UPDATE messages_fts SET transcript=? WHERE rowid=?",
             (text or "", int(message_id)),
         )
     except Exception:  # noqa: BLE001

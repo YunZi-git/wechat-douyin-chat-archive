@@ -2,6 +2,24 @@
 
 本项目的所有调整都记录在这里；更细的逐次改动可以用 `git log --oneline` 查。
 
+## [1.1.3] - 2026-11-13
+
+### 新增
+
+- **抖音分享卡片可点开**：content 里的 JSON 解析成标题/作者/封面，按 `itemId`
+  （或 `share_id` 末段）生成 `https://www.douyin.com/video/<id>`，点击新窗口打开
+- **首次采集前也能选范围**：新增「从抖音获取」——引擎 `--list-conversations`
+  只登录拉会话列表（不采集消息），保存到 `data/douyin/conversations_list.json`，
+  采集范围里就能勾选
+- 无法解析的消息默认折叠：显示「内容无法解析 / 查看原文」，不再整屏铺 XML/JSON
+
+### 修复
+
+- 旧数据里的原始载荷：微信 7,021 条、抖音 171 条（仓库演示库）已归一化；
+  用户真实数据集修复微信 5,253 条、抖音 272 条
+- FTS 改用 `rowid = messages.id` 同步：原来按未索引的 message_id 更新会退化成
+  全表扫描，大库迁移/转写会卡死；现在 O(1)，618k 条升级 13 秒完成
+
 ## [1.1.2] - 2026-11-13
 
 ### 新增
@@ -77,6 +95,7 @@
 - 便携包：内嵌 Python 运行时，解压即用
 - AGPL-3.0 开源，仓库不含真实数据，演示数据全部合成
 
+[1.1.3]: https://example.com/chatwork/releases/tag/v1.1.3
 [1.1.2]: https://example.com/chatwork/releases/tag/v1.1.2
 [1.1.1]: https://example.com/chatwork/releases/tag/v1.1.1
 [1.1.0]: https://example.com/chatwork/releases/tag/v1.1.0

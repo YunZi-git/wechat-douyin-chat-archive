@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .. import db, paths
+from ..douyin_message import parse_payload
 from ..jobs import JobCancelled
 
 Progress = Callable[[dict[str, Any]], None] | None
@@ -378,6 +379,16 @@ def import_chat_db(
                     if transcript:
                         text = transcript
 
+                # content 是一段 JSON（分享卡片/表情/系统卡）时，不能整段当文本
+                parsed = parse_payload(row["content"])
+                if parsed and not row["media_local_path"]:
+                    kind = parsed["kind"]
+                    text = parsed["text"]
+
+                extra = {"msg_type": int(row["msg_type"] or 0)}
+                if parsed:
+                    extra.update(parsed.get("meta") or {})
+
                 media_rel = None
                 if row["media_local_path"]:
                     media_rel = "douyin/" + row["media_local_path"].replace("\\", "/").lstrip("/")
@@ -395,8 +406,7 @@ def import_chat_db(
                     duration=duration,
                     reply_to=_reply_preview(row["ref_msg"]),
                     seq=int(row["seq"] or 0) or None,
-                    extra=json.dumps({"msg_type": int(row["msg_type"] or 0)},
-                                     ensure_ascii=False),
+                    extra=json.dumps(extra, ensure_ascii=False),
                 )
                 if inserted:
                     report["messages_added"] += 1

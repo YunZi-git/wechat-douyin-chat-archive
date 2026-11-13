@@ -15,6 +15,7 @@ from __future__ import annotations
 import contextlib
 import importlib.util
 import os
+import json
 import re
 import subprocess
 import sys
@@ -238,6 +239,30 @@ def douyin_conversations() -> dict[str, Any]:
         if items:
             return {"items": items, "total": len(items), "available": True,
                     "source": "engine"}
+
+    # 第一次采集前：引擎 discovery 写下的会话列表
+    discovered = paths.DOUYIN_DIR / "conversations_list.json"
+    if discovered.is_file():
+        try:
+            payload = json.loads(discovered.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            payload = {}
+        names: list[str] = []
+        for item in payload.get("items") or []:
+            name = str(item.get("nickname") or item.get("name") or "").strip()
+            if name and name not in names:
+                names.append(name)
+        if names:
+            return {
+                "items": [
+                    {"name": name, "message_count": 0, "last_message_time": 0,
+                     "kind": "unknown"}
+                    for name in names
+                ],
+                "total": len(names),
+                "available": True,
+                "source": "discovered",
+            }
 
     # 回退：统一库里已经导入的抖音会话
     with db.session(readonly=True) as conn:
@@ -492,6 +517,48 @@ _last_douyin_failures: list[str] = []
 
 def douyin_last_failures() -> list[str]:
     return list(_last_douyin_failures)
+
+
+def _douyin_list_cmd() -> list[str]:
+    script = paths.DOUYIN_ENGINE_DIR / "extract.py"
+    if not script.exists():
+        raise FileNotFoundError("内置的抖音采集组件缺失")
+    status = browser_status()
+    if not status["playwright"]:
+        raise RuntimeError("运行环境缺少 Playwright，无法启动浏览器")
+    if not status["channel"]:
+        raise RuntimeError("没有找到可用的浏览器（建议安装 Edge）")
+    return [sys.executable, str(script), "--list-conversations"]
+
+
+def start_douyin_list() -> jobs.Job:
+    """第一次采集前，先让引擎把会话列表拉下来（只登录，不采集消息）。"""
+
+    def target(job: jobs.Job) -> dict[str, Any]:
+        with _heavy_slot(job, "获取抖音会话列表"):
+            cmd = _douyin_list_cmd()
+            job.write("[i] 会弹出浏览器，请扫码登录；只读取会话列表，不采集消息")
+            code = _run_stream(
+                cmd, cwd=paths.DOUYIN_ENGINE_DIR, env=_douyin_env(), job=job
+            )
+            if code != 0:
+                raise RuntimeError(f"获取会话列表失败（退出码 {code}），详见日志")
+            source = paths.DOUYIN_ENGINE_DIR / "data" / "conversations_list.json"
+            if not source.is_file():
+                raise RuntimeError("引擎没有生成会话列表文件")
+            payload = json.loads(source.read_text(encoding="utf-8"))
+            items = payload.get("items") or []
+            paths.DOUYIN_DIR.mkdir(parents=True, exist_ok=True)
+            target_file = paths.DOUYIN_DIR / "conversations_list.json"
+            target_file.write_text(
+                json.dumps({"discovered_at": payload.get("discovered_at"),
+                            "items": items}, ensure_ascii=False, indent=1),
+                encoding="utf-8",
+            )
+            job.write(f"[✓] 已获取 {len(items)} 个会话，可在「采集范围」里勾选")
+            return {"count": len(items)}
+
+    return jobs.start("douyin-list", "获取抖音会话列表", target)
 
 
 def _douyin_collect_cmd(filters: str | None, incremental: bool,

@@ -46,6 +46,16 @@ const forwardMeta = computed(() => meta.value.forward || null)
 const locMeta = computed(() => meta.value.location || null)
 const cardMeta = computed(() => meta.value.card || null)
 const miniMeta = computed(() => meta.value.miniprogram || null)
+const share = computed(() => meta.value.share || null)
+const coverBroken = ref(false)
+const textExpanded = ref(false)
+const rawExpanded = ref(false)
+
+// 早期数据可能残留整段 XML/JSON；默认折叠，不把原始载荷铺满屏幕
+const rawPayload = computed(() => /^<(\?xml|msg|sysmsg)/i.test((m.value.text || '').trim())
+  || /^\{\s*"/.test((m.value.text || '').trim()))
+const isLongText = computed(() => !rawPayload.value && (m.value.text || '').length > 400)
+const previewText = computed(() => (m.value.text || '').slice(0, 300))
 </script>
 
 <template>
@@ -172,13 +182,57 @@ const miniMeta = computed(() => meta.value.miniprogram || null)
           <span v-if="miniMeta?.source" class="faint small"> · {{ miniMeta.source }}</span>
         </template>
 
-        <!-- 文本 / 分享 / 其他 -->
+        <!-- 分享卡片（抖音视频/图文，可点开） -->
+        <template v-else-if="share && share.url">
+          <a class="share-card" :href="share.url" target="_blank" rel="noopener noreferrer">
+            <img
+              v-if="share.cover && !coverBroken"
+              :src="share.cover"
+              class="share-cover"
+              loading="lazy"
+              referrerpolicy="no-referrer"
+              @error="coverBroken = true"
+            />
+            <span class="share-body">
+              <span class="share-title">{{ share.title || m.text || '抖音分享' }}</span>
+              <span class="share-meta">{{ share.author || '抖音' }} · 点开查看</span>
+            </span>
+            <Icon name="external" :size="14" />
+          </a>
+        </template>
+
+        <!-- 没法解析的原始载荷：默认折叠 -->
+        <template v-else-if="rawPayload">
+          <div class="payload-card">
+            <span class="payload-head">
+              <Icon name="alert" :size="14" />
+              这条消息的内容无法解析
+              <button class="btn sm ghost" style="margin-left: 6px" @click="rawExpanded = !rawExpanded">
+                {{ rawExpanded ? '收起' : '查看原文' }}
+              </button>
+            </span>
+            <pre v-if="rawExpanded" class="payload-text">{{ m.text }}</pre>
+          </div>
+        </template>
+
+        <!-- 文本 / 无链接分享 / 其他 -->
         <template v-else>
           <span v-if="m.kind === 'share'" class="share-line">
             <Icon name="link" :size="13" />
             {{ m.text || '[分享]' }}
           </span>
-          <span v-else>{{ m.text || '（空消息）' }}</span>
+          <span v-else-if="isLongText && !textExpanded" class="long-text">
+            {{ previewText }}…
+            <button class="btn sm ghost" style="margin-left: 6px" @click="textExpanded = true">
+              展开全文
+            </button>
+          </span>
+          <span v-else class="long-text">
+            {{ m.text || '（空消息）' }}
+            <button v-if="isLongText" class="btn sm ghost" style="margin-left: 6px" @click="textExpanded = false">
+              收起
+            </button>
+          </span>
         </template>
       </div>
     </div>
@@ -213,6 +267,46 @@ const miniMeta = computed(() => meta.value.miniprogram || null)
   max-height: 120px;
 }
 .q-sender { color: var(--text-dim); }
+.share-card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: 340px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text);
+  text-decoration: none;
+}
+.share-card:hover { border-color: var(--accent); }
+.share-cover { width: 46px; height: 46px; object-fit: cover; border-radius: 6px; flex: none; }
+.share-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.share-title {
+  font-size: 13px;
+  font-weight: 550;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.share-meta { font-size: 11px; color: var(--text-faint); }
+.payload-card { max-width: 420px; }
+.payload-head { display: flex; align-items: center; gap: 5px; color: var(--text-dim); font-size: 12px; }
+.payload-text {
+  margin: 8px 0 0;
+  max-height: 260px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-size: 11px;
+  color: var(--text-faint);
+  background: var(--panel-2);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  padding: 8px;
+}
+.long-text { white-space: pre-wrap; word-break: break-word; }
 .file-line {
   display: flex;
   align-items: center;

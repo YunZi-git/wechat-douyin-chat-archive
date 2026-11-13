@@ -19,7 +19,7 @@ from typing import Any, Iterable, Iterator, Sequence
 
 from . import paths
 
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 6
 
 SCHEMA_SQL = """
 PRAGMA journal_mode=WAL;
@@ -155,11 +155,13 @@ CREATE VIRTUAL TABLE IF NOT EXISTS messages_fts USING fts5(
     sender_uid UNINDEXED,
     tokenize = 'trigram'
 );
-CREATE TRIGGER IF NOT EXISTS messages_fts_delete AFTER DELETE ON messages BEGIN
-    DELETE FROM messages_fts WHERE message_id = old.id;
+DROP TRIGGER IF EXISTS messages_fts_delete;
+DROP TRIGGER IF EXISTS messages_fts_update;
+CREATE TRIGGER messages_fts_delete AFTER DELETE ON messages BEGIN
+    DELETE FROM messages_fts WHERE rowid = old.id;
 END;
-CREATE TRIGGER IF NOT EXISTS messages_fts_update AFTER UPDATE OF text ON messages BEGIN
-    UPDATE messages_fts SET text = new.text WHERE message_id = new.id;
+CREATE TRIGGER messages_fts_update AFTER UPDATE OF text ON messages BEGIN
+    UPDATE messages_fts SET text = new.text WHERE rowid = old.id;
 END;
 """
 
@@ -186,11 +188,13 @@ def _rebuild_fts(conn: sqlite3.Connection) -> None:
     if not has_fts(conn):
         return
     conn.execute("DELETE FROM messages_fts")
+    # rowid 必须等于 messages.id：转写/修复按 rowid 更新是 O(1)，
+    # 按 UNINDEXED 的 message_id 更新会退化成全表扫描（真实库上会卡死）
     conn.execute(
         """INSERT INTO messages_fts
-             (text, transcript, message_id, conversation_id, platform, ts,
+             (rowid, text, transcript, message_id, conversation_id, platform, ts,
               kind, sender_name, sender_uid)
-           SELECT COALESCE(m.text,''), COALESCE(vt.text,''), m.id,
+           SELECT m.id, COALESCE(m.text,''), COALESCE(vt.text,''), m.id,
                   m.conversation_id, m.platform, m.ts, m.kind,
                   COALESCE(m.sender_name,''), COALESCE(m.sender_uid,'')
              FROM messages m
@@ -376,11 +380,11 @@ def add_message(
     if cur.rowcount > 0 and _FTS_OK:
         conn.execute(
             """INSERT INTO messages_fts
-                 (text, transcript, message_id, conversation_id, platform, ts,
+                 (rowid, text, transcript, message_id, conversation_id, platform, ts,
                   kind, sender_name, sender_uid)
-               VALUES (?, '', ?, ?, ?, ?, ?, ?, ?)""",
-            (text or "", cur.lastrowid, conversation_id, platform, int(ts), kind,
-             sender_name or "", sender_uid or ""),
+               VALUES (?, ?, '', ?, ?, ?, ?, ?, ?, ?)""",
+            (cur.lastrowid, text or "", cur.lastrowid, conversation_id, platform,
+             int(ts), kind, sender_name or "", sender_uid or ""),
         )
     return cur.rowcount > 0
 
@@ -402,9 +406,18 @@ NON_TEXT_LABELS = {
 
 def _migrate(conn: sqlite3.Connection, version: int) -> None:
     """按版本号做数据修正（只跑一次）。"""
-    if version < 5:
-        # v5：全文索引（trigram，支持中文子串）
+    if version < 6:
+        # v6：rowid 对齐 + 修复早期直接展示原始 XML / JSON 的消息
         _rebuild_fts(conn)
+        from .message_repair import repair_raw_messages
+
+        stats = repair_raw_messages(conn)
+        if any(stats.values()):
+            print(f"[i] 修复原始载荷消息: 微信 {stats['wechat']} / 抖音 {stats['douyin']}",
+                  file=sys.stderr)
+    if version < 5:
+        # v5：全文索引需要重建；v6 会统一做一次 rowid 对齐，这里不再重复
+        pass
     if version < 4:
         # v3 之前的导入把 XML/JSON 原文写进了 text，界面上会露馅
         for kind, label in NON_TEXT_LABELS.items():

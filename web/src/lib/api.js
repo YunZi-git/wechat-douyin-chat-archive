@@ -105,6 +105,7 @@ export const api = {
   importDouyin: (body) => post('/api/import/douyin', body || {}),
   douyinConversations: () => get('/api/douyin/conversations'),
   douyinFailures: () => get('/api/douyin/failures'),
+  douyinList: () => post('/api/douyin/list'),
   douyinCollect: (body) => post('/api/douyin/collect', body || {}),
   douyinRefresh: (body) => post('/api/douyin/refresh', body || {}),
 
