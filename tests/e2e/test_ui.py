@@ -101,6 +101,15 @@ def test_scope_checkbox_toggles(server, browser):
     page.close()
 
 
+def test_settings_identity_visible(server, browser):
+    page = browser.new_page(viewport={"width": 1400, "height": 900})
+    page.goto(server + "/?view=settings", wait_until="networkidle")
+    page.wait_for_timeout(1500)
+    assert page.locator("text=我的身份").count() >= 1
+    assert page.locator("text=当前：").count() >= 1
+    page.close()
+
+
 def test_merge_page_shows_avatars(server, browser):
     page = browser.new_page(viewport={"width": 1400, "height": 900})
     page.goto(server + "/?view=merge", wait_until="networkidle")

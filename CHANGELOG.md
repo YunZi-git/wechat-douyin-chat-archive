@@ -2,6 +2,13 @@
 
 本项目的所有调整都记录在这里；更细的逐次改动可以用 `git log --oneline` 查。
 
+## [1.3.4] - 2026-11-13
+
+### 修复
+
+- **设置页「我的身份」空白**：`loadIdentity()` 之前被误插到自动更新的开关处理里，
+  首次进入设置页从未加载；现在在 `onMounted` 正常加载，「确认是我」/下拉选择可用
+
 ## [1.3.3] - 2026-11-13
 
 ### 修复
@@ -187,6 +194,7 @@
 - 便携包：内嵌 Python 运行时，解压即用
 - AGPL-3.0 开源，仓库不含真实数据，演示数据全部合成
 
+[1.3.4]: https://example.com/chatwork/releases/tag/v1.3.4
 [1.3.3]: https://example.com/chatwork/releases/tag/v1.3.3
 [1.3.2]: https://example.com/chatwork/releases/tag/v1.3.2
 [1.3.1]: https://example.com/chatwork/releases/tag/v1.3.1

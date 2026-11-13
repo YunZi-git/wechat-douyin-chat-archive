@@ -61,7 +61,6 @@ async function loadAutosync() {
 async function setAutosync(enabled) {
   await save({ autosync_enabled: enabled })
   await loadAutosync()
-  await loadIdentity()
 }
 
 async function setAutosyncInterval(value) {
@@ -268,6 +267,7 @@ onMounted(async () => {
   await refreshStats()
   await loadAsr()
   await loadAutosync()
+  await loadIdentity()
   await loadVersion()
 })
 </script>
