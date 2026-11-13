@@ -361,7 +361,7 @@ function toggleSearch() {
   border: 0;
   background: transparent;
   padding: 7px 8px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   color: var(--text-dim);
 }
 .search-hit:hover { background: var(--panel-2); color: var(--text); }
@@ -407,7 +407,7 @@ function toggleSearch() {
   gap: 1px;
   padding: 4px 0;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--panel-2);
   color: var(--text);
   font-size: 12px;

@@ -28,6 +28,9 @@
   --shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
   --shadow-sm: 0 6px 18px rgba(0, 0, 0, 0.28);
   --border-w: 1px;
+  --on-accent: #ffffff;
+  --radius-pill: 999px;
+  --radius-bubble: 14px;
   --font: "Segoe UI", "Microsoft YaHei UI", "PingFang SC", system-ui, -apple-system, sans-serif;
   --mono: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
   color-scheme: dark;
@@ -869,3 +872,239 @@ html[data-density='compact'] .thread-list { padding: 2px 8px 14px; }
   .grid.two, .grid.three { grid-template-columns: 1fr; }
   .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   Theme-native surface system (v2)
+   Every visible surface derives from the active palette/shape.
+   ══════════════════════════════════════════════════════════════ */
+
+#app .rail {
+  background: var(--bg-rail);
+  border-right: var(--border-w) solid var(--border-soft);
+}
+#app .rail-logo {
+  background: var(--accent);
+  color: var(--on-accent);
+  border: var(--border-w) solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+#app .rail-btn { border-radius: var(--radius-sm); }
+#app .rail-btn.active { background: var(--accent-soft); color: var(--accent); }
+#app .rail-btn.active::before {
+  left: -10px;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+}
+
+#app .sidebar {
+  background: color-mix(in srgb, var(--panel) 86%, var(--bg));
+  border-right: var(--border-w) solid var(--border);
+}
+#app .sidebar-head { border-bottom: var(--border-w) solid var(--border-soft); }
+#app .search-box {
+  background: color-mix(in srgb, var(--panel-2) 82%, var(--bg));
+  border: var(--border-w) solid var(--border-soft);
+  border-radius: var(--radius-sm);
+}
+#app .chip {
+  border: var(--border-w) solid var(--border);
+  border-radius: var(--radius-pill);
+}
+#app .chip.active { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+
+#app .thread-item {
+  border: var(--border-w) solid transparent;
+  border-radius: var(--radius);
+}
+#app .thread-item:hover { background: color-mix(in srgb, var(--panel-2) 82%, var(--bg)); }
+#app .thread-item.active {
+  background: color-mix(in srgb, var(--accent-soft) 74%, var(--panel));
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--border));
+  box-shadow: inset 3px 0 0 var(--accent), var(--shadow-sm);
+}
+#app .avatar { border-radius: var(--radius); }
+#app .avatar.round { border-radius: 50%; }
+#app .group-tag {
+  border: 0;
+  background: var(--panel-3);
+  color: var(--text-faint);
+  border-radius: var(--radius-sm);
+  padding: 1px 6px;
+}
+#app .plat-dot { border-radius: var(--radius-sm); }
+#app .count-pill { border-radius: var(--radius-pill); }
+
+#app .chat {
+  background-color: var(--bg);
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--text) 4.5%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 18px 18px;
+}
+#app .chat-head {
+  background: var(--panel);
+  border-bottom: var(--border-w) solid var(--border);
+}
+#app .icon-btn { border: var(--border-w) solid transparent; border-radius: var(--radius-sm); }
+#app .icon-btn.on { border-color: color-mix(in srgb, var(--accent) 28%, transparent); }
+
+#app .bubble {
+  border: var(--border-w) solid var(--border);
+  border-radius: var(--radius-bubble);
+  border-top-left-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  background: var(--panel);
+}
+#app .msg-row.self .bubble {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--border));
+  border-top-left-radius: var(--radius-bubble);
+  border-top-right-radius: var(--radius-sm);
+}
+#app .bubble.plat-wechat { box-shadow: inset 2px 0 0 var(--wechat), var(--shadow-sm); }
+#app .bubble.plat-douyin { box-shadow: inset 2px 0 0 var(--douyin), var(--shadow-sm); }
+#app .msg-row.self .bubble.plat-wechat { box-shadow: inset -2px 0 0 var(--wechat), var(--shadow-sm); }
+#app .msg-row.self .bubble.plat-douyin { box-shadow: inset -2px 0 0 var(--douyin), var(--shadow-sm); }
+#app .bubble.system {
+  border: var(--border-w) dashed var(--border-soft);
+  border-radius: var(--radius-pill);
+  box-shadow: none;
+}
+#app .bubble img.media {
+  border: var(--border-w) solid var(--border);
+  border-radius: var(--radius-sm);
+}
+#app .bubble video { border-radius: var(--radius-sm); }
+
+#app .info {
+  background: var(--panel);
+  border-left: var(--border-w) solid var(--border);
+}
+#app .info-block { border-top: var(--border-w) solid var(--border-soft); }
+#app .identity { border-radius: var(--radius-sm); background: var(--panel-2); }
+
+#app .btn {
+  border: var(--border-w) solid var(--border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--panel-2) 88%, var(--panel));
+}
+#app .btn:hover:not(:disabled) { border-color: color-mix(in srgb, var(--text) 32%, var(--border)); }
+#app .btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  box-shadow: var(--shadow-sm);
+}
+#app .btn.primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 88%, var(--text));
+  border-color: var(--accent);
+}
+#app .btn.ghost { background: transparent; }
+#app .btn.sm { border-radius: var(--radius-sm); }
+
+#app .input, #app .select {
+  background: color-mix(in srgb, var(--panel-2) 84%, var(--bg));
+  border: var(--border-w) solid var(--border);
+  border-radius: var(--radius-sm);
+}
+#app .input:focus, #app .select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+#app .switch {
+  flex: none;
+  width: 44px;
+  height: 24px;
+  border: var(--border-w) solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--panel-3);
+  box-shadow: var(--shadow-control, none);
+}
+#app .switch::after { border-radius: 50%; }
+#app .switch.on { background: var(--accent); border-color: var(--accent); }
+#app .switch::after { background: var(--text-dim); }
+#app .switch.on::after { background: var(--on-accent); }
+
+#app .card {
+  background: var(--panel);
+  border: var(--border-w) solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+#app .row-card {
+  background: var(--panel);
+  border: var(--border-w) solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+#app .row-card.selected { border-color: var(--accent); background: var(--accent-soft); }
+#app .stat {
+  background: var(--panel);
+  border: var(--border-w) solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+#app .checkbox {
+  border: var(--border-w) solid var(--border);
+  border-radius: var(--radius-sm);
+}
+#app .checkbox.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+#app .log {
+  background: var(--panel-3);
+  border: var(--border-w) solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-dim);
+}
+
+#app .modal-mask {
+  background: color-mix(in srgb, #05070b 55%, transparent);
+  backdrop-filter: blur(6px);
+}
+#app .modal {
+  background: var(--panel);
+  border: var(--border-w) solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+#app .toast {
+  background: var(--panel);
+  border: var(--border-w) solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+#app .empty .icon {
+  background: var(--panel-2);
+  border: var(--border-w) solid var(--border);
+  border-radius: var(--radius-lg);
+}
+#app .bar { border-radius: var(--radius-pill); }
+#app .bar > i { background: var(--accent); border-radius: var(--radius-pill); }
+#app .jump-bottom {
+  border: var(--border-w) solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  background: var(--panel);
+}
+
+/* Teleported identity hint sits outside #app */
+body .identity-tip {
+  border: var(--border-w) solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  background: var(--panel) !important;
+  color: var(--text-dim) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+#app .btn { box-shadow: var(--shadow-control, none); }
+#app .search-box { box-shadow: var(--shadow-control, none); }
+#app .input, #app .select { box-shadow: var(--shadow-control, none); }
+#app .chip { box-shadow: var(--shadow-control, none); }
+#app .rail-logo { box-shadow: var(--shadow-control, var(--shadow-sm)); }
+#app .avatar { box-shadow: var(--shadow-control, none); }
+#app .switch { box-shadow: var(--shadow-control, none); }

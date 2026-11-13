@@ -175,7 +175,7 @@ function shortUid(uid) {
   color: var(--text);
   text-align: left;
   cursor: default;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 .member-row.clickable { cursor: pointer; }
 .member-row.clickable:hover { background: var(--panel-2); }

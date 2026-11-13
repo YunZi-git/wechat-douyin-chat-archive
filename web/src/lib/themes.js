@@ -113,6 +113,22 @@ function darker(hex, amount) {
   return `#${[r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('')}`
 }
 
+function _luminance(hex) {
+  const m = /^#([0-9a-f]{6})$/i.exec(hex || '')
+  if (!m) return 0
+  const n = parseInt(m[1], 16)
+  const c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => {
+    const x = v / 255
+    return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4
+  })
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+}
+
+function onAccent(hex, fallback = '#ffffff') {
+  if (!/^#[0-9a-f]{6}$/i.test(hex || '')) return fallback
+  return _luminance(hex) > 0.56 ? '#0b0d12' : '#ffffff'
+}
+
 export function cssVars(theme) {
   const p = theme.palette || {}
   const shape = theme.shape || {}
@@ -133,11 +149,19 @@ export function cssVars(theme) {
     '--text-faint': p.textFaint,
     '--accent': p.accent,
     '--accent-soft': p.accentSoft,
-    '--shadow': p.shadow,
-    '--shadow-sm': p.shadow,
+    '--shadow': p.shadow || 'none',
+    '--shadow-sm': (p.shadow && p.shadow !== 'none')
+      ? (theme.dark ? '0 6px 18px rgba(0, 0, 0, 0.26)' : '0 6px 18px rgba(23, 32, 55, 0.10)')
+      : 'none',
+    // 内置主题保持原来的扁平按钮；StyleKit 主题把自身阴影用到控件上
+    '--shadow-control': (theme.source !== 'builtin' && p.shadow && p.shadow !== 'none')
+      ? p.shadow : 'none',
+    '--on-accent': onAccent(p.accent),
     '--radius-lg': `${radius > 0 ? radius + 4 : 0}px`,
     '--radius': `${radius}px`,
-    '--radius-sm': `${Math.max(2, radius - 4)}px`,
+    '--radius-sm': `${Math.max(0, radius - 4)}px`,
+    '--radius-pill': radius > 0 ? '999px' : '0px',
+    '--radius-bubble': `${radius === 0 ? 0 : Math.min(18, radius + 2)}px`,
     '--border-w': `${shape.borderWidth ?? 1}px`,
   }
 }

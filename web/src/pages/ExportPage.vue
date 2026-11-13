@@ -86,7 +86,7 @@ onMounted(load)
             :class="{ active: selected?.thread_id === t.thread_id }"
             @click="pick(t)"
           >
-            <div class="avatar" style="width: 32px; height: 32px; border-radius: 9px; font-size: 12px"
+            <div class="avatar" style="width: 32px; height: 32px; border-radius: var(--radius-sm); font-size: 12px"
               :style="{ background: avatarColor(t.thread_id) + '24', color: avatarColor(t.thread_id) }">
               {{ initial(t.title) }}
             </div>
@@ -204,7 +204,7 @@ onMounted(load)
   text-align: left;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: var(--radius);
   padding: 8px 10px;
   color: var(--text);
 }
@@ -213,7 +213,7 @@ onMounted(load)
 .result-box {
   background: var(--panel-2);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius);
   padding: 12px 14px;
   margin-top: 14px;
 }

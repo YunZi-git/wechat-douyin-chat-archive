@@ -101,6 +101,38 @@ def test_scope_checkbox_toggles(server, browser):
     page.close()
 
 
+def test_theme_tokens_follow_saved_setting(server, browser):
+    page = browser.new_page(viewport={"width": 1300, "height": 900})
+    try:
+        page.request.patch(server + "/api/settings", data={"theme": "light"})
+        page.goto(server + "/?view=chats", wait_until="networkidle")
+        page.wait_for_timeout(700)
+        light_bg = page.evaluate(
+            "getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()"
+        )
+        assert light_bg == "#f2f4f8"
+
+        # 服务端换成硬边主题，页面缓存里仍是 light；必须以后端设置为准
+        page.request.patch(server + "/api/settings", data={"theme": "neo-brutalist"})
+        page.reload(wait_until="networkidle")
+        page.wait_for_timeout(700)
+        bg = page.evaluate(
+            "getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()"
+        )
+        radius = page.evaluate(
+            "getComputedStyle(document.documentElement).getPropertyValue('--radius').trim()"
+        )
+        border = page.evaluate(
+            "getComputedStyle(document.documentElement).getPropertyValue('--border-w').trim()"
+        )
+        assert bg == "#ffffff"
+        assert radius == "0px"
+        assert border == "4px"
+    finally:
+        page.request.patch(server + "/api/settings", data={"theme": "dark"})
+        page.close()
+
+
 def test_settings_identity_visible(server, browser):
     page = browser.new_page(viewport={"width": 1400, "height": 900})
     page.goto(server + "/?view=settings", wait_until="networkidle")

@@ -98,7 +98,7 @@ async function run() {
 .result-box {
   background: var(--panel-2);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius);
   padding: 12px 14px;
   margin-top: 6px;
 }

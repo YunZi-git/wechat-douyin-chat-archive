@@ -154,7 +154,7 @@ onMounted(load)
 
         <div
           class="avatar merge-avatar"
-          style="width: 38px; height: 38px; border-radius: 11px"
+          style="width: 38px; height: 38px; border-radius: var(--radius)"
           :style="hasAvatar(c)
             ? {}
             : { background: avatarColor(c.id) + '24', color: avatarColor(c.id) }"
@@ -246,7 +246,7 @@ onMounted(load)
   width: min(880px, calc(100% - 160px));
   background: var(--panel-2);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
   padding: 12px 16px;
   display: flex;
@@ -260,7 +260,7 @@ onMounted(load)
   align-items: center;
   gap: 6px;
   background: var(--panel-3);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 3px 10px;
   font-size: 12.5px;
 }

@@ -2,6 +2,21 @@
 
 本项目的所有调整都记录在这里；更细的逐次改动可以用 `git log --oneline` 查。
 
+## [1.4.0] - 2026-11-13
+
+### 外观系统重做
+
+- 所有界面表面改为从主题的 palette + shape 派生：卡片、按钮、输入框、
+  气泡、侧栏、信息栏、弹层、开关、徽章统一使用主题圆角/边框宽度/阴影
+- 新增 `--on-accent` 对比色、`--radius-pill` / `--radius-bubble`、
+  `--shadow-control` 等 token；浅色/高亮 accent 主题的按钮文字不再强行白色
+- 聊天区去掉固定蓝色渐变，改为随主题明暗的淡点阵画布；卡片/控件按主题
+  显示阴影（新野兽派硬阴影、新拟物软阴影、编辑风无阴影）
+- 修复重启后 **缓存主题覆盖已保存主题** 的问题：启动时以服务端
+  `settings.theme` 为准，缓存只负责首屏防闪
+- 151 套 StyleKit + 4 套内置主题统一走同一套 token；实测暗色、浅色、
+  新野兽派、编辑风、新拟物
+
 ## [1.3.8] - 2026-11-13
 
 ### 新增
@@ -235,6 +250,7 @@
 - 便携包：内嵌 Python 运行时，解压即用
 - AGPL-3.0 开源，仓库不含真实数据，演示数据全部合成
 
+[1.4.0]: https://example.com/chatwork/releases/tag/v1.4.0
 [1.3.8]: https://example.com/chatwork/releases/tag/v1.3.8
 [1.3.7]: https://example.com/chatwork/releases/tag/v1.3.7
 [1.3.6]: https://example.com/chatwork/releases/tag/v1.3.6

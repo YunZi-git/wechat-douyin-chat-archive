@@ -138,7 +138,7 @@ export async function boot() {
     setLanguage(settings.language || 'zh')
     const initial = settings.theme === 'system'
       ? 'system'
-      : (cached || settings.theme || 'dark')
+      : (settings.theme || cached || 'dark')
     applyTheme(initial)
     initSystemTheme()
     applyDensity(settings.density || 'comfortable')

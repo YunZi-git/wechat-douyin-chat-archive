@@ -287,7 +287,7 @@ function snippet(item) {
 .kind-tag {
   font-size: 10.5px;
   padding: 0 5px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: var(--panel-3);
   color: var(--text-dim);
 }

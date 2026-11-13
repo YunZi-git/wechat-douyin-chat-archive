@@ -312,14 +312,14 @@ const previewText = computed(() => (m.value.text || '').slice(0, 300))
   gap: 9px;
   max-width: 340px;
   padding: 8px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: var(--panel-2);
   color: var(--text);
   text-decoration: none;
 }
 .share-card:hover { border-color: var(--accent); }
-.share-cover { width: 46px; height: 46px; object-fit: cover; border-radius: 6px; flex: none; }
+.share-cover { width: 46px; height: 46px; object-fit: cover; border-radius: var(--radius-sm); flex: none; }
 .share-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
 .share-title {
   font-size: 13px;
@@ -342,7 +342,7 @@ const previewText = computed(() => (m.value.text || '').slice(0, 300))
   color: var(--text-faint);
   background: var(--panel-2);
   border: 1px solid var(--border-soft);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   padding: 8px;
 }
 .long-text { white-space: pre-wrap; word-break: break-word; }

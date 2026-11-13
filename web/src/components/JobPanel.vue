@@ -83,7 +83,7 @@ async function cancel() {
 .err-box {
   margin-top: 10px;
   padding: 9px 12px;
-  border-radius: 9px;
+  border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--danger) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--danger) 36%, transparent);
   color: var(--danger);

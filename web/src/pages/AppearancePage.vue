@@ -208,7 +208,7 @@ async function pick(t) {
   border-radius: inherit;
   width: 70%;
 }
-.p-line { display: block; height: 3px; width: 46%; border-radius: 99px; opacity: 0.7; }
+.p-line { display: block; height: 3px; width: 46%; border-radius: var(--radius-pill); opacity: 0.7; }
 .p-line.short { width: 30%; opacity: 0.5; }
 .p-accent {
   position: absolute;
@@ -236,7 +236,7 @@ async function pick(t) {
 }
 
 .dots { display: flex; gap: 4px; }
-.dots i { width: 10px; height: 10px; border-radius: 3px; display: block; }
+.dots i { width: 10px; height: 10px; border-radius: var(--radius-sm); display: block; }
 
 .picked {
   position: absolute;
@@ -246,7 +246,7 @@ async function pick(t) {
   height: 18px;
   border-radius: 50%;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   display: grid;
   place-items: center;
 }
@@ -256,7 +256,7 @@ async function pick(t) {
   left: 6px;
   font-size: 9.5px;
   padding: 0 4px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: rgba(0, 0, 0, 0.45);
   color: #fff;
 }

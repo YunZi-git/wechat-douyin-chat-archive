@@ -430,7 +430,7 @@ onMounted(async () => {
   max-height: 220px;
   overflow-y: auto;
   border: 1px solid var(--border-soft);
-  border-radius: 9px;
+  border-radius: var(--radius-sm);
   padding: 4px;
 }
 .conv-row {
@@ -440,7 +440,7 @@ onMounted(async () => {
   width: 100%;
   padding: 6px 8px;
   border: 0;
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: inherit;
   font: inherit;

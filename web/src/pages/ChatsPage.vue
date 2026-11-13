@@ -340,7 +340,7 @@ onMounted(async () => {
 .lightbox-img {
   max-width: 92vw;
   max-height: 90vh;
-  border-radius: 10px;
+  border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
 .identity-tip {
@@ -354,7 +354,7 @@ onMounted(async () => {
   max-width: 520px;
   padding: 9px 12px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius);
   background: var(--panel);
   box-shadow: var(--shadow-lg, 0 8px 30px rgba(0, 0, 0, 0.18));
   font-size: 12.5px;
