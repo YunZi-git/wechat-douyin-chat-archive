@@ -5,9 +5,56 @@ import { store, toast, applyDensity, refreshStats, currentTheme } from '../lib/s
 import { fmtCount, fmtDateTime, fmtBytes } from '../lib/format'
 import { t, setLanguage, i18n } from '../lib/i18n'
 import Icon from '../components/Icon.vue'
+import JobPanel from '../components/JobPanel.vue'
 
 const saving = ref(false)
 const clearing = ref(false)
+
+// ── 自动增量更新 ──
+const autosync = ref(null)
+const syncJobId = ref('')
+const syncBusy = ref(false)
+
+async function loadAutosync() {
+  try {
+    autosync.value = await api.autosyncStatus()
+  } catch {
+    autosync.value = null
+  }
+}
+
+async function setAutosync(enabled) {
+  await save({ autosync_enabled: enabled })
+  await loadAutosync()
+}
+
+async function setAutosyncInterval(value) {
+  await save({ autosync_interval_minutes: Number(value) })
+  await loadAutosync()
+}
+
+async function runAutosync() {
+  syncBusy.value = true
+  try {
+    const res = await api.autosyncRun()
+    syncJobId.value = res.job.id
+    toast('已开始增量更新', 'ok')
+  } catch (err) {
+    toast(err.message, 'err')
+  } finally {
+    syncBusy.value = false
+  }
+}
+
+async function onSyncDone() {
+  syncJobId.value = ''
+  await loadAutosync()
+  await refreshStats()
+}
+
+function fmtTs(seconds) {
+  return seconds ? new Date(seconds * 1000).toLocaleString() : '—'
+}
 
 // ── 语音识别 ──
 const asr = ref(null)
@@ -184,6 +231,7 @@ onMounted(async () => {
   }
   await refreshStats()
   await loadAsr()
+  await loadAutosync()
   await loadVersion()
 })
 </script>
@@ -398,6 +446,62 @@ onMounted(async () => {
             {{ t('保存') }}
           </button>
           <span v-if="asrMessage" class="hint">{{ asrMessage }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>自动增量更新</h2>
+      <div class="card">
+        <div class="row">
+          <div class="grow">
+            <div style="font-weight: 550">定时导入新消息</div>
+            <div class="hint">
+              只读取本机已有数据：微信解密目录按水位线增量导入，抖音引擎库直接补导入。
+              不会自动打开浏览器采集或自动解密微信。
+            </div>
+          </div>
+          <button
+            class="switch"
+            :class="{ on: !!store.settings.autosync_enabled }"
+            @click="setAutosync(!store.settings.autosync_enabled)"
+          />
+        </div>
+
+        <div class="row mt12">
+          <div class="grow">
+            <div style="font-weight: 550">更新间隔</div>
+            <div class="hint">开启后按这个间隔在后台检查新消息</div>
+          </div>
+          <select
+            class="select"
+            style="max-width: 140px"
+            :value="store.settings.autosync_interval_minutes || 30"
+            @change="setAutosyncInterval($event.target.value)"
+          >
+            <option :value="5">5 分钟</option>
+            <option :value="15">15 分钟</option>
+            <option :value="30">30 分钟</option>
+            <option :value="60">60 分钟</option>
+            <option :value="180">3 小时</option>
+          </select>
+        </div>
+
+        <div class="row mt12">
+          <div class="grow">
+            <div class="hint">
+              上次更新：{{ fmtTs(autosync?.last_run) }}
+              <template v-if="autosync?.next_run"> · 下次约 {{ fmtTs(autosync.next_run) }}</template>
+              <template v-if="autosync && !autosync.sources_available"> · 本机暂无可更新的数据源</template>
+            </div>
+          </div>
+          <button class="btn sm" :disabled="syncBusy" @click="runAutosync">
+            <span v-if="syncBusy" class="spinner" /> 立即更新
+          </button>
+        </div>
+
+        <div v-if="syncJobId" class="mt12">
+          <JobPanel :job-id="syncJobId" title="增量更新" @done="onSyncDone" />
         </div>
       </div>
     </div>

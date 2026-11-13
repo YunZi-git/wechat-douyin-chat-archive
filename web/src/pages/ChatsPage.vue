@@ -205,6 +205,14 @@ watch(
 
 // 从搜索页/日期跳转过来：先切会话，再定位到具体时间点
 watch(
+  () => store.dataVersion,
+  () => {
+    // 后台增量更新完成后刷新会话列表（不动当前阅读位置）
+    loadThreads()
+  }
+)
+
+watch(
   () => store.pendingJump?.seq,
   async () => {
     const jump = store.pendingJump

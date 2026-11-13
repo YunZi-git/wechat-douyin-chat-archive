@@ -89,6 +89,26 @@ def test_search_page_works(server, browser):
     page.close()
 
 
+def test_scope_checkbox_toggles(server, browser):
+    page = browser.new_page(viewport={"width": 1400, "height": 900})
+    page.goto(server + "/?view=import&scope=include", wait_until="networkidle")
+    page.wait_for_timeout(1200)
+    rows = page.locator(".conv-row")
+    assert rows.count() >= 1
+    rows.first.click()
+    page.wait_for_timeout(300)
+    assert "已选 1" in page.locator("text=已选").first.inner_text()
+    page.close()
+
+
+def test_merge_page_shows_avatars(server, browser):
+    page = browser.new_page(viewport={"width": 1400, "height": 900})
+    page.goto(server + "/?view=merge", wait_until="networkidle")
+    page.wait_for_timeout(1200)
+    assert page.locator(".merge-avatar img").count() >= 1
+    page.close()
+
+
 def test_appearance_switch_changes_css(server, browser):
     page = browser.new_page(viewport={"width": 1400, "height": 900})
     page.goto(server + "/?view=appearance", wait_until="networkidle")

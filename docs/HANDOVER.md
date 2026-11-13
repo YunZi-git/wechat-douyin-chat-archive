@@ -76,7 +76,7 @@
 | `web/src/components/ChatView.vue` | 消息流、会话内搜索、跳转 | |
 | `scripts/make_demo_data.py` | 生成合成演示数据（可 `--import`） | demo 数据全靠它 |
 | `scripts/build_portable.py` | 嵌入式 Python + 依赖 + 启动脚本 | |
-| `tests/` | 177 个 pytest 用例 + 4 个 E2E（默认跳过） | 全用合成数据 |
+| `tests/` | 181 个 pytest 用例 + 6 个 E2E（默认跳过） | 全用合成数据 |
 
 ---
 
@@ -186,6 +186,17 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
   点「查看原文」才显示
 - FTS：`messages_fts.rowid = messages.id`，文本/转写更新走 rowid（O(1)），
   避免大库按 message_id 全表扫描
+
+### 4.7.2 自动增量更新
+
+- `app/autosync.py`：后台线程每 5 秒检查一次设置；开启且到间隔（且没有重任务）时
+  启动增量任务，并记录 `autosync_last_run`
+- 增量内容：微信 `data/wechat/decrypted` 按水位线导入；抖音 `data/douyin/chat.db`
+  补导入。**不会自动打开浏览器采集，也不会自动解密微信**
+- 入口：设置页「自动增量更新」（开关/间隔/立即更新/上次时间），
+  API `/api/autosync/status`、`/api/autosync/run`
+- 前端每 30 秒对比消息总数，变化后刷新会话列表；测试环境用
+  `CHATWORK_DISABLE_AUTOSYNC=1` 关闭线程
 
 ### 4.8 系统主题、更新检查与日志脱敏
 
@@ -423,7 +434,7 @@ git grep -n -I -E "wxid_[a-z0-9]{10,}|sk-[A-Za-z0-9]{20,}|AKID[A-Za-z0-9]{10,}|C
 ## 10. 验收清单（改完代码跑一遍）
 
 ```bash
-.venv\Scripts\python -m pytest -q          # 177 passed, 4 skipped（E2E 需 CHATWORK_E2E=1）
+.venv\Scripts\python -m pytest -q          # 181 passed, 6 skipped（E2E 需 CHATWORK_E2E=1）
 python scripts/build_portable.py --no-build-web   # 能打包
 ```
 

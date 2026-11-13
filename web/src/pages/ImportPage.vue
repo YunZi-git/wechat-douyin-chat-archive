@@ -26,6 +26,7 @@ const dyQuery = ref('')
 const dyIncremental = ref(true)
 const dyDownloadImages = ref(false)
 const dyFailures = ref([])
+const lastJobKind = ref('')
 
 const filteredConvs = computed(() => {
   const q = dyQuery.value.trim().toLowerCase()
@@ -130,6 +131,7 @@ async function run(kind, title, arg) {
   }[kind]
   try {
     const res = await fn()
+    lastJobKind.value = kind
     activeJob.value = res.job.id
     activeTitle.value = title
     recent.value = (await api.jobs()).items || []
@@ -155,6 +157,11 @@ async function onJobDone() {
   await refreshStats()
   await loadDouyinFailures()
   await loadDouyinConversations()
+  // 拉完会话列表后自动切到「只采集勾选」，用户可以直接勾选范围
+  if (lastJobKind.value === 'douyinList' && dyConvs.value.length && dyMode.value === 'all') {
+    dyMode.value = 'include'
+  }
+  lastJobKind.value = ''
   activeJob.value = null
 }
 
@@ -303,15 +310,21 @@ onMounted(async () => {
               <button class="btn sm ghost" @click="clearConvs">清空</button>
             </div>
             <div class="conv-list">
-              <label v-for="c in filteredConvs" :key="c.name" class="conv-row">
+              <div
+                v-for="c in filteredConvs"
+                :key="c.name"
+                class="conv-row"
+                role="checkbox"
+                :aria-checked="dySelected.includes(c.name)"
+                @click="toggleConv(c.name)"
+              >
                 <span class="checkbox" :class="{ on: dySelected.includes(c.name) }">
                   <Icon name="check" :size="11" />
                 </span>
-                <input type="checkbox" :checked="dySelected.includes(c.name)" hidden @change="toggleConv(c.name)" />
                 <span class="grow conv-name">{{ c.name }}</span>
                 <span v-if="c.kind === 'group'" class="group-tag">群</span>
                 <span class="faint small nowrap">{{ fmtCount(c.message_count) }}</span>
-              </label>
+              </div>
               <div v-if="!filteredConvs.length" class="hint" style="padding: 10px">
                 还没有会话列表。点「从抖音拉列表」扫码登录，只读取会话名单
                 （不会采集消息），然后就能勾选范围了。

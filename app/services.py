@@ -587,6 +587,50 @@ def _douyin_collect_cmd(filters: str | None, incremental: bool,
     return cmd
 
 
+def heavy_busy() -> bool:
+    """是否有重任务（导入/采集/解密）正在占用独占名额。"""
+    return _HEAVY_LOCK.locked()
+
+
+def start_incremental_update(*, trigger: str = "auto") -> jobs.Job:
+    """把本机已有数据里的新消息增量导入统一库。"""
+
+    def target(job: jobs.Job) -> dict[str, Any]:
+        with _heavy_slot(job, "增量更新"):
+            reports: list[dict[str, Any]] = []
+            accounts = wechat_importer.detect_accounts(paths.WECHAT_DECRYPTED)
+            if accounts:
+                job.write(f"[i] 微信增量：{len(accounts)} 个账号")
+                for account in accounts:
+                    if job.cancelled():
+                        raise jobs.JobCancelled()
+                    report = wechat_importer.import_account(
+                        account, incremental=True,
+                        should_cancel=job.cancelled, progress=job.update,
+                    )
+                    reports.append(report)
+                    job.write(
+                        f"[✓] {account.name}: 新消息 {report['messages_added']}"
+                    )
+            if paths.DOUYIN_DB.is_file():
+                job.write("[i] 抖音增量：读取引擎数据库")
+                report = douyin_importer.import_chat_db(
+                    paths.DOUYIN_DB,
+                    media_src=paths.DOUYIN_MEDIA,
+                    copy_media=False,
+                    should_cancel=job.cancelled,
+                    progress=job.update,
+                )
+                reports.append(report)
+                job.write(f"[✓] 抖音：新消息 {report['messages_added']}")
+            if not reports:
+                job.write("[i] 没有可更新的数据（微信解密目录和抖音库都不存在）")
+            auto = asr.auto_transcribe(job)
+            return {"trigger": trigger, "reports": reports, "auto_transcribe": auto}
+
+    return jobs.start("auto-update", f"增量更新（{trigger}）", target)
+
+
 def start_media_prewarm(*, thread_id: str | None = None,
                         limit: int = 300) -> jobs.Job:
     """把会话里还没落地的微信图片/表情/视频批量解密到本地缓存。"""

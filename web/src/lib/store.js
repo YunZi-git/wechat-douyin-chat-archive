@@ -21,6 +21,7 @@ export const store = reactive({
   themes: [],              // 内置 4 个 + StyleKit 151 个
   themeSlug: 'dark',
   toasts: [],
+  dataVersion: 0,
   activeThreadId: null,
   focusSeq: 0,
   pendingJump: null,
@@ -103,6 +104,26 @@ export async function refreshStats() {
   }
 }
 
+let dataTimer = null
+
+/** 轮询统计；数据变了就 bump dataVersion，页面可以据此刷新列表。 */
+export function startDataWatcher() {
+  if (dataTimer) return
+  let lastCount = store.stats?.messages || 0
+  dataTimer = setInterval(async () => {
+    try {
+      const stats = await api.stats()
+      if (stats.messages !== lastCount) {
+        lastCount = stats.messages
+        store.stats = stats
+        store.dataVersion += 1
+      }
+    } catch {
+      /* 后台轮询失败不打扰用户 */
+    }
+  }, 30000)
+}
+
 export async function boot() {
   const view = new URLSearchParams(location.search).get('view')
   if (['chats', 'search', 'voice', 'merge', 'import', 'export', 'appearance', 'settings'].includes(view)) {
@@ -122,6 +143,7 @@ export async function boot() {
     initSystemTheme()
     applyDensity(settings.density || 'comfortable')
     await refreshStats()
+    startDataWatcher()
   } catch (err) {
     applyTheme(cached || 'dark')
     toast(`初始化失败：${err.message}`, 'err')

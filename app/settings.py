@@ -15,6 +15,9 @@ DEFAULTS: dict[str, Any] = {
     "theme": "dark",  # 内置：dark/light/warm/purple/system；其它为 StyleKit 的 slug
     "update_url": "",  # 更新清单地址（GitHub Release API 或自定义 JSON）
     "language": "zh",  # zh | en
+    "autosync_enabled": False,        # 定时增量更新
+    "autosync_interval_minutes": 30,
+    "autosync_last_run": 0,
     "density": "comfortable",
     "page_size": 60,
     "timezone_offset": 8,

@@ -10,6 +10,13 @@ const contacts = ref([])
 const loading = ref(true)
 const tab = ref('single')     // single | merged | all
 const query = ref('')
+const brokenAvatars = ref(new Set())
+const mediaUrl = (p) => (p ? `/media/${p}` : '')
+const contactAvatar = (c) => c.display_avatar || c.avatar_url || ''
+const hasAvatar = (c) => !!contactAvatar(c) && !brokenAvatars.value.has(c.id)
+function onAvatarError(id) {
+  brokenAvatars.value = new Set(brokenAvatars.value).add(id)
+}
 const selected = ref([])
 const mergedName = ref('')
 const busy = ref(false)
@@ -146,11 +153,20 @@ onMounted(load)
         </div>
 
         <div
-          class="avatar"
+          class="avatar merge-avatar"
           style="width: 38px; height: 38px; border-radius: 11px"
-          :style="{ background: avatarColor(c.id) + '24', color: avatarColor(c.id) }"
+          :style="hasAvatar(c)
+            ? {}
+            : { background: avatarColor(c.id) + '24', color: avatarColor(c.id) }"
         >
-          {{ initial(c.display_name) }}
+          <img
+            v-if="hasAvatar(c)"
+            :src="mediaUrl(contactAvatar(c))"
+            alt=""
+            loading="lazy"
+            @error="onAvatarError(c.id)"
+          />
+          <template v-else>{{ initial(c.display_name) }}</template>
         </div>
 
         <div class="row-main" @click="toggle(c)">
@@ -257,4 +273,6 @@ onMounted(load)
   padding: 0;
 }
 .clickable { cursor: pointer; }
+.merge-avatar { overflow: hidden; }
+.merge-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 </style>

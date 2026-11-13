@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 
 from . import contacts as contacts_mod
 from . import asr
+from . import autosync
 from . import updates
 from . import themes as themes_mod
 from . import secrets as secrets_mod
@@ -96,6 +97,8 @@ class SettingsBody(BaseModel):
     theme: str | None = None
     update_url: str | None = None
     language: str | None = None
+    autosync_enabled: bool | None = None
+    autosync_interval_minutes: int | None = None
     density: Literal["comfortable", "compact"] | None = None
     page_size: int | None = Field(default=None, ge=20, le=300)
     timezone_offset: float | None = Field(default=None, ge=-12, le=14)
@@ -261,6 +264,19 @@ def rename_contact(contact_id: int, body: RenameBody) -> dict[str, Any]:
 
 # ── 设置 ────────────────────────────────────────────────────────────
 
+@router.get("/autosync/status")
+def autosync_status() -> dict[str, Any]:
+    return {**autosync.status(), "sources_available": autosync.sources_available()}
+
+
+@router.post("/autosync/run")
+def autosync_run() -> dict[str, Any]:
+    result = autosync.run_once(trigger="manual")
+    if not result.get("started"):
+        raise HTTPException(409, str(result.get("reason") or "无法启动"))
+    return result
+
+
 @router.get("/version")
 def app_version() -> dict[str, Any]:
     return {"version": updates.APP_VERSION}
@@ -290,6 +306,11 @@ def patch_settings(body: SettingsBody) -> dict[str, Any]:
         raise HTTPException(400, f"未知外观：{patch['theme']}")
     if "language" in patch and patch["language"] not in ("zh", "en"):
         raise HTTPException(400, f"不支持的语言：{patch['language']}")
+    if "autosync_interval_minutes" in patch:
+        minutes = int(patch["autosync_interval_minutes"])
+        if not 1 <= minutes <= 1440:
+            raise HTTPException(400, "自动更新间隔需在 1–1440 分钟之间")
+        patch["autosync_interval_minutes"] = minutes
     return settings.save(patch)
 
 

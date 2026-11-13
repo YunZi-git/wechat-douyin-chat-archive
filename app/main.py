@@ -12,14 +12,18 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import api, db, paths
+from . import api, autosync, db, paths
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     paths.ensure_dirs()
     db.init()
-    yield
+    autosync.start_scheduler()
+    try:
+        yield
+    finally:
+        autosync.stop_scheduler()
 
 
 app = FastAPI(title="聊天信息工作台", version=api.VERSION, lifespan=lifespan)

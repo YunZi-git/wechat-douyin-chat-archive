@@ -34,7 +34,12 @@ def list_contacts(*, q: str | None = None, merged: bool | None = None) -> list[d
                         WHERE c2.contact_id = ct.id) AS msg_count,
                       (SELECT MAX(m.ts) FROM messages m
                          JOIN conversations c3 ON c3.id = m.conversation_id
-                        WHERE c3.contact_id = ct.id) AS last_ts
+                        WHERE c3.contact_id = ct.id) AS last_ts,
+                      COALESCE(ct.avatar_url, (
+                          SELECT i2.avatar_url FROM identities i2
+                           WHERE i2.contact_id = ct.id
+                             AND i2.avatar_url IS NOT NULL AND i2.avatar_url <> ''
+                           ORDER BY i2.id LIMIT 1)) AS display_avatar
                  FROM contacts ct
                 WHERE (? IS NULL OR ct.display_name LIKE ?)
                 ORDER BY last_ts DESC NULLS LAST, ct.display_name""",

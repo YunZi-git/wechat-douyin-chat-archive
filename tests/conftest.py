@@ -5,6 +5,10 @@
 """
 from __future__ import annotations
 
+import os
+os.environ.setdefault("CHATWORK_DISABLE_AUTOSYNC", "1")
+os.environ.setdefault("CHATWORK_TESTING", "1")
+
 import importlib.util
 import os
 import sys
