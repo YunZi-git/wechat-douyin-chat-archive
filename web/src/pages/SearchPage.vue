@@ -190,8 +190,8 @@ function snippet(item) {
             {{ rangeText }} · {{ engine === 'fts' ? 'FTS 索引' : '模糊匹配' }}
           </span>
         </span>
-        <span class="hint" v-if="!grouped && total">
-          第 {{ total ? offset + 1 : 0 }}–{{ Math.min(offset + items.length, total) }} 条
+        <span class="hint" v-if="!grouped && total > PAGE">
+          第 {{ offset + 1 }}–{{ Math.min(offset + items.length, total) }} 条
         </span>
       </div>
 
@@ -225,7 +225,10 @@ function snippet(item) {
           <span class="hit-main">
             <span class="hit-top">
               <span class="hit-conv">{{ item.conv_title || '未命名' }}</span>
-              <span class="hint">{{ item.sender_name || item.sender_uid }}</span>
+              <span
+                v-if="item.sender_name && item.sender_name !== item.conv_title"
+                class="hint"
+              >{{ item.sender_name }}</span>
               <span class="kind-tag">{{ kindLabel(item.kind) || item.kind }}</span>
             </span>
             <span class="hit-text">{{ snippet(item) || '（无文本）' }}</span>

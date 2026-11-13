@@ -519,15 +519,25 @@ def douyin_last_failures() -> list[str]:
     return list(_last_douyin_failures)
 
 
+def _require_douyin_browser() -> None:
+    status = browser_status()
+    if not status["playwright"]:
+        raise RuntimeError(
+            "运行环境缺少 Playwright，无法启动浏览器采集。"
+            "可以改为「导入已有数据库」，或安装依赖后重试。"
+        )
+    if not status["channel"]:
+        raise RuntimeError(
+            "没有找到可用的浏览器：请安装 Microsoft Edge，"
+            "或执行 playwright install chromium 后重试。"
+        )
+
+
 def _douyin_list_cmd() -> list[str]:
     script = paths.DOUYIN_ENGINE_DIR / "extract.py"
     if not script.exists():
         raise FileNotFoundError("内置的抖音采集组件缺失")
-    status = browser_status()
-    if not status["playwright"]:
-        raise RuntimeError("运行环境缺少 Playwright，无法启动浏览器")
-    if not status["channel"]:
-        raise RuntimeError("没有找到可用的浏览器（建议安装 Edge）")
+    _require_douyin_browser()
     return [sys.executable, str(script), "--list-conversations"]
 
 
@@ -566,17 +576,7 @@ def _douyin_collect_cmd(filters: str | None, incremental: bool,
     script = paths.DOUYIN_ENGINE_DIR / "extract.py"
     if not script.exists():
         raise FileNotFoundError("内置的抖音采集组件缺失")
-    status = browser_status()
-    if not status["playwright"]:
-        raise RuntimeError(
-            "运行环境缺少 Playwright，无法启动浏览器采集。"
-            "可以改为「导入已有数据库」，或安装依赖后重试。"
-        )
-    if not status["channel"]:
-        raise RuntimeError(
-            "没有找到可用的浏览器：请安装 Microsoft Edge，"
-            "或执行 playwright install chromium 后重试。"
-        )
+    _require_douyin_browser()
     cmd = [sys.executable, str(script)]
     if filters:
         cmd += ["--filter", filters]

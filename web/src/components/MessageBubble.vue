@@ -47,6 +47,14 @@ const locMeta = computed(() => meta.value.location || null)
 const cardMeta = computed(() => meta.value.card || null)
 const miniMeta = computed(() => meta.value.miniprogram || null)
 const share = computed(() => meta.value.share || null)
+const shareUrl = computed(() => share.value?.url || meta.value.url || '')
+const shareHost = computed(() => {
+  try {
+    return new URL(shareUrl.value).hostname.replace(/^www\./, '')
+  } catch {
+    return ''
+  }
+})
 const coverBroken = ref(false)
 const textExpanded = ref(false)
 const rawExpanded = ref(false)
@@ -103,11 +111,11 @@ const previewText = computed(() => (m.value.text || '').slice(0, 300))
             @error="imgBroken = true"
             @click="emit('open-image', imageSrc)"
           />
-          <span v-else class="faint">
-            {{ m.kind === 'sticker'
-              ? (m.meta?.sticker?.caption || m.text || '表情')
-              : (m.text || kindLabel) }}
+          <span v-else-if="m.kind === 'sticker'" class="sticker-fallback">
+            <Icon name="smile" :size="16" />
+            <span>{{ m.meta?.sticker?.caption || m.text || '表情' }}</span>
           </span>
+          <span v-else class="faint">{{ m.text || kindLabel }}</span>
         </template>
 
         <!-- 语音：SILK 会在后端按需转 WAV -->
@@ -183,7 +191,7 @@ const previewText = computed(() => (m.value.text || '').slice(0, 300))
         </template>
 
         <!-- 分享卡片（抖音视频/图文，可点开） -->
-        <template v-else-if="share && share.url">
+        <template v-else-if="shareUrl">
           <a class="share-card" :href="share.url" target="_blank" rel="noopener noreferrer">
             <img
               v-if="share.cover && !coverBroken"
@@ -195,7 +203,9 @@ const previewText = computed(() => (m.value.text || '').slice(0, 300))
             />
             <span class="share-body">
               <span class="share-title">{{ share.title || m.text || '抖音分享' }}</span>
-              <span class="share-meta">{{ share.author || '抖音' }} · 点开查看</span>
+              <span class="share-meta">
+                {{ share?.author || shareHost || '外部链接' }} · 点开查看
+              </span>
             </span>
             <Icon name="external" :size="14" />
           </a>
@@ -267,6 +277,13 @@ const previewText = computed(() => (m.value.text || '').slice(0, 300))
   max-height: 120px;
 }
 .q-sender { color: var(--text-dim); }
+.sticker-fallback {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-dim);
+  font-size: 12.5px;
+}
 .share-card {
   display: flex;
   align-items: center;

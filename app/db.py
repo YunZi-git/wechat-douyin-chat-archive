@@ -236,6 +236,8 @@ def init() -> None:
                 "INSERT INTO meta(k, v) VALUES ('schema_version', ?)",
                 (str(SCHEMA_VERSION),),
             )
+            # 新库已经是最新结构，不需要再跑迁移
+            version = SCHEMA_VERSION
         stats_empty = conn.execute(
             "SELECT NOT EXISTS(SELECT 1 FROM conversation_stats)"
         ).fetchone()[0]

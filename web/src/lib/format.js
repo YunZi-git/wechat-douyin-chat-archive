@@ -65,6 +65,7 @@ export function platformLabel(p) {
 }
 
 const KIND_LABELS = {
+  text: '文本',
   image: '[图片]',
   voice: '[语音]',
   video: '[视频]',
@@ -76,6 +77,10 @@ const KIND_LABELS = {
   system: '[系统消息]',
   revoke: '[撤回了一条消息]',
   forward: '[合并转发]',
+  file: '[文件]',
+  miniprogram: '[小程序]',
+  channel: '[视频号]',
+  link: '[链接]',
   other: '[消息]',
 }
 

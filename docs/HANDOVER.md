@@ -321,6 +321,13 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 - 更新检查限制 http/https + 1MB 上限
 - `ruff check app scripts --select F401,F811,F821,F841` 全绿
 
+## 5.6 体验打磨（1.1.4）
+
+- 微信/抖音分享统一卡片化；无 URL 退回文字
+- 搜索去重、类型中文、分页信息只在多页时显示
+- 导入页措辞与未勾选提示
+- 新库跳过迁移
+
 ## 6. 必须知道的 19 个坑
 
 1. **只能 Python 3.11**：pilk 没有 3.12+ 的轮子。

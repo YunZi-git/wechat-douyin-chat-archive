@@ -260,7 +260,7 @@ onMounted(async () => {
             </div>
           </div>
 
-          <div class="kv"><span>本地数据库</span>
+          <div class="kv"><span>引擎数据库</span>
             <span>{{ sources.douyin.exists ? '已存在' : '还没有' }}</span>
           </div>
           <div class="kv"><span>会话 / 消息</span>
@@ -280,10 +280,15 @@ onMounted(async () => {
               <button class="btn sm ghost" :disabled="dyLoading" @click="loadDouyinConversations">
                 <span v-if="dyLoading" class="spinner" />
                 <Icon v-else name="refresh" :size="12" />
-                {{ dyConvReady ? t('刷新列表') : t('加载会话') }}
+                {{ dyConvReady ? t('刷新本地列表') : t('加载会话') }}
               </button>
-              <button class="btn sm" @click="run('douyinList', '抖音：获取会话列表')">
-                <Icon name="import" :size="12" /> 从抖音获取
+              <button
+                class="btn sm"
+                :disabled="!browserReady"
+                :title="browserReady ? '扫码登录，只获取会话列表，不采集消息' : '缺少可用浏览器'"
+                @click="run('douyinList', '抖音：获取会话列表')"
+              >
+                <Icon name="import" :size="12" /> {{ t('从抖音拉列表') }}
               </button>
             </div>
             <div class="hint mt12" v-if="dyMode === 'exclude'">
@@ -308,13 +313,17 @@ onMounted(async () => {
                 <span class="faint small nowrap">{{ fmtCount(c.message_count) }}</span>
               </label>
               <div v-if="!filteredConvs.length" class="hint" style="padding: 10px">
-                还没有会话列表。点「从抖音获取」扫码登录，拉一次列表（不会采集消息），
-                然后就能勾选范围了。
+                还没有会话列表。点「从抖音拉列表」扫码登录，只读取会话名单
+                （不会采集消息），然后就能勾选范围了。
               </div>
             </div>
             <div class="hint" style="margin-top: 6px">
               已选 {{ dySelected.length }} / {{ dyConvs.length }}
             </div>
+          </div>
+
+          <div class="hint" v-if="dyMode === 'include' && !dySelected.length" style="margin-top: 6px">
+            先勾选要采集的会话，再点「采集并导入」。
           </div>
 
           <div class="row mt12">
