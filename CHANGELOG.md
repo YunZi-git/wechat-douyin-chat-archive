@@ -2,6 +2,18 @@
 
 本项目的所有调整都记录在这里；更细的逐次改动可以用 `git log --oneline` 查。
 
+## [1.3.1] - 2026-11-13
+
+### 首次启动加固
+
+- 全新环境（无 data 目录/无 settings.json/空库）实测：API 全部正常、前端无 console error
+- 修复桌面端健康检查 URL 被 `?v=` 污染的问题；健康检查现在校验版本号，
+  避免端口被旧进程占用时误判
+- 后端启动失败不再静默返回：launcher 会弹窗并写 `data/logs/launcher.log`
+- 数据目录不可写（如解压到 Program Files）时给出明确中文提示
+- 增加 Windows 单实例互斥量，双击两次不会开出两个进程抢同一个 SQLite
+- `/api/sources` 不再返回本机绝对路径（douyin 库/媒体、内置引擎路径改相对路径）
+
 ## [1.3.0] - 2026-11-13
 
 ### 新增
@@ -157,6 +169,7 @@
 - 便携包：内嵌 Python 运行时，解压即用
 - AGPL-3.0 开源，仓库不含真实数据，演示数据全部合成
 
+[1.3.1]: https://example.com/chatwork/releases/tag/v1.3.1
 [1.3.0]: https://example.com/chatwork/releases/tag/v1.3.0
 [1.2.2]: https://example.com/chatwork/releases/tag/v1.2.2
 [1.2.1]: https://example.com/chatwork/releases/tag/v1.2.1

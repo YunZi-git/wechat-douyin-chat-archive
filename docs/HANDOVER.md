@@ -288,6 +288,18 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 `jobs.start()` 起线程，前端轮询 `/api/jobs/{id}`。
 重任务（解密/采集/导入）共用一把进程内锁，排队时也能取消。
 
+### 4.15.1 首次启动检查（1.3.1）
+
+- 空环境实测：无 data / 无 settings.json / 空库时 API 全 200，前端无 console error
+- 桌面健康检查必须用不带 `?v=` 的 base URL，并校验返回的 version；
+  否则 WebView 缓存/端口被旧进程占用时会误判
+- 后端起不来时 `desktop.run` 抛 RuntimeError，launcher 弹窗并写
+  `data/logs/launcher.log`（不能只 return 1，pythonw 下等于双击没反应）
+- 数据目录不可写（Program Files）时提示解压到桌面
+- Windows 命名互斥量防双开；`/api/sources` 不返回本机绝对路径
+- 用 `runtime\python.exe` + 临时 data 目录跑过打包后的 `desktop.run`
+  （fake webview），URL 为 `/?v=VERSION`、数据目录自动创建
+
 ### 4.16 打包
 
 `scripts/build_portable.py`：

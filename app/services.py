@@ -121,11 +121,11 @@ def wechat_accounts() -> list[dict[str, Any]]:
 
 def douyin_source() -> dict[str, Any]:
     db_path = paths.DOUYIN_DB
-    media = paths.DOUYIN_MEDIA
     info: dict[str, Any] = {
-        "db": str(db_path),
+        # 接口只暴露相对路径，避免把本机用户名带进截图/日志
+        "db": f"{paths.display_data_dir()}douyin/chat.db",
         "exists": db_path.exists(),
-        "media_dir": str(media),
+        "media_dir": f"{paths.display_data_dir()}media/douyin/",
         "size": 0,
         "conversations": 0,
         "messages": 0,
@@ -365,12 +365,12 @@ def engine_status() -> dict[str, Any]:
     return {
         "wechat": {
             "bundled": siwx_run.exists(),
-            "path": str(paths.SIWX_DIR),
+            "path": "engines/siwx",
         },
         "douyin": {
             "bundled": douyin_extract.exists(),
-            "path": str(paths.DOUYIN_ENGINE_DIR),
-            **browser,
+            "path": "engines/douyin",
+            **{k: v for k, v in browser.items() if k != "edge_path"},
         },
     }
 
