@@ -101,6 +101,19 @@ def test_scope_checkbox_toggles(server, browser):
     page.close()
 
 
+def test_asr_secret_save(server, browser):
+    page = browser.new_page(viewport={"width": 1400, "height": 950})
+    page.goto(server + "/?view=settings", wait_until="networkidle")
+    page.wait_for_timeout(1200)
+    tencent = page.locator(".section").filter(has_text="腾讯云一句话识别")
+    tencent.locator('input[placeholder="AKID..."]').fill("AKIDE2E")
+    tencent.locator('input[placeholder="留空表示不修改"]').fill("KEYE2E")
+    tencent.locator('button', has_text="保存").click()
+    page.wait_for_timeout(800)
+    assert page.locator("text=已保存").count() >= 1
+    page.close()
+
+
 def test_chat_opens_at_latest(server, browser):
     page = browser.new_page(viewport={"width": 1200, "height": 420})
     page.goto(server + "/?view=chats&thread=conv:1", wait_until="networkidle")

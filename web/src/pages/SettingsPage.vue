@@ -177,11 +177,8 @@ async function loadAsr() {
   }
 }
 
-async function saveAsr() {
-  asrSaving.value = true
-  asrMessage.value = ''
-  try {
-    const body = {
+function asrBody() {
+  const body = {
       engine: asrForm.value.engine,
       auto_after_import: asrForm.value.auto_after_import,
       asr_douyin_fallback: asrForm.value.douyin_fallback,
@@ -191,10 +188,17 @@ async function saveAsr() {
       whisper_endpoint: asrForm.value.whisper_endpoint,
       tencent_region: asrForm.value.tencent_region,
     }
-    // 留空表示不修改已保存的密钥
-    if (asrForm.value.tencent_secret_id) body.tencent_secret_id = asrForm.value.tencent_secret_id
-    if (asrForm.value.tencent_secret_key) body.tencent_secret_key = asrForm.value.tencent_secret_key
-    const res = await api.saveAsrConfig(body)
+  // 留空表示不修改已保存的密钥
+  if (asrForm.value.tencent_secret_id) body.tencent_secret_id = asrForm.value.tencent_secret_id
+  if (asrForm.value.tencent_secret_key) body.tencent_secret_key = asrForm.value.tencent_secret_key
+  return body
+}
+
+async function saveAsr() {
+  asrSaving.value = true
+  asrMessage.value = ''
+  try {
+    const res = await api.saveAsrConfig(asrBody())
     asr.value = { engines: res.engines, counts: res.counts, secrets: res.secrets }
     asrForm.value.tencent_secret_id = ''
     asrForm.value.tencent_secret_key = ''
@@ -211,6 +215,18 @@ async function testAsr() {
   asrTesting.value = true
   asrMessage.value = ''
   try {
+    // 刚输入的密钥还没点保存时，先落盘再测试；否则测试读不到
+    const sid = asrForm.value.tencent_secret_id.trim()
+    const skey = asrForm.value.tencent_secret_key.trim()
+    if (sid || skey) {
+      if (!sid || !skey) {
+        asrMessage.value = '请同时填写 SecretId 和 SecretKey'
+        return
+      }
+      await api.saveAsrConfig(asrBody())
+      asrForm.value.tencent_secret_id = ''
+      asrForm.value.tencent_secret_key = ''
+    }
     const res = await api.testAsr('tencent')
     asrMessage.value = res.ok ? '腾讯云连接成功' : `腾讯云测试失败：${res.error}`
   } catch (err) {

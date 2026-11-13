@@ -144,3 +144,12 @@ def test_auto_transcribe_after_import(library, monkeypatch):
 def test_auto_transcribe_disabled(library):
     settings.save({"asr_engine": "tencent", "asr_auto_after_import": False})
     assert asr.auto_transcribe(FakeJob()) is None
+
+def test_asr_config_accepts_patch(client, library):
+    res = client.patch("/api/asr/config", json={
+        "tencent_secret_id": "AKIDPATCH",
+        "tencent_secret_key": "KEYPATCH",
+    })
+    assert res.status_code == 200, res.text
+    data = client.get("/api/asr/status").json()
+    assert data["secrets"]["tencent"]["configured"] is True

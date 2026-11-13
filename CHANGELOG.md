@@ -2,6 +2,15 @@
 
 本项目的所有调整都记录在这里；更细的逐次改动可以用 `git log --oneline` 查。
 
+## [1.4.3] - 2026-11-13
+
+### 修复
+
+- **腾讯云密钥保存失败**：前端保存用 PATCH，后端只注册了 PUT，返回 405，
+  密钥一直没落盘；前端改用 PUT，后端同时兼容 PATCH（旧缓存前端也不会 405）
+- 点击「测试密钥」时如果输入框里有新 SecretId/SecretKey，先自动保存再测试，
+  不再要求用户先手动点保存；只填一个会提示要同时填写
+
 ## [1.4.2] - 2026-11-13
 
 ### 修复
@@ -271,6 +280,7 @@
 - 便携包：内嵌 Python 运行时，解压即用
 - AGPL-3.0 开源，仓库不含真实数据，演示数据全部合成
 
+[1.4.3]: https://example.com/chatwork/releases/tag/v1.4.3
 [1.4.2]: https://example.com/chatwork/releases/tag/v1.4.2
 [1.4.1]: https://example.com/chatwork/releases/tag/v1.4.1
 [1.4.0]: https://example.com/chatwork/releases/tag/v1.4.0

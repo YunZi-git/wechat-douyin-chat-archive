@@ -24,6 +24,8 @@ const post = (path, body) =>
   request(path, { method: 'POST', body: JSON.stringify(body ?? {}) })
 const patch = (path, body) =>
   request(path, { method: 'PATCH', body: JSON.stringify(body ?? {}) })
+const put = (path, body) =>
+  request(path, { method: 'PUT', body: JSON.stringify(body ?? {}) })
 
 export const api = {
   health: () => get('/api/health'),
@@ -120,7 +122,7 @@ export const api = {
 
   importVoiceJsonl: (path) => post('/api/voice/import-jsonl', { path }),
   asrStatus: () => get('/api/asr/status'),
-  saveAsrConfig: (body) => patch('/api/asr/config', body),
+  saveAsrConfig: (body) => put('/api/asr/config', body),
   testAsr: (engine) => post('/api/asr/test', { engine }),
   runAsr: (body) => post('/api/asr/run', body),
   clearVoiceCache: () => post('/api/voice/cache/clear'),

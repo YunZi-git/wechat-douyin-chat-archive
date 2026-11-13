@@ -600,6 +600,7 @@ def asr_status() -> dict[str, Any]:
 
 
 @router.put("/asr/config")
+@router.patch("/asr/config")
 def asr_config(body: AsrConfigBody) -> dict[str, Any]:
     settings_patch: dict[str, Any] = {}
     if body.engine is not None:
