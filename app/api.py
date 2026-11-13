@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from . import contacts as contacts_mod
 from . import asr
 from . import autosync
+from . import identity
 from . import updates
 from . import themes as themes_mod
 from . import secrets as secrets_mod
@@ -263,6 +264,24 @@ def rename_contact(contact_id: int, body: RenameBody) -> dict[str, Any]:
 
 
 # ── 设置 ────────────────────────────────────────────────────────────
+
+class SelfIdentityBody(BaseModel):
+    platform: str
+    uid: str
+
+
+@router.get("/self-identity")
+def self_identity() -> dict[str, Any]:
+    return identity.overview()
+
+
+@router.post("/self-identity")
+def set_self_identity(body: SelfIdentityBody) -> dict[str, Any]:
+    try:
+        return identity.set_identity(body.platform, body.uid)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
 
 @router.get("/autosync/status")
 def autosync_status() -> dict[str, Any]:

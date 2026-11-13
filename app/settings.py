@@ -25,6 +25,7 @@ DEFAULTS: dict[str, Any] = {
     "wechat_self_wxid": "",
     # 抖音侧：本人 uid 由导入器自动推断
     "douyin_self_uid": "",
+    "douyin_self_confirmed": False,
     # 导入时是否把音频/图片一并带过来（后续版本使用）
     "import_media": True,
     # ── 语音识别 ──

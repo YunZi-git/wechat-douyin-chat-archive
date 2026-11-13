@@ -11,6 +11,41 @@ const saving = ref(false)
 const clearing = ref(false)
 
 // ── 自动增量更新 ──
+const identity = ref(null)
+const selfPick = ref({ wechat: '', douyin: '' })
+
+async function loadIdentity() {
+  try {
+    identity.value = await api.selfIdentity()
+    selfPick.value = {
+      wechat: identity.value.platforms.wechat?.uid || '',
+      douyin: identity.value.platforms.douyin?.uid || '',
+    }
+  } catch {
+    identity.value = null
+  }
+}
+
+async function saveSelf(platform) {
+  const uid = selfPick.value[platform]
+  if (!uid) return
+  try {
+    await api.setSelfIdentity({ platform, uid })
+    toast('已更新「我」的身份，正在刷新…', 'ok')
+    setTimeout(() => window.location.reload(), 600)
+  } catch (err) {
+    toast(err.message, 'err')
+  }
+}
+
+function selfSource(p) {
+  if (!p.uid) return '未设置'
+  if (p.source === 'manual') return '已手动确认'
+  if (p.source === 'account') return '登录账号自动识别'
+  if (p.source === 'guessed' || p.source === 'saved') return '自动推断'
+  return '已识别'
+}
+
 const autosync = ref(null)
 const syncJobId = ref('')
 const syncBusy = ref(false)
@@ -26,6 +61,7 @@ async function loadAutosync() {
 async function setAutosync(enabled) {
   await save({ autosync_enabled: enabled })
   await loadAutosync()
+  await loadIdentity()
 }
 
 async function setAutosyncInterval(value) {
@@ -446,6 +482,56 @@ onMounted(async () => {
             {{ t('保存') }}
           </button>
           <span v-if="asrMessage" class="hint">{{ asrMessage }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>我的身份</h2>
+      <div class="card" v-if="identity">
+        <div class="hint" style="margin-bottom: 4px">
+          聊天界面的「我」由这里决定。微信一般能按登录账号自动识别；抖音是按私聊推断的。
+          <b>如果导入的是别人导出的 chat.db，请把「我」改成你自己。</b>
+        </div>
+        <div
+          v-for="key in ['wechat', 'douyin']"
+          :key="key"
+          class="row mt12"
+          v-show="identity.platforms[key]?.message_count"
+        >
+          <div class="grow">
+            <div style="font-weight: 550">
+              {{ key === 'wechat' ? '微信' : '抖音' }}
+              <span class="hint" style="font-weight: 400">
+                · {{ selfSource(identity.platforms[key]) }}
+              </span>
+            </div>
+            <div class="hint" v-if="identity.platforms[key].uid">
+              当前：{{ identity.platforms[key].name }}（{{ identity.platforms[key].uid }}）
+            </div>
+            <div class="hint" v-else>还没有识别到「我」，请选择：</div>
+          </div>
+          <select v-model="selfPick[key]" class="select" style="max-width: 260px">
+            <option value="">选择「我」…</option>
+            <option
+              v-for="c in identity.platforms[key].candidates"
+              :key="c.uid"
+              :value="c.uid"
+            >{{ c.name }}（{{ c.message_count }} 条）</option>
+            <option
+              v-if="identity.platforms[key].uid
+                && !identity.platforms[key].candidates.some((c) => c.uid === identity.platforms[key].uid)"
+              :value="identity.platforms[key].uid"
+            >{{ identity.platforms[key].name }}</option>
+          </select>
+          <button
+            class="btn sm"
+            :disabled="!selfPick[key]
+              || (selfPick[key] === identity.platforms[key].uid
+                  && !identity.platforms[key].needs_confirm)"
+            @click="saveSelf(key)"
+          >{{ identity.platforms[key].needs_confirm
+                && selfPick[key] === identity.platforms[key].uid ? '确认是我' : '保存' }}</button>
         </div>
       </div>
     </div>

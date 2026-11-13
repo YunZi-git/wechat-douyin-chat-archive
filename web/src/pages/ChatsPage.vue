@@ -30,6 +30,23 @@ const lightbox = ref('')
 let queryTimer = null
 let loadToken = 0
 
+const identity = ref(null)
+const identityHint = computed(() => {
+  const info = identity.value
+  if (!info) return null
+  if (info.needs_setup) return '还没有确认聊天里的「我」是谁，左右分栏可能不对'
+  if (info.needs_confirm) return '抖音的「我」是自动推断的，如果左右分栏不对请改一下'
+  return null
+})
+
+async function loadIdentity() {
+  try {
+    identity.value = await api.selfIdentity()
+  } catch {
+    identity.value = null
+  }
+}
+
 const hasData = computed(() => (store.stats?.messages || 0) > 0)
 const pageSize = computed(() => store.settings.page_size || 60)
 
@@ -209,6 +226,7 @@ watch(
   () => {
     // 后台增量更新完成后刷新会话列表（不动当前阅读位置）
     loadThreads()
+    loadIdentity()
   }
 )
 
@@ -234,10 +252,19 @@ onMounted(async () => {
     await loadThread(deep)
   }
   await loadThreads()
+  await loadIdentity()
 })
 </script>
 
 <template>
+  <Teleport to="body">
+    <div v-if="identityHint" class="identity-tip">
+      <Icon name="users" :size="16" />
+      <span>{{ identityHint }}</span>
+      <button class="btn sm primary" @click="store.view = 'settings'">去设置</button>
+    </div>
+  </Teleport>
+
   <!-- 一条数据都没有：直接把用户引到导入页 -->
   <div v-if="!hasData" class="empty" style="height: 100%">
     <div>
@@ -315,5 +342,22 @@ onMounted(async () => {
   max-height: 90vh;
   border-radius: 10px;
   box-shadow: var(--shadow);
+}
+.identity-tip {
+  position: fixed;
+  left: 18px;
+  bottom: 18px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: 520px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  box-shadow: var(--shadow-lg, 0 8px 30px rgba(0, 0, 0, 0.18));
+  font-size: 12.5px;
+  color: var(--text-dim);
 }
 </style>
