@@ -345,7 +345,7 @@ onMounted(async () => {
             </div>
             <div class="hint" style="margin-top: 6px">
               已选 {{ dySelected.length }} / {{ dyConvs.length }}
-              · 定时增量导入也按这个范围（全部 / 勾选 / 排除）
+              · 定时采集/增量导入也按这个范围（全部 / 勾选 / 排除）
             </div>
           </div>
 

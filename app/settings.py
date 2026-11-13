@@ -19,6 +19,7 @@ DEFAULTS: dict[str, Any] = {
     "autosync_interval_minutes": 30,
     "autosync_last_run": 0,
     "autosync_wechat_decrypt": True,  # 定时任务先跑一次微信解密
+    "autosync_douyin_collect": True,  # 定时任务先打开浏览器采集抖音
     "douyin_scope_mode": "all",       # all | include | exclude
     "douyin_scope_names": [],
     "density": "comfortable",

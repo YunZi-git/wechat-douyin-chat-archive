@@ -2,6 +2,15 @@
 
 本项目的所有调整都记录在这里；更细的逐次改动可以用 `git log --oneline` 查。
 
+## [1.3.8] - 2026-11-13
+
+### 新增
+
+- **定时任务自动打开浏览器采集抖音**：开启「抖音先自动采集」后，定时任务按
+  保存的采集范围生成 `--filter`，增量采集到引擎库，再按同一范围导入；
+  采集失败会继续导入已有引擎库；默认开启，可在设置关闭
+- 设置页可分别控制「微信先自动解密」「抖音先自动采集」
+
 ## [1.3.7] - 2026-11-13
 
 ### 自动增量更新
@@ -226,6 +235,7 @@
 - 便携包：内嵌 Python 运行时，解压即用
 - AGPL-3.0 开源，仓库不含真实数据，演示数据全部合成
 
+[1.3.8]: https://example.com/chatwork/releases/tag/v1.3.8
 [1.3.7]: https://example.com/chatwork/releases/tag/v1.3.7
 [1.3.6]: https://example.com/chatwork/releases/tag/v1.3.6
 [1.3.5]: https://example.com/chatwork/releases/tag/v1.3.5

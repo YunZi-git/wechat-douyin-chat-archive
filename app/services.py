@@ -662,9 +662,34 @@ def start_incremental_update(*, trigger: str = "auto") -> jobs.Job:
                         f"[✓] {account.name}: 新消息 {report['messages_added']}"
                     )
 
-            # 抖音只按设置里保存的采集范围导入（勾选/排除/全部）
+            # 抖音：先按保存的范围自动采集，再按同一范围增量导入
             scope_mode = str(cfg.get("douyin_scope_mode") or "all")
             scope_names = [str(n) for n in (cfg.get("douyin_scope_names") or [])]
+            collection_code = None
+            if cfg.get("autosync_douyin_collect", True):
+                if scope_mode == "include" and not scope_names:
+                    job.write("[i] 抖音勾选范围为空，跳过自动采集")
+                else:
+                    try:
+                        resolved = _douyin_filter(scope_mode, scope_names)
+                        cmd = _douyin_collect_cmd(
+                            resolved, incremental=True, download_images=False
+                        )
+                        job.write("[i] 抖音自动采集：会弹出浏览器，请扫码登录")
+                        progress = DouyinProgress(job)
+                        collection_code = _run_stream(
+                            cmd, cwd=paths.DOUYIN_ENGINE_DIR, env=_douyin_env(),
+                            job=job, on_line=progress,
+                        )
+                        global _last_douyin_failures
+                        _last_douyin_failures = list(progress.failed)
+                        job.write(
+                            f"[i] 抖音采集结束（退出码 {collection_code}），"
+                            f"失败会话 {len(progress.failed)} 个"
+                        )
+                    except Exception as exc:  # noqa: BLE001 - 采集失败仍导入已有库
+                        job.write(f"[!] 抖音自动采集失败：{exc}，继续导入已有数据")
+
             if scope_mode == "include" and not scope_names:
                 job.write("[i] 抖音勾选范围为空，跳过增量导入")
             elif paths.DOUYIN_DB.is_file():

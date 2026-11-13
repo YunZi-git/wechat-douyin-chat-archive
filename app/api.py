@@ -104,6 +104,7 @@ class SettingsBody(BaseModel):
     autosync_enabled: bool | None = None
     autosync_interval_minutes: int | None = None
     autosync_wechat_decrypt: bool | None = None
+    autosync_douyin_collect: bool | None = None
     douyin_scope_mode: str | None = None
     douyin_scope_names: list[str] | None = None
     density: Literal["comfortable", "compact"] | None = None

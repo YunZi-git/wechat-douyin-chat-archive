@@ -63,6 +63,11 @@ async function setAutosync(enabled) {
   await loadAutosync()
 }
 
+async function setAutosyncDouyinCollect(enabled) {
+  await save({ autosync_douyin_collect: enabled })
+  await loadAutosync()
+}
+
 async function setAutosyncDecrypt(enabled) {
   await save({ autosync_wechat_decrypt: enabled })
   await loadAutosync()
@@ -548,14 +553,26 @@ onMounted(async () => {
           <div class="grow">
             <div style="font-weight: 550">定时导入新消息</div>
             <div class="hint">
-              可先自动解密微信，再按水位线增量导入；抖音只读引擎库，并按下面
-              「采集范围」里保存的勾选列表增量导入。不会自动打开浏览器采集。
+              可先自动解密微信；抖音会先打开浏览器按「采集范围」采集，再按同一
+              范围增量导入。自动采集失败时会继续导入已有引擎库。
             </div>
           </div>
           <button
             class="switch"
             :class="{ on: !!store.settings.autosync_enabled }"
             @click="setAutosync(!store.settings.autosync_enabled)"
+          />
+        </div>
+
+        <div class="row mt12">
+          <div class="grow">
+            <div style="font-weight: 550">抖音先自动采集</div>
+            <div class="hint">会弹出浏览器，需要扫码登录；失败会继续导入已有数据</div>
+          </div>
+          <button
+            class="switch"
+            :class="{ on: !!store.settings.autosync_douyin_collect }"
+            @click="setAutosyncDouyinCollect(!store.settings.autosync_douyin_collect)"
           />
         </div>
 
