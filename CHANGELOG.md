@@ -2,6 +2,16 @@
 
 本项目的所有调整都记录在这里；更细的逐次改动可以用 `git log --oneline` 查。
 
+## [1.3.7] - 2026-11-13
+
+### 自动增量更新
+
+- 微信：开启「微信先自动解密」后，定时任务先跑一次 SIWX 解密，再按水位线增量导入；
+  解密失败只记日志，继续导入已有解密数据（默认开启，可在设置关闭）
+- 抖音：采集范围（全部 / 勾选 / 排除）现在会保存到 settings，定时增量更新按同一
+  范围过滤引擎库，不再无差别导入全部会话
+- 采集范围保存失败不阻断手动采集；保存后定时任务下一轮生效
+
 ## [1.3.6] - 2026-11-13
 
 ### 修复
@@ -216,6 +226,7 @@
 - 便携包：内嵌 Python 运行时，解压即用
 - AGPL-3.0 开源，仓库不含真实数据，演示数据全部合成
 
+[1.3.7]: https://example.com/chatwork/releases/tag/v1.3.7
 [1.3.6]: https://example.com/chatwork/releases/tag/v1.3.6
 [1.3.5]: https://example.com/chatwork/releases/tag/v1.3.5
 [1.3.4]: https://example.com/chatwork/releases/tag/v1.3.4

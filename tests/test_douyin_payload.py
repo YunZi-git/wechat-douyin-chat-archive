@@ -173,3 +173,12 @@ def test_backfill_from_engine_content_json(library, tmp_path):
         ).fetchone()
     assert row["text"] == "回填视频"
     assert "www.douyin.com/video/7000000000000000009" in row["extra"]
+
+def test_douyin_scope_matching():
+    from app.importers.douyin import _in_scope
+
+    assert _in_scope("安心. 2 天后消失", ["安心."], None)
+    assert not _in_scope("听风逝夜", ["安心."], None)
+    assert not _in_scope("安心.", None, ["安心."])
+    assert _in_scope("安心.", None, ["听风逝夜"])
+    assert _in_scope("任意", None, None)

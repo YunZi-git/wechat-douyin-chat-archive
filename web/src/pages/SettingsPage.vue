@@ -63,6 +63,11 @@ async function setAutosync(enabled) {
   await loadAutosync()
 }
 
+async function setAutosyncDecrypt(enabled) {
+  await save({ autosync_wechat_decrypt: enabled })
+  await loadAutosync()
+}
+
 async function setAutosyncInterval(value) {
   await save({ autosync_interval_minutes: Number(value) })
   await loadAutosync()
@@ -543,14 +548,26 @@ onMounted(async () => {
           <div class="grow">
             <div style="font-weight: 550">定时导入新消息</div>
             <div class="hint">
-              只读取本机已有数据：微信解密目录按水位线增量导入，抖音引擎库直接补导入。
-              不会自动打开浏览器采集或自动解密微信。
+              可先自动解密微信，再按水位线增量导入；抖音只读引擎库，并按下面
+              「采集范围」里保存的勾选列表增量导入。不会自动打开浏览器采集。
             </div>
           </div>
           <button
             class="switch"
             :class="{ on: !!store.settings.autosync_enabled }"
             @click="setAutosync(!store.settings.autosync_enabled)"
+          />
+        </div>
+
+        <div class="row mt12">
+          <div class="grow">
+            <div style="font-weight: 550">微信先自动解密</div>
+            <div class="hint">需要微信正在运行并登录；失败会跳过解密、继续导入已有数据</div>
+          </div>
+          <button
+            class="switch"
+            :class="{ on: !!store.settings.autosync_wechat_decrypt }"
+            @click="setAutosyncDecrypt(!store.settings.autosync_wechat_decrypt)"
           />
         </div>
 

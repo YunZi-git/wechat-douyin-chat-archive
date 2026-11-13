@@ -81,6 +81,20 @@ def guess_self_uid(source: sqlite3.Connection) -> str | None:
     return best if hits >= max(1, total * 0.6) else None
 
 
+def _in_scope(title: str, only_names: list[str] | None,
+              exclude_names: list[str] | None) -> bool:
+    """勾选名单匹配：引擎标题可能带「x 天后消失」后缀，按前缀匹配。"""
+    text = (title or "").strip()
+    def hit(name: str) -> bool:
+        n = str(name).strip()
+        return bool(n) and (text == n or text.startswith(n))
+    if only_names is not None:
+        return any(hit(n) for n in only_names)
+    if exclude_names is not None:
+        return not any(hit(n) for n in exclude_names)
+    return True
+
+
 def private_partner(conv_id: str, self_uid: str | None) -> str | None:
     """从 ``0:1:uidA:uidB`` 里取出「对方」的 uid。"""
     parts = [p for p in (conv_id or "").split(":")[2:] if p.isdigit() and len(p) > 8]
@@ -214,6 +228,8 @@ def import_chat_db(
     progress: Progress = None,
     limit_messages: int | None = None,
     should_cancel: Callable[[], bool] | None = None,
+    only_names: list[str] | None = None,
+    exclude_names: list[str] | None = None,
 ) -> dict[str, Any]:
     chat_db = Path(chat_db)
     if not chat_db.exists():
@@ -272,6 +288,9 @@ def import_chat_db(
             other = users.get(other_uid or "", {})
             if not title:
                 title = (other.get("nickname") or "").strip() or ("群聊" if kind == "group" else (other_uid or conv_id))
+
+            if not _in_scope(title, only_names, exclude_names):
+                continue
 
             avatar = None
             if avatar_rel:

@@ -18,6 +18,9 @@ DEFAULTS: dict[str, Any] = {
     "autosync_enabled": False,        # 定时增量更新
     "autosync_interval_minutes": 30,
     "autosync_last_run": 0,
+    "autosync_wechat_decrypt": True,  # 定时任务先跑一次微信解密
+    "douyin_scope_mode": "all",       # all | include | exclude
+    "douyin_scope_names": [],
     "density": "comfortable",
     "page_size": 60,
     "timezone_offset": 8,

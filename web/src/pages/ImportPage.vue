@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { api } from '../lib/api'
 import { store, toast, refreshStats } from '../lib/store'
 import { fmtBytes, fmtCount, fmtDateTime } from '../lib/format'
@@ -20,9 +20,22 @@ const wxIncremental = ref(true)
 const dyConvs = ref([])
 const dyConvReady = ref(false)
 const dyLoading = ref(false)
-const dyMode = ref('all')
-const dySelected = ref([])
+const dyMode = ref(store.settings.douyin_scope_mode || 'all')
+const dySelected = ref([...(store.settings.douyin_scope_names || [])])
 const dyQuery = ref('')
+let scopeTimer = null
+
+function persistScope() {
+  return api.saveSettings({
+    douyin_scope_mode: dyMode.value,
+    douyin_scope_names: dySelected.value,
+  }).catch(() => {})
+}
+
+watch([dyMode, dySelected], () => {
+  clearTimeout(scopeTimer)
+  scopeTimer = setTimeout(persistScope, 400)
+}, { deep: true })
 const dyIncremental = ref(true)
 const dyDownloadImages = ref(false)
 const dyFailures = ref([])
@@ -332,6 +345,7 @@ onMounted(async () => {
             </div>
             <div class="hint" style="margin-top: 6px">
               已选 {{ dySelected.length }} / {{ dyConvs.length }}
+              · 定时增量导入也按这个范围（全部 / 勾选 / 排除）
             </div>
           </div>
 

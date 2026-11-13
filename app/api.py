@@ -103,6 +103,9 @@ class SettingsBody(BaseModel):
     language: str | None = None
     autosync_enabled: bool | None = None
     autosync_interval_minutes: int | None = None
+    autosync_wechat_decrypt: bool | None = None
+    douyin_scope_mode: str | None = None
+    douyin_scope_names: list[str] | None = None
     density: Literal["comfortable", "compact"] | None = None
     page_size: int | None = Field(default=None, ge=20, le=300)
     timezone_offset: float | None = Field(default=None, ge=-12, le=14)
@@ -355,6 +358,14 @@ def patch_settings(body: SettingsBody) -> dict[str, Any]:
         if not 1 <= minutes <= 1440:
             raise HTTPException(400, "自动更新间隔需在 1–1440 分钟之间")
         patch["autosync_interval_minutes"] = minutes
+    if "douyin_scope_mode" in patch:
+        if patch["douyin_scope_mode"] not in ("all", "include", "exclude"):
+            raise HTTPException(400, "抖音采集范围只能是 all/include/exclude")
+    if "douyin_scope_names" in patch:
+        names = [str(n).strip() for n in (patch["douyin_scope_names"] or []) if str(n).strip()]
+        if len(names) > 500:
+            raise HTTPException(400, "一次最多保存 500 个会话名")
+        patch["douyin_scope_names"] = names
     return settings.save(patch)
 
 

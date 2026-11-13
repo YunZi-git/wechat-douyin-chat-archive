@@ -633,7 +633,20 @@ def start_incremental_update(*, trigger: str = "auto") -> jobs.Job:
 
     def target(job: jobs.Job) -> dict[str, Any]:
         with _heavy_slot(job, "增量更新"):
+            cfg = settings.load()
             reports: list[dict[str, Any]] = []
+            # 先解密微信，再做增量导入；解密失败不影响已有的解密数据
+            if cfg.get("autosync_wechat_decrypt", True):
+                run_py = paths.SIWX_DIR / "run.py"
+                if run_py.is_file():
+                    try:
+                        job.write("[i] 微信自动解密…（需要微信正在运行并登录）")
+                        code = _siwx_auto(job, paths.WECHAT_DECRYPTED)
+                        job.write(
+                            f"[i] 微信解密结束（退出码 {code}），继续增量导入"
+                        )
+                    except Exception as exc:  # noqa: BLE001 - 解密失败不阻断导入
+                        job.write(f"[!] 微信解密失败：{exc}，继续导入已有数据")
             accounts = wechat_importer.detect_accounts(paths.WECHAT_DECRYPTED)
             if accounts:
                 job.write(f"[i] 微信增量：{len(accounts)} 个账号")
@@ -648,14 +661,24 @@ def start_incremental_update(*, trigger: str = "auto") -> jobs.Job:
                     job.write(
                         f"[✓] {account.name}: 新消息 {report['messages_added']}"
                     )
-            if paths.DOUYIN_DB.is_file():
-                job.write("[i] 抖音增量：读取引擎数据库")
+
+            # 抖音只按设置里保存的采集范围导入（勾选/排除/全部）
+            scope_mode = str(cfg.get("douyin_scope_mode") or "all")
+            scope_names = [str(n) for n in (cfg.get("douyin_scope_names") or [])]
+            if scope_mode == "include" and not scope_names:
+                job.write("[i] 抖音勾选范围为空，跳过增量导入")
+            elif paths.DOUYIN_DB.is_file():
+                only = scope_names if scope_mode == "include" else None
+                excluded = scope_names if scope_mode == "exclude" else None
+                job.write(f"[i] 抖音增量：范围 {scope_mode}")
                 report = douyin_importer.import_chat_db(
                     paths.DOUYIN_DB,
                     media_src=paths.DOUYIN_MEDIA,
                     copy_media=False,
                     should_cancel=job.cancelled,
                     progress=job.update,
+                    only_names=only,
+                    exclude_names=excluded,
                 )
                 reports.append(report)
                 job.write(f"[✓] 抖音：新消息 {report['messages_added']}")
