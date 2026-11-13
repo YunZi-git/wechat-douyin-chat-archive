@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { store, currentTheme, setTheme } from '../lib/store'
-import { CATEGORY_LABELS, BUILTIN_THEMES, systemPrefersDark } from '../lib/themes'
+import { CATEGORY_LABELS, systemPrefersDark } from '../lib/themes'
 import { t } from '../lib/i18n'
 import Icon from '../components/Icon.vue'
 

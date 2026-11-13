@@ -20,7 +20,7 @@ import subprocess
 import sys
 import threading
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Callable, Iterator
 
 from . import asr, db, jobs, paths, settings, wechat_media
 from .importers import douyin as douyin_importer

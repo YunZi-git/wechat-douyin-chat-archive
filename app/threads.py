@@ -296,6 +296,8 @@ def _message_row(row: sqlite3.Row) -> dict[str, Any]:
         item["meta"] = json.loads(raw) if raw else {}
     except (TypeError, json.JSONDecodeError):
         item["meta"] = {}
+    # 原始 JSON 不再回传（meta 已经是解析后的结构，少一份重复数据）
+    item.pop("extra", None)
     return item
 
 
@@ -647,13 +649,16 @@ def thread_media(
             f" ON c.id = m.conversation_id WHERE {where}",
             conn_args,
         ).fetchone()[0])
+        # 分类计数永远统计全部媒体类型，否则切到「图片」后其它 tab 的角标会消失
+        all_marks = ",".join("?" for _ in MEDIA_KINDS)
         counts = {
             r["kind"]: int(r["n"])
             for r in conn.execute(
                 f"""SELECT m.kind, COUNT(*) AS n FROM messages m
                       JOIN conversations c ON c.id = m.conversation_id
-                     WHERE {where} GROUP BY m.kind""",
-                conn_args,
+                     WHERE {cond} AND m.kind IN ({all_marks})
+                     GROUP BY m.kind""",
+                [*args, *MEDIA_KINDS],
             )
         }
         rows = conn.execute(

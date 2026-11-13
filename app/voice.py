@@ -104,6 +104,53 @@ def transcode_silk(silk_path: Path, cache_key: str) -> tuple[Path, float | None]
     return target, wav_duration(target)
 
 
+def convert_to_wav(src: Path, cache_key: str) -> tuple[Path, float | None]:
+    """任意音频 → 16k 单声道 WAV（抖音语音是 mpeg，云端识别只收 wav）。
+
+    用 PyAV（faster-whisper 的依赖）解码，不额外依赖 ffmpeg 可执行文件。
+    """
+    VOICE_CACHE.mkdir(parents=True, exist_ok=True)
+    target = VOICE_CACHE / f"{cache_key}.wav"
+    if target.is_file() and target.stat().st_size > 44:
+        return target, wav_duration(target)
+
+    try:
+        import av
+    except ImportError as exc:  # pragma: no cover
+        raise RuntimeError("缺少 PyAV，无法转换语音格式（pip install av）") from exc
+
+    nonce = uuid.uuid4().hex[:8]
+    tmp = VOICE_CACHE / f"{cache_key}.{nonce}.wav"
+    frames = 0
+    try:
+        with av.open(str(src)) as container:
+            if not container.streams.audio:
+                raise RuntimeError("文件里没有音频流")
+            stream = container.streams.audio[0]
+            resampler = av.AudioResampler(format="s16", layout="mono", rate=16000)
+            with wave.open(str(tmp), "wb") as out:
+                out.setnchannels(1)
+                out.setsampwidth(2)
+                out.setframerate(16000)
+                for frame in container.decode(stream):
+                    for chunk in resampler.resample(frame):
+                        out.writeframes(bytes(chunk.planes[0]))
+                        frames += chunk.samples
+                # 冲刷重采样器里剩下的样本
+                for chunk in resampler.resample(None):
+                    out.writeframes(bytes(chunk.planes[0]))
+                    frames += chunk.samples
+        if frames <= 0:
+            raise RuntimeError("转换结果为空")
+        os.replace(tmp, target)
+    finally:
+        try:
+            tmp.unlink()
+        except OSError:
+            pass
+    return target, round(frames / 16000, 1)
+
+
 def cache_stats() -> dict[str, int]:
     """语音缓存占了多少空间（前端设置页展示 / 清理用）。"""
     if not VOICE_CACHE.is_dir():

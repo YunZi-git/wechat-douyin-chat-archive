@@ -100,11 +100,26 @@ def _image_data_uri(abs_path: Path, budget: _ImageBudget) -> str | None:
         return None
 
 
+def _message_meta(msg: dict[str, Any]) -> dict[str, Any]:
+    """导出走的是原始行（extra 是 JSON 字符串），这里补齐解析。"""
+    meta = msg.get("meta")
+    if isinstance(meta, dict):
+        return meta
+    raw = msg.get("extra")
+    if not raw:
+        return {}
+    try:
+        parsed = json.loads(raw)
+        return parsed if isinstance(parsed, dict) else {}
+    except (TypeError, json.JSONDecodeError):
+        return {}
+
+
 def _message_content(msg: dict[str, Any], budget: _ImageBudget) -> str:
     kind = msg.get("kind") or "text"
     text = (msg.get("text") or "").strip()
     if kind == "text":
-        quote = (msg.get("meta") or {}).get("quote") or {}
+        quote = _message_meta(msg).get("quote") or {}
         if quote:
             sender = quote.get("sender") or "对方"
             return f"{text}\n\n> 引用 {sender}：{quote.get('content') or ''}"

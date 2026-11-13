@@ -76,7 +76,7 @@
 | `web/src/components/ChatView.vue` | 消息流、会话内搜索、跳转 | |
 | `scripts/make_demo_data.py` | 生成合成演示数据（可 `--import`） | demo 数据全靠它 |
 | `scripts/build_portable.py` | 嵌入式 Python + 依赖 + 启动脚本 | |
-| `tests/` | 156 个 pytest 用例 + 4 个 E2E（默认跳过） | 全用合成数据 |
+| `tests/` | 163 个 pytest 用例 + 4 个 E2E（默认跳过） | 全用合成数据 |
 
 ---
 
@@ -281,7 +281,17 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 
 ---
 
-## 6. 必须知道的 15 个坑
+## 5.5 全流程审计修复（本轮）
+
+- `/api/health` 版本统一到 `app/version.py`（与更新检查同一个常量）
+- 腾讯云识别抖音 `.mpeg` 语音：`voice.convert_to_wav()` 用 PyAV 转 16k 单声道 WAV
+- 媒体页分类计数改为始终统计全部媒体类型（切换 tab 不再丢角标）
+- 导出引用：`chatlab._message_content` 兼容原始行（`extra` JSON），`> 引用` 不再丢
+- 隐私：健康检查/数据源只返回相对 `data/`，不再把本机用户名带进界面和截图
+- 更新检查限制 http/https + 1MB 上限
+- `ruff check app scripts --select F401,F811,F821,F841` 全绿
+
+## 6. 必须知道的 19 个坑
 
 1. **只能 Python 3.11**：pilk 没有 3.12+ 的轮子。
 2. **子进程要 UTF-8**：`PYTHONIOENCODING=utf-8`，否则 SIWX 的中文日志在 GBK 控制台直接崩。
@@ -346,7 +356,7 @@ python scripts/build_portable.py --zip
 
 1. **识别体验**：按会话筛选、预计费用显示、失败原因分类（密钥错/欠费/网络/格式）
 2. **媒体预热**：后台批量解密某个会话的图片，避免滚动时一张张加载
-3. **表情包**：目前靠通用图片解密，命中率一般；要做完整支持得解析 `emoticon.db`
+3. **表情包**：图片是微信私有容器，已做说明文字兜底；图片本身需要上游解开格式
 4. **AI 归纳**（可选，来自旧项目）：事实抽取 + 人物画像
 5. **打包瘦身**：faster-whisper 让包大了约 90MB，可考虑做成可选组件
 
@@ -376,7 +386,7 @@ git grep -n -I -E "wxid_[a-z0-9]{10,}|sk-[A-Za-z0-9]{20,}|AKID[A-Za-z0-9]{10,}|C
 ## 10. 验收清单（改完代码跑一遍）
 
 ```bash
-.venv\Scripts\python -m pytest -q          # 156 passed, 4 skipped（E2E 需 CHATWORK_E2E=1）
+.venv\Scripts\python -m pytest -q          # 163 passed, 4 skipped（E2E 需 CHATWORK_E2E=1）
 python scripts/build_portable.py --no-build-web   # 能打包
 ```
 

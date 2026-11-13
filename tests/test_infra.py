@@ -44,7 +44,7 @@ def test_check_reads_manifest(tmp_path):
         "notes": "新功能",
         "url": "https://example.com/download",
     }), encoding="utf-8")
-    result = updates.check(manifest.as_uri(), current="1.0.0")
+    result = updates.check(manifest.as_uri(), current="1.0.0", allow_file=True)
     assert result["checked"] is True
     assert result["available"] is True
     assert result["latest"] == "9.9.9"
@@ -54,7 +54,7 @@ def test_check_reads_manifest(tmp_path):
 def test_check_same_version(tmp_path):
     manifest = tmp_path / "latest.json"
     manifest.write_text(json.dumps({"tag_name": "v1.1.0"}), encoding="utf-8")
-    result = updates.check(manifest.as_uri(), current="1.1.0")
+    result = updates.check(manifest.as_uri(), current="1.1.0", allow_file=True)
     assert result["available"] is False
 
 
@@ -69,11 +69,22 @@ def test_version_endpoint(client, library):
     assert data["version"] == updates.APP_VERSION
 
 
-def test_update_check_endpoint(client, library, tmp_path):
+def test_update_check_endpoint(client, library, monkeypatch):
+    monkeypatch.setattr(
+        updates, "_fetch_json", lambda url, timeout=8.0: {"version": "99.0.0"}
+    )
+    data = client.get(
+        "/api/update/check", params={"url": "https://example.com/latest.json"}
+    ).json()
+    assert data["available"] is True
+
+
+def test_update_check_rejects_file_url(client, library, tmp_path):
     manifest = tmp_path / "latest.json"
     manifest.write_text(json.dumps({"version": "99.0.0"}), encoding="utf-8")
     data = client.get("/api/update/check", params={"url": manifest.as_uri()}).json()
-    assert data["available"] is True
+    assert data["checked"] is True
+    assert "http" in data["error"]
 
 
 def test_settings_language(client, library):
@@ -90,3 +101,14 @@ def test_settings_accepts_system_theme(client, library):
 def test_themes_builtin_contains_system(client, library):
     data = client.get("/api/themes").json()
     assert "system" in data["builtin"]
+
+
+def test_health_version_matches(client, library):
+    health = client.get("/api/health").json()
+    assert health["version"] == updates.APP_VERSION
+
+
+def test_health_data_dir_is_relative(client, library):
+    health = client.get("/api/health").json()
+    assert not health["data_dir"].startswith(("C:", "/"))
+    assert health["data_dir"].endswith("/")

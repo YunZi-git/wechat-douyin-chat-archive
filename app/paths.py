@@ -28,6 +28,16 @@ DATA_DIR = Path(
     os.environ.get("CHATWORK_DATA_DIR") or (APP_ROOT / "data")
 ).expanduser().resolve()
 
+def display_data_dir() -> str:
+    """给界面/接口用的相对路径，避免把本机用户名暴露在界面和截图里。"""
+    try:
+        rel = DATA_DIR.relative_to(APP_ROOT)
+        text = rel.as_posix()
+        return "data/" if text in ("", ".") else f"{text}/"
+    except ValueError:
+        return f"{DATA_DIR.name}/"
+
+
 # ── 统一数据库与配置 ────────────────────────────────────────────────
 UNIFIED_DB = DATA_DIR / "unified.db"
 SETTINGS_PATH = DATA_DIR / "settings.json"

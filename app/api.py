@@ -1,7 +1,6 @@
 """HTTP API。前端只跟这里打交道，不直接碰数据库。"""
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any, Literal
 
@@ -19,7 +18,7 @@ from . import wechat_media
 from . import db, jobs, paths, services, settings, threads
 from .exporters import chatlab
 
-VERSION = "0.1.0"
+from .version import VERSION  # noqa: E402
 
 router = APIRouter(prefix="/api")
 
@@ -111,7 +110,7 @@ def health() -> dict[str, Any]:
         "ok": True,
         "version": VERSION,
         "first_run": stats["messages"] == 0,
-        "data_dir": str(paths.DATA_DIR),
+        "data_dir": paths.display_data_dir(),
     }
 
 
@@ -302,7 +301,7 @@ def sources() -> dict[str, Any]:
         "wechat_accounts": services.wechat_accounts(),
         "douyin": services.douyin_source(),
         "engines": services.engine_status(),
-        "data_dir": str(paths.DATA_DIR),
+        "data_dir": paths.display_data_dir(),
     }
 
 

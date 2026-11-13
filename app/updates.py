@@ -6,10 +6,13 @@
 from __future__ import annotations
 
 import json
+import urllib.parse
 import urllib.request
 from typing import Any
 
-APP_VERSION = "1.1.0"
+from .version import VERSION
+
+APP_VERSION = VERSION
 USER_AGENT = f"chatwork/{APP_VERSION}"
 
 
@@ -23,13 +26,21 @@ def parse_version(value: str) -> tuple[int, ...]:
     return tuple(parts)
 
 
+MAX_MANIFEST_BYTES = 1024 * 1024
+
+
 def _fetch_json(url: str, timeout: float = 8.0) -> dict[str, Any]:
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     with urllib.request.urlopen(request, timeout=timeout) as response:
-        return json.loads(response.read().decode("utf-8"))
+        # 防止恶意/异常清单把内存打满
+        raw = response.read(MAX_MANIFEST_BYTES + 1)
+    if len(raw) > MAX_MANIFEST_BYTES:
+        raise ValueError("更新清单超过 1MB，已拒绝")
+    return json.loads(raw.decode("utf-8"))
 
 
-def check(url: str | None, *, current: str = APP_VERSION) -> dict[str, Any]:
+def check(url: str | None, *, current: str = APP_VERSION,
+          allow_file: bool = False) -> dict[str, Any]:
     """检查更新清单。
 
     清单格式兼容两种：
@@ -41,6 +52,12 @@ def check(url: str | None, *, current: str = APP_VERSION) -> dict[str, Any]:
     base = {"current": current, "checked": False, "available": False}
     if not target:
         return {**base, "reason": "还没有配置更新地址"}
+    if len(target) > 2048:
+        return {**base, "checked": True, "error": "地址过长"}
+    scheme = urllib.parse.urlparse(target).scheme.lower()
+    allowed = {"http", "https"} | ({"file"} if allow_file else set())
+    if scheme not in allowed:
+        return {**base, "checked": True, "error": "只支持 http/https 更新地址"}
 
     try:
         data = _fetch_json(target)

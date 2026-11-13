@@ -20,7 +20,6 @@
 from __future__ import annotations
 
 import argparse
-import itertools
 import json
 import re
 import sys
@@ -235,7 +234,6 @@ def build_theme(style: dict[str, Any]) -> dict[str, Any]:
     panel2 = mix(bg, "#ffffff" if dark else "#000000", 0.10 if dark else 0.05)
     panel3 = mix(bg, "#ffffff" if dark else "#000000", 0.15 if dark else 0.09)
     border = mix(bg, "#ffffff" if dark else "#000000", 0.14)
-    border_soft = mix(bg, "#ffffff" if dark else "#000000", 0.09 if dark else 0.08)
     border_color = parse_border_color((tokens.get("border") or {}).get("color"), border)
     border_soft_color = mix(border_color, bg, 0.45)
     text_dim = mix(text, bg, 0.34)

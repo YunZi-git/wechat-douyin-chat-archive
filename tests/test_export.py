@@ -89,3 +89,28 @@ def test_safe_filename_strips_illegal_chars():
     assert chatlab.safe_filename('a/b\\c:d*e?f"g<h>i|j') == "a_b_c_d_e_f_g_h_i_j"
     assert chatlab.safe_filename("   ") == "conversation"
     assert chatlab.safe_filename(None) == "conversation"
+
+
+def test_quote_export_from_raw_row(library, tmp_path):
+    """导出走原始行（extra 是 JSON），引用内容必须能出现在 Markdown 里。"""
+    import json
+
+    from app import db
+    from app.exporters import chatlab
+
+    with db.session(readonly=True) as conn:
+        conv = conn.execute(
+            "SELECT id FROM conversations WHERE platform='wechat' LIMIT 1"
+        ).fetchone()
+    assert conv is not None
+    with db.session() as conn:
+        db.add_message(
+            conn, conv["id"], "wechat", "quote:audit:1",
+            sender_uid="wxid_demo0000001", sender_name="林晓", is_self=False,
+            ts=1_700_000_123, kind="text", text="好啊，周六见",
+            extra=json.dumps({"quote": {"sender": "小林", "content": "周末有空吗"}},
+                             ensure_ascii=False),
+        )
+    target = chatlab.export_markdown(f"conv:{conv['id']}")
+    content = target.read_text(encoding="utf-8")
+    assert "> 引用 小林：周末有空吗" in content

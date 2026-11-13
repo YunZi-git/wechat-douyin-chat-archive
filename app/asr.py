@@ -280,6 +280,10 @@ def _prepare_audio(msg: dict[str, Any]) -> Path:
     if path.suffix.lower() == ".silk":
         wav, _duration = voice_mod.transcode_silk(path, str(msg["id"]))
         return wav
+    if path.suffix.lower() != ".wav":
+        # 抖音语音是 mpeg；腾讯云指定了 VoiceFormat=wav，必须先转
+        wav, _duration = voice_mod.convert_to_wav(path, f"asr_{msg['id']}")
+        return wav
     return path
 
 
