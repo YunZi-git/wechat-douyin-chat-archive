@@ -2,6 +2,15 @@
 
 本项目的所有调整都记录在这里；更细的逐次改动可以用 `git log --oneline` 查。
 
+## [1.4.4] - 2026-11-13
+
+### 修复
+
+- 腾讯云 TC3 签名补上官方示例里的 `x-tc-action` 参与签名（content-type;host;x-tc-action）
+- 把 `AuthFailure.SignatureFailure` / `SignatureExpire` / `SecretIdNotFound` /
+  `UnauthorizedOperation` 映射成中文可操作提示；签名失败时明确提示
+  SecretId/SecretKey 不匹配或 SecretKey 被重置
+
 ## [1.4.3] - 2026-11-13
 
 ### 修复
@@ -280,6 +289,7 @@
 - 便携包：内嵌 Python 运行时，解压即用
 - AGPL-3.0 开源，仓库不含真实数据，演示数据全部合成
 
+[1.4.4]: https://example.com/chatwork/releases/tag/v1.4.4
 [1.4.3]: https://example.com/chatwork/releases/tag/v1.4.3
 [1.4.2]: https://example.com/chatwork/releases/tag/v1.4.2
 [1.4.1]: https://example.com/chatwork/releases/tag/v1.4.1

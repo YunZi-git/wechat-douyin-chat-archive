@@ -124,8 +124,12 @@ def _tencent_call(secret_id: str, secret_key: str, region: str,
     payload = json.dumps(params, ensure_ascii=False, separators=(",", ":"))
 
     content_type = "application/json; charset=utf-8"
-    canonical_headers = f"content-type:{content_type}\nhost:{TENCENT_HOST}\n"
-    signed_headers = "content-type;host"
+    canonical_headers = (
+        f"content-type:{content_type}\n"
+        f"host:{TENCENT_HOST}\n"
+        f"x-tc-action:{TENCENT_ACTION.lower()}\n"
+    )
+    signed_headers = "content-type;host;x-tc-action"
     hashed_payload = hashlib.sha256(payload.encode("utf-8")).hexdigest()
     canonical_request = "\n".join([
         "POST", "/", "", canonical_headers, signed_headers, hashed_payload,
@@ -196,6 +200,27 @@ def _tencent_recognize(wav_path: Path, *, retries: int = 3) -> str:
             last_error = f"{code}：{message}"
             time.sleep(1.5 + attempt * 2)
             continue
+        if code == "AuthFailure.SignatureFailure":
+            raise AsrError(
+                "签名校验失败：腾讯云认为 SecretId 与 SecretKey 不匹配，"
+                "或 SecretKey 已被重置/复制不完整。请到腾讯云访问管理重新复制"
+                f"同一对密钥（{message}）"
+            )
+        if code == "AuthFailure.SignatureExpire":
+            raise AsrError(
+                "签名已过期：本机时间与标准时间相差超过 5 分钟，请同步系统时间"
+                f"（{message}）"
+            )
+        if code in ("AuthFailure.SecretIdNotFound", "AuthFailure.InvalidSecretId"):
+            raise AsrError(
+                "SecretId 不存在或已禁用，请检查腾讯云 API 密钥管理"
+                f"（{message}）"
+            )
+        if code == "UnauthorizedOperation":
+            raise AsrError(
+                "这组密钥没有语音识别权限，请给对应子账号授予 ASR 权限"
+                f"（{message}）"
+            )
         raise AsrError(f"{code}：{message}" if code else "腾讯云返回了未知错误")
     raise AsrError(f"重试 {retries} 次仍失败（{last_error}）")
 
