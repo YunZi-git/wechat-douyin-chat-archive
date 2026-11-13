@@ -493,12 +493,16 @@ onMounted(async () => {
         <div class="row mt12">
           <div class="grow">
             <div style="font-weight: 550">{{ t('云端并发') }}</div>
-            <div class="hint">本地识别固定串行，避免抢 CPU</div>
+            <div class="hint">最高 100；太大容易触发腾讯云限流。本地识别固定串行</div>
           </div>
           <select v-model.number="asrForm.concurrency" class="select" style="max-width: 110px">
             <option :value="1">1</option>
             <option :value="2">2</option>
             <option :value="4">4</option>
+            <option :value="10">10</option>
+            <option :value="25">25</option>
+            <option :value="50">50</option>
+            <option :value="100">100</option>
           </select>
         </div>
 

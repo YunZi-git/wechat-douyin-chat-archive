@@ -2,6 +2,14 @@
 
 本项目的所有调整都记录在这里；更细的逐次改动可以用 `git log --oneline` 查。
 
+## [1.4.6] - 2026-11-13
+
+### 调整
+
+- 云端 ASR 并发上限从 4 提高到 **100**，设置页增加 10 / 25 / 50 / 100 选项
+- 本地 faster-whisper 仍固定串行，避免 CPU 抢占
+- 并发过高可能触发腾讯云 QPS 限流，遇到时调低
+
 ## [1.4.5] - 2026-11-13
 
 ### 修复
@@ -298,6 +306,7 @@
 - 便携包：内嵌 Python 运行时，解压即用
 - AGPL-3.0 开源，仓库不含真实数据，演示数据全部合成
 
+[1.4.6]: https://example.com/chatwork/releases/tag/v1.4.6
 [1.4.5]: https://example.com/chatwork/releases/tag/v1.4.5
 [1.4.4]: https://example.com/chatwork/releases/tag/v1.4.4
 [1.4.3]: https://example.com/chatwork/releases/tag/v1.4.3

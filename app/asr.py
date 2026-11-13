@@ -392,7 +392,7 @@ def run_batch(
 
     job.write(f"[i] 引擎 {engine}，范围 {scope}，共 {total} 条")
     cfg = settings.load()
-    concurrency = max(1, min(int(cfg.get("asr_concurrency", 2)), 4))
+    concurrency = max(1, min(int(cfg.get("asr_concurrency", 2)), 100))
     if engine == "local":
         concurrency = 1  # 本地模型串行，避免抢占 CPU / 线程安全问题
 

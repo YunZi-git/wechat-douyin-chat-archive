@@ -77,7 +77,7 @@ class VoiceImportBody(BaseModel):
 class AsrConfigBody(BaseModel):
     engine: Literal["off", "tencent", "local"] | None = None
     auto_after_import: bool | None = None
-    concurrency: int | None = Field(default=None, ge=1, le=4)
+    concurrency: int | None = Field(default=None, ge=1, le=100)
     whisper_model: Literal["base", "small", "medium"] | None = None
     whisper_model_dir: str | None = None
     tencent_secret_id: str | None = None

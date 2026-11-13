@@ -153,3 +153,9 @@ def test_asr_config_accepts_patch(client, library):
     assert res.status_code == 200, res.text
     data = client.get("/api/asr/status").json()
     assert data["secrets"]["tencent"]["configured"] is True
+
+def test_asr_concurrency_max_100(client, library):
+    res = client.put("/api/asr/config", json={"concurrency": 100})
+    assert res.status_code == 200, res.text
+    assert res.json()["engines"]["concurrency"] == 100
+    assert client.put("/api/asr/config", json={"concurrency": 101}).status_code == 422
