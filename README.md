@@ -31,11 +31,24 @@
 - **开源**：AGPL-3.0，仓库里不含任何真实聊天数据、密钥或账号信息
 - **可离线**：便携版解压即用，内置 Python 运行时
 
+## AI 生成说明
+
+**除第三方组件外，本项目的第一方代码、界面、测试与文档 100% 由 DeepSeek Harness（dsh）中的 AI Agent 生成。**
+
+- **生成方式**：项目在 DeepSeek Harness 中由 AI Agent 通过连续对话完成；人类负责提出需求、做产品取舍、提供真实数据做验证、执行测试与验收，AI 负责编写和修改代码。
+- **覆盖范围**：FastAPI 后端、SQLite 数据层、微信/抖音导入与增量同步、联系人合并、Vue 3 界面、151 套外观主题、语音转写接入、Windows 便携打包、pytest 与 Playwright E2E、README / CHANGELOG / NOTICE 等。
+- **不包括**：`engines/siwx`（AGPL-3.0）、`engines/douyin`（MIT）和 Python embeddable runtime 是第三方代码/产物，不是由本项目 AI 生成的，按各自原许可证使用，详见 [NOTICE](NOTICE)。
+- **质量说明**：AI 生成的代码仍可能有 bug；当前通过 194 个 pytest 和 11 个 E2E 回归，但不对正确性作担保。处理真实聊天数据前请先备份并自行审查。
+- **项目性质**：这是一个“AI 端到端实现、人类需求与验收驱动”的实验性项目，不代表 DeepSeek 官方产品。
+
+[![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)
+
 ---
 
 ## 目录
 
 - [功能](#功能)
+- [AI 生成说明](#ai-生成说明)
 - [快速开始](#快速开始)
 - [使用流程](#使用流程)
 - [数据与隐私](#数据与隐私)
