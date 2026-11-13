@@ -91,6 +91,17 @@ export function findTheme(themes, slug) {
   return themes.find((t) => t.slug === slug)
 }
 
+const SYSTEM_QUERY = '(prefers-color-scheme: dark)'
+
+export function systemPrefersDark() {
+  return typeof window !== 'undefined' && !!window.matchMedia
+    && window.matchMedia(SYSTEM_QUERY).matches
+}
+
+export function systemTheme(themes) {
+  return findTheme(themes, systemPrefersDark() ? 'dark' : 'light') || BUILTIN_THEMES[0]
+}
+
 function darker(hex, amount) {
   // 仅用于 --bg-rail 的兜底，主题数据一般已经带了 bgRail
   const m = /^#([0-9a-f]{6})$/i.exec(hex || '')
@@ -131,7 +142,7 @@ export function cssVars(theme) {
   }
 }
 
-export function applyTheme(theme) {
+export function applyTheme(theme, cacheSlug) {
   const root = document.documentElement
   const vars = cssVars(theme)
   for (const [key, value] of Object.entries(vars)) {
@@ -140,7 +151,7 @@ export function applyTheme(theme) {
   root.setAttribute('data-theme', 'custom')
   root.style.colorScheme = theme.dark ? 'dark' : 'light'
   try {
-    localStorage.setItem('chatwork.theme', theme.slug)
+    localStorage.setItem('chatwork.theme', cacheSlug || theme.slug)
     localStorage.setItem('chatwork.palette', JSON.stringify(theme))
   } catch {
     /* 隐私模式忽略 */

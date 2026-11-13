@@ -12,7 +12,8 @@ from typing import Any
 from . import paths
 
 DEFAULTS: dict[str, Any] = {
-    "theme": "dark",  # 内置：dark/light/warm/purple；其它为 StyleKit 的 slug
+    "theme": "dark",  # 内置：dark/light/warm/purple/system；其它为 StyleKit 的 slug
+    "update_url": "",  # 更新清单地址（GitHub Release API 或自定义 JSON）
     "density": "comfortable",
     "page_size": 60,
     "timezone_offset": 8,

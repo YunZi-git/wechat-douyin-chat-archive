@@ -10,6 +10,11 @@ const clearing = ref(false)
 
 // ── 语音识别 ──
 const asr = ref(null)
+const themeLabel = computed(() =>
+  store.themeSlug === 'system'
+    ? `跟随系统（${currentTheme().dark ? '深色' : '浅色'}）`
+    : currentTheme().name
+)
 const asrForm = ref({
   engine: 'off',
   auto_after_import: false,
@@ -23,6 +28,37 @@ const asrForm = ref({
   tencent_region: 'ap-shanghai',
 })
 const asrSaving = ref(false)
+
+// ── 更新检查 ──
+const appVersion = ref('')
+const updateUrl = ref('')
+const updateResult = ref(null)
+const checkingUpdate = ref(false)
+
+async function loadVersion() {
+  try {
+    const v = await api.version()
+    appVersion.value = v.version
+  } catch {
+    appVersion.value = health.value?.version || ''
+  }
+  updateUrl.value = store.settings.update_url || ''
+}
+
+async function checkUpdate() {
+  checkingUpdate.value = true
+  updateResult.value = null
+  try {
+    if (updateUrl.value !== (store.settings.update_url || '')) {
+      await save({ update_url: updateUrl.value })
+    }
+    updateResult.value = await api.updateCheck(updateUrl.value || undefined)
+  } catch (err) {
+    updateResult.value = { checked: true, error: err.message }
+  } finally {
+    checkingUpdate.value = false
+  }
+}
 const asrTesting = ref(false)
 const asrMessage = ref('')
 
@@ -141,6 +177,7 @@ onMounted(async () => {
   }
   await refreshStats()
   await loadAsr()
+  await loadVersion()
 })
 </script>
 
@@ -156,7 +193,7 @@ onMounted(async () => {
       <div class="card">
         <div class="row">
           <div class="grow">
-            <div style="font-weight: 550">当前外观：{{ currentTheme().name }}</div>
+            <div style="font-weight: 550">当前外观：{{ themeLabel }}</div>
             <div class="hint">
               内置 4 套 + StyleKit 151 套；配色、圆角、边框和阴影都会跟着变
             </div>
@@ -398,12 +435,42 @@ onMounted(async () => {
             <div style="font-weight: 600">聊天信息工作台</div>
             <div class="hint">把微信与抖音的聊天记录合并成一条可浏览、可导出的时间线</div>
           </div>
-          <span class="chip">v{{ health?.version || '0.1.0' }}</span>
+          <span class="chip">v{{ appVersion || health?.version || '0.1.0' }}</span>
         </div>
 
         <div class="kv"><span>许可证</span><span>AGPL-3.0</span></div>
         <div class="kv"><span>微信解密组件</span><span>SIWX（AGPL-3.0）</span></div>
         <div class="kv"><span>抖音采集组件</span><span>douyin-chat-export（MIT）</span></div>
+
+        <div class="divider" />
+
+        <div class="row" style="gap: 8px; margin-bottom: 10px">
+          <div class="grow">
+            <div style="font-weight: 550">检查更新</div>
+            <div class="hint">填 GitHub Release API 或自定义 JSON（{{ '{' }}version, notes, url{{ '}' }}）</div>
+          </div>
+          <input
+            v-model="updateUrl"
+            class="input"
+            style="max-width: 320px"
+            placeholder="https://api.github.com/repos/…/releases/latest"
+          />
+          <button class="btn sm" :disabled="checkingUpdate" @click="checkUpdate">
+            <span v-if="checkingUpdate" class="spinner" />
+            <Icon v-else name="refresh" :size="13" /> 检查
+          </button>
+        </div>
+
+        <div v-if="updateResult" class="hint" style="margin-bottom: 10px">
+          <template v-if="!updateResult.checked">未检查：{{ updateResult.reason }}</template>
+          <template v-else-if="updateResult.error">检查失败：{{ updateResult.error }}</template>
+          <template v-else-if="updateResult.available">
+            有新版本 {{ updateResult.latest }}（当前 {{ updateResult.current }}）。
+            <a v-if="updateResult.url" :href="updateResult.url" target="_blank" rel="noopener">去下载</a>
+          </template>
+          <template v-else>已经是最新版本（{{ updateResult.current }}）</template>
+          <div v-if="updateResult.notes" class="mt12" style="white-space: pre-wrap">{{ updateResult.notes }}</div>
+        </div>
 
         <div class="divider" />
 

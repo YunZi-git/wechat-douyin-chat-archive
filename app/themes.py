@@ -15,7 +15,7 @@ from typing import Any
 
 DATA = Path(__file__).resolve().parent / "data" / "stylekit_themes.json"
 
-BUILTIN_SLUGS = ("dark", "light", "warm", "purple")
+BUILTIN_SLUGS = ("dark", "light", "warm", "purple", "system")
 
 
 @lru_cache(maxsize=1)

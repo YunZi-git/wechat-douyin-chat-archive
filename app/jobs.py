@@ -11,6 +11,8 @@ import traceback
 import uuid
 from typing import Any, Callable
 
+from .redact import redact
+
 MAX_LOG_LINES = 800
 MAX_JOBS = 40
 
@@ -36,7 +38,7 @@ class Job:
 
     # ── 供任务体调用 ──────────────────────────────────────────────
     def write(self, line: str) -> None:
-        text = str(line).rstrip("\n")
+        text = redact(str(line)).rstrip("\n")
         if not text:
             return
         with self._lock:

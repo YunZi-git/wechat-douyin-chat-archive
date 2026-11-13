@@ -5,6 +5,7 @@ import {
   applyTheme as applyThemeObject,
   findTheme,
   restoreThemeFromCache,
+  systemTheme,
 } from './themes'
 
 export const store = reactive({
@@ -41,11 +42,29 @@ export function currentTheme() {
 
 /** 按 slug 应用外观（不写后端）。 */
 export function applyTheme(slug) {
+  if (slug === 'system') {
+    const theme = systemTheme(store.themes)
+    applyThemeObject(theme, 'system')
+    store.themeSlug = 'system'
+    store.settings.theme = 'system'
+    return theme
+  }
   const theme = findTheme(store.themes, slug) || BUILTIN_THEMES[0]
   applyThemeObject(theme)
   store.themeSlug = theme.slug
   store.settings.theme = theme.slug
   return theme
+}
+
+let systemListener = null
+
+export function initSystemTheme() {
+  if (systemListener || typeof window === 'undefined' || !window.matchMedia) return
+  const media = window.matchMedia('(prefers-color-scheme: dark)')
+  systemListener = () => {
+    if (store.settings.theme === 'system') applyTheme('system')
+  }
+  media.addEventListener?.('change', systemListener)
 }
 
 /** 切换外观并持久化到本机设置。 */
@@ -94,7 +113,11 @@ export async function boot() {
     await loadThemes()
     const settings = await api.settings()
     Object.assign(store.settings, settings)
-    applyTheme(cached || settings.theme || 'dark')
+    const initial = settings.theme === 'system'
+      ? 'system'
+      : (cached || settings.theme || 'dark')
+    applyTheme(initial)
+    initSystemTheme()
     applyDensity(settings.density || 'comfortable')
     await refreshStats()
   } catch (err) {

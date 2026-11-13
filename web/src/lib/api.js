@@ -92,6 +92,8 @@ export const api = {
     patch(`/api/contacts/${contactId}`, { display_name: displayName, note }),
 
   themes: () => get('/api/themes'),
+  version: () => get('/api/version'),
+  updateCheck: (url) => get('/api/update/check' + (url ? `?url=${encodeURIComponent(url)}` : '')),
   settings: () => get('/api/settings'),
   saveSettings: (body) => patch('/api/settings', body),
 

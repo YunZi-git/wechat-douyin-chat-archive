@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 
 from . import contacts as contacts_mod
 from . import asr
+from . import updates
 from . import themes as themes_mod
 from . import secrets as secrets_mod
 from . import voice as voice_mod
@@ -94,6 +95,7 @@ class AsrRunBody(BaseModel):
 
 class SettingsBody(BaseModel):
     theme: str | None = None
+    update_url: str | None = None
     density: Literal["comfortable", "compact"] | None = None
     page_size: int | None = Field(default=None, ge=20, le=300)
     timezone_offset: float | None = Field(default=None, ge=-12, le=14)
@@ -258,6 +260,17 @@ def rename_contact(contact_id: int, body: RenameBody) -> dict[str, Any]:
 
 
 # ── 设置 ────────────────────────────────────────────────────────────
+
+@router.get("/version")
+def app_version() -> dict[str, Any]:
+    return {"version": updates.APP_VERSION}
+
+
+@router.get("/update/check")
+def update_check(url: str | None = Query(None)) -> dict[str, Any]:
+    target = url or settings.load().get("update_url") or ""
+    return updates.check(target)
+
 
 @router.get("/themes")
 def list_themes() -> dict[str, Any]:

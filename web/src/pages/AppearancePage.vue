@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { store, currentTheme, setTheme } from '../lib/store'
-import { CATEGORY_LABELS } from '../lib/themes'
+import { CATEGORY_LABELS, BUILTIN_THEMES, systemPrefersDark } from '../lib/themes'
 import Icon from '../components/Icon.vue'
 
 const query = ref('')
@@ -106,6 +106,25 @@ async function pick(t) {
     </div>
 
     <div class="theme-cards">
+      <button
+        class="theme-card-lg system-card"
+        :class="{ active: active.slug === 'system' || store.themeSlug === 'system' }"
+        :style="{
+          background: systemPrefersDark() ? '#0d0f14' : '#f2f4f8',
+          color: systemPrefersDark() ? '#e8ebf3' : '#1d2433',
+          borderColor: systemPrefersDark() ? '#242a39' : '#dfe4ee',
+        }"
+        @click="pick({ slug: 'system' })"
+      >
+        <span class="preview" style="display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 8px">
+          <span class="sys-half" style="background: #f2f4f8" />
+          <span class="sys-half" style="background: #0d0f14" />
+        </span>
+        <span class="meta">
+          <span class="name">跟随系统</span>
+          <span class="en" style="color: currentTheme().palette?.textDim">根据系统深浅色自动切换</span>
+        </span>
+      </button>
       <button
         v-for="t in filtered"
         :key="t.slug"

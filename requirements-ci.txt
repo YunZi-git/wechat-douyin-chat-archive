@@ -1,0 +1,18 @@
+# CI 用依赖：去掉 GUI 和本地 ASR（两者都很大，测试不需要）
+fastapi>=0.110
+uvicorn>=0.29
+python-multipart>=0.0.9
+zstandard>=0.22
+pycryptodome>=3.20
+rich>=13.0
+psutil>=5.9
+openpyxl>=3.1
+pilk>=0.2.4
+playwright>=1.40
+httpx>=0.27
+cryptography>=42
+certifi
+truststore>=0.10
+Pillow>=10
+pillow-heif>=0.16
+pytest>=8

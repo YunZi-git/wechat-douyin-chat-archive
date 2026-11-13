@@ -76,7 +76,7 @@
 | `web/src/components/ChatView.vue` | 消息流、会话内搜索、跳转 | |
 | `scripts/make_demo_data.py` | 生成合成演示数据（可 `--import`） | demo 数据全靠它 |
 | `scripts/build_portable.py` | 嵌入式 Python + 依赖 + 启动脚本 | |
-| `tests/` | 143 个 pytest 用例 | 全用合成数据 |
+| `tests/` | 155 个 pytest 用例 + 3 个 E2E（默认跳过） | 全用合成数据 |
 
 ---
 
@@ -175,12 +175,23 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 - 语音兜底：`asr_douyin_fallback`（默认开）控制自动转写是否包含抖音语音；
   原生识别失败 = 没有 voice_transcriptions 记录 = 属于 pending
 
-### 4.8 合并 / 解绑
+### 4.8 系统主题、更新检查与日志脱敏
+
+- 跟随系统：`theme=system` 时按 `prefers-color-scheme` 选内置深/浅色，并监听系统切换；
+  首屏防闪脚本仍按上次实际调色板渲染
+- 更新检查：`app/updates.py` + `GET /api/update/check`，支持 GitHub Release API 或
+  `{version, notes, url}` 自定义清单；只做提示和下载跳转，不做自替换
+- 日志脱敏：`app/redact.py` 在 `Job.write` 统一把 `C:\Users\<name>`、`/home/<name>`
+  和仓库绝对路径替换成 `<user>` / `<app>`；`data/logs/app.log` 同样受益
+- CI：`.github/workflows/ci.yml`（pytest / web build / E2E 三个 job），
+  测试依赖见 `requirements-ci.txt`（不含 GUI 与本地 ASR）
+
+### 4.9 合并 / 解绑
 
 合并 = 把 `identities` 和 `conversations` 的 `contact_id` 改到主联系人 + 删掉次联系人；
 解绑 = 给指定平台新建一个联系人并迁走。**不动任何消息**。
 
-### 4.9 语音播放
+### 4.10 语音播放
 
 `GET /api/messages/{id}/audio`：
 
@@ -188,7 +199,7 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 - `.silk` → `voice.transcode_silk()`：剥掉 `\x02` 前缀 → pilk 转 16 kHz WAV → 缓存到 `data/media/voice_cache/<id>.wav` → 回填 `messages.duration`
 - 并发安全靠「唯一临时文件 + `os.replace`」
 
-### 4.10 语音识别
+### 4.11 语音识别
 
 统一表 `voice_transcriptions(message_id, engine, status, text, error)`，
 `engine` 取值 `legacy | native_douyin | tencent | local_whisper`。
@@ -201,7 +212,7 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 
 导入完成后如果开了「自动识别」，会再跑一批 pending（最多 200 条）。
 
-### 4.11 微信图片 / 表情 / 视频
+### 4.12 微信图片 / 表情 / 视频
 
 导入时只记 md5（`messages.extra`），显示时按需取：
 
@@ -209,18 +220,18 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 - 视频：`/api/messages/{id}/video` → 在账号目录 `msg/video`、`msg/attach` 里按 md5 找
 - 失败返回 404 + 原因，前端显示占位（不会出现坏图）
 
-### 4.12 导出
+### 4.13 导出
 ### 4.7 导出
 
 `exporters/chatlab.py` 全流式：先写 header/members，再逐条写消息，几十万条也不吃内存。
 语音内容优先用转写文本，没有才写 `[语音 X秒]`。图片内嵌有总量上限（120 MB）。
 
-### 4.13 后台任务
+### 4.14 后台任务
 
 `jobs.start()` 起线程，前端轮询 `/api/jobs/{id}`。
 重任务（解密/采集/导入）共用一把进程内锁，排队时也能取消。
 
-### 4.14 打包
+### 4.15 打包
 
 `scripts/build_portable.py`：
 
@@ -358,7 +369,7 @@ git grep -n -I -E "wxid_[a-z0-9]{10,}|sk-[A-Za-z0-9]{20,}|AKID[A-Za-z0-9]{10,}|C
 ## 10. 验收清单（改完代码跑一遍）
 
 ```bash
-.venv\Scripts\python -m pytest -q          # 143 passed
+.venv\Scripts\python -m pytest -q          # 155 passed, 3 skipped（E2E 需 CHATWORK_E2E=1）
 python scripts/build_portable.py --no-build-web   # 能打包
 ```
 
