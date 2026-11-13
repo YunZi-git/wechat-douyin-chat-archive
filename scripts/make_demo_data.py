@@ -167,6 +167,7 @@ def build_wechat(out: Path) -> Path:
 
     # 重复运行时先清掉上一次的库，保证结果可复现
     for stale in [contact_dir / "contact.db",
+                  account / "head_image" / "head_image.db",
                   *msg_dir.glob("message_*.db"), *msg_dir.glob("media_*.db")]:
         if stale.exists():
             stale.unlink()
@@ -296,7 +297,10 @@ def build_wechat(out: Path) -> Path:
             elif i == 2:
                 local_type = 47  # 表情：md5 用来演示按需解密
                 digest = hashlib.md5(f"emoji:{talker}:{i}".encode()).hexdigest()
-                content = f'<msg><emoji md5="{digest}" len="562825" /></msg>'
+                content = (
+                    f'<msg><emoji md5="{digest}" len="562825" '
+                    f'cdnurl="http://vweixinf.tc.qq.com/demo/{digest}" /></msg>'
+                )
                 packed = b"\x08\x02\x10\x04"
                 emoji_digests.append((digest, ("猫猫", "笑哭", "狗头")[i % 3]))
             elif i == 3 and conv_key.startswith("private:"):
@@ -342,6 +346,22 @@ def build_wechat(out: Path) -> Path:
                     emoji_digests)
     emo.commit()
     emo.close()
+
+    # 头像库（真实微信里是 head_image/head_image.db，image_buffer 为图片字节）
+    head_dir = account / "head_image"
+    head_dir.mkdir(parents=True, exist_ok=True)
+    head_db = sqlite3.connect(head_dir / "head_image.db")
+    head_db.executescript(
+        "CREATE TABLE head_image(username TEXT PRIMARY KEY, image_buffer BLOB);"
+    )
+    avatar_colors = [(212, 120, 120), (120, 170, 212), (150, 200, 140)]
+    for i, (name, username) in enumerate(list(wx_usernames.items())[:3]):
+        head_db.execute(
+            "INSERT INTO head_image(username, image_buffer) VALUES (?,?)",
+            (username, make_png(96, 96, avatar_colors[i % len(avatar_colors)])),
+        )
+    head_db.commit()
+    head_db.close()
     return account
 
 

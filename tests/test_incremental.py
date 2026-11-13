@@ -79,3 +79,38 @@ def test_sticker_caption_from_emoticon_db(library):
     assert row is not None
     meta = json.loads(row["extra"])
     assert meta["sticker"].get("caption")
+
+
+def test_reimport_merges_new_metadata(library, tmp_path):
+    import shutil
+
+    source = Path(library["wechat"]["source"])
+    account = tmp_path / "account" / source.name
+    shutil.copytree(source, account)
+
+    with db.session(readonly=True) as conn:
+        row = conn.execute(
+            "SELECT id, platform_msg_id, extra FROM messages"
+            " WHERE platform='wechat' AND kind='sticker' LIMIT 1"
+        ).fetchone()
+    assert row is not None
+    old_meta = json.loads(row["extra"])
+    assert old_meta["sticker"].get("cdnurl")
+
+    stripped = json.loads(row["extra"])
+    stripped["sticker"].pop("cdnurl", None)
+    stripped["sticker"].pop("caption", None)
+    with db.session() as conn:
+        conn.execute(
+            "UPDATE messages SET extra=? WHERE id=?",
+            (json.dumps(stripped, ensure_ascii=False), row["id"]),
+        )
+
+    report = wechat.import_account(account)
+    assert report.get("metadata_updated", 0) >= 1
+    with db.session(readonly=True) as conn:
+        merged = json.loads(
+            conn.execute("SELECT extra FROM messages WHERE id=?", (row["id"],)).fetchone()["extra"]
+        )
+    assert merged["sticker"].get("cdnurl")
+    assert merged["sticker"].get("caption")

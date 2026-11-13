@@ -21,6 +21,8 @@ import json
 import re
 import sqlite3
 import sys
+import uuid
+import os
 import time
 from pathlib import Path
 from typing import Any, Callable
@@ -201,6 +203,107 @@ def _iter_message_rows(con: sqlite3.Connection, table: str,
         f' FROM "{table}" {where} ORDER BY create_time, local_id',
         params,
     )
+
+
+def _merge_meta(old: dict[str, Any], new: dict[str, Any]) -> dict[str, Any]:
+    """把新解析出的字段合进旧 meta：只补空/新增，不覆盖已有值。"""
+    merged = dict(old)
+    for key, value in (new or {}).items():
+        if value in (None, "", {}, []):
+            continue
+        if isinstance(value, dict) and isinstance(merged.get(key), dict):
+            inner = dict(merged[key])
+            for sub_key, sub_value in value.items():
+                if sub_value not in (None, "", {}, []):
+                    inner[sub_key] = sub_value
+            merged[key] = inner
+        else:
+            merged[key] = value
+    return merged
+
+
+def _load_avatars(account_dir: Path) -> dict[str, bytes]:
+    """head_image.db 里的 image_buffer 是明文 JPEG（SIWX 同款来源）。"""
+    path = account_dir / "head_image" / "head_image.db"
+    if not path.is_file():
+        return {}
+    try:
+        con = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+        try:
+            rows = con.execute(
+                "SELECT username, image_buffer FROM head_image"
+                " WHERE username IS NOT NULL AND image_buffer IS NOT NULL"
+            ).fetchall()
+        finally:
+            con.close()
+    except sqlite3.Error:
+        return {}
+    valid = {
+        str(username): bytes(blob)
+        for username, blob in rows
+        if blob and len(blob) >= 16
+        and bytes(blob).startswith((b"\xff\xd8\xff", b"\x89PNG", b"GIF8", b"RIFF"))
+    }
+    return valid
+
+
+def _import_avatars(conn: sqlite3.Connection, account_dir: Path) -> int:
+    """把头像写到统一媒体目录，并更新联系人/身份/会话的头像字段。
+
+    文件名带内容摘要：头像换了 URL 就变，浏览器不会一直拿旧缓存。
+    """
+    avatars = _load_avatars(account_dir)
+    if not avatars:
+        return 0
+    out_dir = paths.MEDIA_DIR / "wechat" / "avatars"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    # 只落盘「真的用得上」的头像：联系人身份 + 群会话，避免把陌生人也写一遍
+    known = {
+        str(row[0])
+        for row in conn.execute(
+            "SELECT platform_uid FROM identities WHERE platform='wechat'"
+            " UNION SELECT platform_conv_id FROM conversations WHERE platform='wechat'"
+        )
+    }
+    updated = 0
+    for username, blob in avatars.items():
+        if username not in known:
+            continue
+        digest = hashlib.sha1(username.encode("utf-8")).hexdigest()[:16]
+        content = hashlib.sha1(blob).hexdigest()[:10]
+        ext = ".png" if blob.startswith(b"\x89PNG") else ".jpg"
+        rel = f"wechat/avatars/{digest}_{content}{ext}"
+        target = paths.MEDIA_DIR / rel
+        if not target.is_file():
+            tmp = target.with_name(f"{target.name}.{uuid.uuid4().hex[:6]}.tmp")
+            tmp.write_bytes(blob)
+            os.replace(tmp, target)
+        # 同名旧版本清掉，避免媒体目录越堆越多
+        for old_file in out_dir.glob(f"{digest}_*"):
+            if old_file.name != target.name:
+                try:
+                    old_file.unlink()
+                except OSError:
+                    pass
+        cur = conn.execute(
+            "UPDATE identities SET avatar_url=? WHERE platform='wechat' AND platform_uid=?",
+            (rel, username),
+        )
+        updated += cur.rowcount
+        conn.execute(
+            """UPDATE contacts SET avatar_url=?
+                WHERE id IN (SELECT contact_id FROM identities
+                              WHERE platform='wechat' AND platform_uid=?)
+                  AND (avatar_url IS NULL OR avatar_url=''
+                       OR avatar_url LIKE 'wechat/avatars/%')""",
+            (rel, username),
+        )
+        conn.execute(
+            "UPDATE conversations SET avatar_url=?"
+            " WHERE platform='wechat' AND platform_conv_id=?",
+            (rel, username),
+        )
+    return updated
 
 
 def _load_watermark(conn: sqlite3.Connection, account: str) -> int:
@@ -575,11 +678,12 @@ def import_account(
                                     or next(iter(candidates.values()), None)
                                 )
 
+                            pid = f"{shard.name}:{table}:{r['local_id']}"
                             inserted = db.add_message(
                                 conn,
                                 cid,
                                 "wechat",
-                                f"{shard.name}:{table}:{r['local_id']}",
+                                pid,
                                 sender_uid=sender or None,
                                 sender_name="我" if is_self else names.get(sender, sender),
                                 is_self=is_self,
@@ -603,6 +707,28 @@ def import_account(
                                 report["messages_added"] += 1
                             else:
                                 report["messages_skipped"] += 1
+                                # 之前导入过：补全新增的元数据（如表情 CDN 地址）
+                                if meta:
+                                    old_row = conn.execute(
+                                        "SELECT id, extra FROM messages"
+                                        " WHERE platform='wechat' AND platform_msg_id=?",
+                                        (pid,),
+                                    ).fetchone()
+                                    if old_row:
+                                        try:
+                                            old_meta = json.loads(old_row["extra"] or "{}")
+                                        except (TypeError, ValueError):
+                                            old_meta = {}
+                                        merged = _merge_meta(old_meta, meta)
+                                        if merged != old_meta:
+                                            conn.execute(
+                                                "UPDATE messages SET extra=? WHERE id=?",
+                                                (json.dumps(merged, ensure_ascii=False),
+                                                 old_row["id"]),
+                                            )
+                                            report["metadata_updated"] = (
+                                                report.get("metadata_updated", 0) + 1
+                                            )
                                 # 之前导入过：把语音路径修正/补上
                                 if media_rel:
                                     conn.execute(
@@ -637,6 +763,7 @@ def import_account(
             finish("cancelled")
             raise
 
+        report["avatars"] = _import_avatars(conn, account_dir)
         _save_watermark(conn, self_wxid, max_ts)
         report["watermark"] = max_ts
         finish("ok")

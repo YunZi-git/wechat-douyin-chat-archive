@@ -18,7 +18,12 @@ const isContact = computed(() => props.thread?.thread_kind === 'contact')
 const contact = computed(() => props.thread?.contact || {})
 const conversation = computed(() => props.thread?.conversation || {})
 const title = computed(() => (isContact.value ? contact.value.display_name : conversation.value.title))
-const avatar = computed(() => (isContact.value ? contact.value.avatar_url : conversation.value.avatar_url))
+const avatar = computed(() => {
+  if (!isContact.value) return conversation.value.avatar_url
+  return contact.value.avatar_url
+    || identities.value.find((i) => i.avatar_url)?.avatar_url
+    || ''
+})
 const identities = computed(() => props.thread?.identities || [])
 const conversations = computed(() => props.thread?.conversations || [])
 const members = computed(() => props.thread?.members || [])

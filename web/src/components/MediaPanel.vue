@@ -40,6 +40,7 @@ async function load(reset = true) {
     counts.value = res.counts || {}
     total.value = res.total || 0
     hasMore.value = res.has_more
+    cacheState.value = res.wechat_cache || { ok: true, reason: '' }
   } catch (err) {
     toast(`读取媒体失败：${err.message}`, 'err')
   } finally {
@@ -76,6 +77,9 @@ async function prewarm() {
   }
 }
 
+const hasWechat = computed(() => items.value.some((i) => i.platform === 'wechat'))
+const cacheState = ref({ ok: true, reason: '' })
+
 async function onJobDone() {
   jobId.value = ''
   await load(true)
@@ -96,6 +100,14 @@ watch(() => props.threadId, () => load(true))
       <button class="icon-btn" style="width: 26px; height: 26px" @click="emit('close')">
         <Icon name="close" :size="15" />
       </button>
+    </div>
+
+    <div v-if="hasWechat && !cacheState.ok" class="media-note warn">
+      {{ cacheState.reason }}。重新解密并导入微信数据后，已缓存的图片/视频才能显示。
+    </div>
+    <div v-else-if="hasWechat" class="media-note">
+      微信图片/视频按需从本机缓存解密；表情图片是微信私有格式，通常只能显示说明文字。
+      <span v-if="broken.size"> · 本次有 {{ broken.size }} 个读取失败</span>
     </div>
 
     <div class="media-tabs">
@@ -136,7 +148,10 @@ watch(() => props.threadId, () => load(true))
             loading="lazy"
             @error="onImageError(item.id)"
           />
-          <span v-else class="missing">无法读取</span>
+          <span v-else class="missing">
+            <Icon name="image" :size="15" />
+            <span>{{ tab === 'sticker' ? (item.meta?.sticker?.caption || '表情') : '缓存缺失' }}</span>
+          </span>
         </button>
       </div>
 
@@ -208,7 +223,30 @@ watch(() => props.threadId, () => load(true))
   place-items: center;
 }
 .media-cell img { width: 100%; height: 100%; object-fit: cover; }
-.media-cell .missing { font-size: 11px; color: var(--text-faint); }
+.media-cell .missing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-faint);
+  text-align: center;
+  padding: 4px;
+}
+.media-note.warn {
+  border-color: var(--accent);
+  color: var(--text);
+}
+.media-note {
+  margin: 8px 14px 0;
+  padding: 7px 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  color: var(--text-dim);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
 .video-list { display: flex; flex-direction: column; gap: 6px; }
 .video-row {
   display: flex;

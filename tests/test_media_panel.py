@@ -84,3 +84,22 @@ def test_media_prewarm_job(client, library, monkeypatch):
     assert done["result"]["total"] >= 1
     assert done["result"]["ok"] == done["result"]["total"]
     assert calls
+
+
+def test_media_reports_missing_cache(client, library, monkeypatch, tmp_path):
+    from app import paths
+
+    row = _conv()
+    tid = f"conv:{row['id']}"
+    # 其它用例可能已经在真实目录里建过账号目录，这里用空目录强制「缺失」
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    monkeypatch.setattr(paths, "WECHAT_DECRYPTED", empty)
+    data = client.get(f"/api/threads/{tid}/media").json()
+    assert data["wechat_cache"]["ok"] is False
+    assert "解密目录" in data["wechat_cache"]["reason"]
+
+    # 把账号目录补上后就恢复正常
+    (empty / "wxid_demo0000_0001").mkdir()
+    data2 = client.get(f"/api/threads/{tid}/media").json()
+    assert data2["wechat_cache"]["ok"] is True

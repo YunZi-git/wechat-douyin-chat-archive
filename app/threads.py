@@ -94,7 +94,11 @@ def list_threads(
                    ct.id               AS contact_id,
                    NULL                AS conversation_id,
                    ct.display_name     AS title,
-                   ct.avatar_url       AS avatar,
+                   COALESCE(ct.avatar_url, (
+                       SELECT i.avatar_url FROM identities i
+                        WHERE i.contact_id = ct.id
+                          AND i.avatar_url IS NOT NULL AND i.avatar_url <> ''
+                        ORDER BY i.id LIMIT 1)) AS avatar,
                    'private'           AS kind,
                    NULL                AS member_count,
                    agg.platforms_raw   AS platforms_raw,
@@ -669,12 +673,38 @@ def thread_media(
                  LIMIT ? OFFSET ?""",
             [*conn_args, limit, offset],
         ).fetchall()
+        # 微信媒体依赖本机解密目录；目录不在时前端给出明确提示而不是一片“无法读取”
+        cache_ok = True
+        cache_reason = ""
+        wechat_convs = conn.execute(
+            f"""SELECT DISTINCT c.extra FROM conversations c
+                 JOIN messages m ON m.conversation_id = c.id
+                WHERE {cond} AND m.platform='wechat'"""
+            , args,
+        ).fetchall()
+        if wechat_convs:
+            from . import wechat_media  # 避免顶层循环依赖
+            names = set()
+            for row in wechat_convs:
+                try:
+                    account = json.loads(row["extra"] or "{}").get("account")
+                except (TypeError, ValueError):
+                    account = None
+                if account:
+                    names.add(str(account))
+            if names and not any(wechat_media._resolve_account_dir(n) for n in names):
+                cache_ok = False
+                cache_reason = (
+                    "本机找不到微信解密目录（可能换过微信账号或清理过缓存），"
+                    "这批图片/视频无法解密"
+                )
     return {
         "items": [_message_row(r) for r in rows],
         "total": total,
         "offset": offset,
         "has_more": offset + len(rows) < total,
         "counts": counts,
+        "wechat_cache": {"ok": cache_ok, "reason": cache_reason},
     }
 
 

@@ -105,3 +105,34 @@ def test_image_decrypt_failure_is_reported(client, library, monkeypatch):
     res = client.get(f"/api/messages/{row['id']}/image")
     assert res.status_code == 404
     assert "本地无原图" in res.json()["detail"]
+
+
+def test_cdn_host_whitelist():
+    assert wechat_media._cdn_allowed("http://vweixinf.tc.qq.com/a?b=1")
+    assert wechat_media._cdn_allowed("https://wxapp.tc.qq.com/x")
+    assert not wechat_media._cdn_allowed("http://evil.example.com/x")
+    assert not wechat_media._cdn_allowed("file:///C:/x.png")
+
+
+def test_sticker_cdn_fallback(client, library, monkeypatch):
+    row = _first_message("sticker")
+    if row is None:
+        return
+    md5 = "abcabcabcabcabcabcabcabcabcabcab"
+    with db.session() as conn:
+        conn.execute(
+            "UPDATE messages SET extra=? WHERE id=?",
+            (json.dumps({
+                "sticker": {"md5": md5, "cdnurl": "http://vweixinf.tc.qq.com/x?m=1"},
+            }), row["id"]),
+        )
+    monkeypatch.setattr(wechat_media, "_fetch_cdn", lambda url: PNG)
+    res = client.get(f"/api/messages/{row['id']}/image")
+    assert res.status_code == 200
+    assert res.headers["content-type"].startswith("image/png")
+    with db.session(readonly=True) as conn:
+        media_path = conn.execute(
+            "SELECT media_path FROM messages WHERE id=?", (row["id"],)
+        ).fetchone()["media_path"]
+    assert media_path and media_path.startswith("wechat/media/")
+    assert (paths.MEDIA_DIR / media_path).is_file()

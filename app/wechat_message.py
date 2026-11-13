@@ -197,6 +197,18 @@ def parse_message(local_type: int, xml_text: str) -> dict[str, Any]:
                 "meta": {"location": {"lat": attrs.get("x"), "lng": attrs.get("y"),
                                       "label": label}},
             }
+        if local_type == 3:
+            # 图片的 CDN 字段先留着（当前没有可靠的 CDN 解密方案，不做下载）
+            attrs = _tag_attrs(xml_text, "img")
+            return {
+                "kind": "image",
+                "text": "[图片]",
+                "meta": {"image": {
+                    "cdnThumb": attrs.get("cdnthumburl") or "",
+                    "cdnMid": attrs.get("cdnmidimgurl") or "",
+                    "cdnBig": attrs.get("cdnbigimgurl") or "",
+                }},
+            }
         if local_type == 43:
             attrs = _tag_attrs(xml_text, "videomsg")
             seconds = _int(attrs.get("playlength"))
@@ -209,12 +221,16 @@ def parse_message(local_type: int, xml_text: str) -> dict[str, Any]:
             }
         if local_type == 47:
             attrs = _tag_attrs(xml_text, "emoji")
+            sticker = {
+                "md5": attrs.get("md5") or attrs.get("androidmd5"),
+                "width": attrs.get("width"),
+                "height": attrs.get("height"),
+                "cdnurl": attrs.get("cdnurl") or "",
+            }
             return {
                 "kind": "sticker",
                 "text": "[表情]",
-                "meta": {"sticker": {"md5": attrs.get("md5") or attrs.get("androidmd5"),
-                                     "width": attrs.get("width"),
-                                     "height": attrs.get("height")}},
+                "meta": {"sticker": sticker},
             }
 
     # 文本 / 语音 / 图片：保持原样，由导入器兜底
