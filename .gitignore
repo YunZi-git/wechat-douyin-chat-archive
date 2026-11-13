@@ -30,6 +30,7 @@ web/dist/
 # ── 打包产物 / 本地缓存 ──
 dist/
 release/
+release_staging/
 build/
 *.spec
 .cache/
