@@ -2,6 +2,15 @@
 
 本项目的所有调整都记录在这里；更细的逐次改动可以用 `git log --oneline` 查。
 
+## [1.3.6] - 2026-11-13
+
+### 修复
+
+- **151 套外观主题消失**：部署脚本用 `robocopy /XD data runtime` 更新程序文件，
+  把 `app/data/stylekit_themes.json` 也排除了；应用本身和 zip 都正常，
+  只是已解压目录缺少主题表。已恢复该文件，并把部署排除项改成绝对路径
+  （只排除根目录 data/runtime），后续更新不会再误伤 `app/data`
+
 ## [1.3.5] - 2026-11-13
 
 ### 修复
@@ -207,6 +216,7 @@
 - 便携包：内嵌 Python 运行时，解压即用
 - AGPL-3.0 开源，仓库不含真实数据，演示数据全部合成
 
+[1.3.6]: https://example.com/chatwork/releases/tag/v1.3.6
 [1.3.5]: https://example.com/chatwork/releases/tag/v1.3.5
 [1.3.4]: https://example.com/chatwork/releases/tag/v1.3.4
 [1.3.3]: https://example.com/chatwork/releases/tag/v1.3.3

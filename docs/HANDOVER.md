@@ -302,6 +302,11 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 
 ### 4.16 打包
 
+- 更新已解压目录时，`robocopy` 的 `/XD` 只能用**绝对路径**排除根目录的
+  `data`、`runtime`；写 `/XD data` 会把 `app\data`（151 套主题表）一起排除
+
+
+
 `scripts/build_portable.py`：
 
 - 下载官方 Python 3.11 embeddable 到 `.cache/`
