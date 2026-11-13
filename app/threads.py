@@ -322,9 +322,19 @@ def _where(thread_id: str, platform: str | None) -> tuple[str, list[Any]] | None
 
 
 _MESSAGE_COLUMNS = """m.*, c.title AS conv_title, c.kind AS conv_kind,
-                      c.platform AS conv_platform,
-                      (SELECT vt.text FROM voice_transcriptions vt
-                        WHERE vt.message_id = m.id) AS transcript"""
+                         c.platform AS conv_platform,
+                         (SELECT vt.text FROM voice_transcriptions vt
+                           WHERE vt.message_id = m.id) AS transcript,
+                         CASE WHEN m.is_self = 1 THEN ''
+                              ELSE COALESCE(
+                                (SELECT COALESCE(NULLIF(c2.avatar_url, ''), i.avatar_url)
+                                   FROM identities i
+                                   JOIN contacts c2 ON c2.id = i.contact_id
+                                  WHERE i.platform = m.platform
+                                    AND i.platform_uid = m.sender_uid
+                                  LIMIT 1),
+                                CASE WHEN c.kind = 'private' THEN c.avatar_url ELSE '' END
+                              ) END AS sender_avatar"""
 
 
 def thread_messages(

@@ -101,6 +101,14 @@ def test_scope_checkbox_toggles(server, browser):
     page.close()
 
 
+def test_message_bubbles_show_sender_avatar(server, browser):
+    page = browser.new_page(viewport={"width": 1300, "height": 900})
+    page.goto(server + "/?view=chats&thread=conv:1", wait_until="networkidle")
+    page.wait_for_timeout(1200)
+    assert page.locator(".msg-row .avatar img").count() >= 1
+    page.close()
+
+
 def test_theme_tokens_follow_saved_setting(server, browser):
     page = browser.new_page(viewport={"width": 1300, "height": 900})
     try:

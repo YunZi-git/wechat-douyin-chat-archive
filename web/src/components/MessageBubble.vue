@@ -17,6 +17,8 @@ const color = computed(() => avatarColor(m.value.sender_uid || m.value.sender_na
 
 const isImage = computed(() => ['image', 'sticker'].includes(m.value.kind))
 const imgBroken = ref(false)
+const avatarBroken = ref(false)
+const senderAvatar = computed(() => m.value.sender_avatar || '')
 const videoBroken = ref(false)
 const videoRequested = ref(!!props.message.media_url)
 
@@ -95,7 +97,14 @@ const previewText = computed(() => (m.value.text || '').slice(0, 300))
       class="avatar"
       :style="{ background: m.is_self ? 'var(--panel-3)' : color + '22', color: m.is_self ? 'var(--text-dim)' : color }"
     >
-      {{ m.is_self ? '我' : initial(m.sender_name) }}
+      <img
+        v-if="senderAvatar && !avatarBroken"
+        :src="`/media/${senderAvatar}`"
+        alt=""
+        loading="lazy"
+        @error="avatarBroken = true"
+      />
+      <template v-else>{{ m.is_self ? '我' : initial(m.sender_name) }}</template>
     </div>
 
     <div class="msg-body">

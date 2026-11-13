@@ -2,6 +2,15 @@
 
 本项目的所有调整都记录在这里；更细的逐次改动可以用 `git log --oneline` 查。
 
+## [1.4.1] - 2026-11-13
+
+### 修复
+
+- **聊天气泡不显示头像**：消息接口新增 `sender_avatar`，按发送者身份/联系人
+  取头像；私聊时用会话头像兜底，自己的消息保持「我」占位。气泡现在优先渲染
+  真实头像，加载失败才退回首字母色块
+- 聊天头部/会话列表原本已有头像，统一走同一 `/media/...` 路径
+
 ## [1.4.0] - 2026-11-13
 
 ### 外观系统重做
@@ -250,6 +259,7 @@
 - 便携包：内嵌 Python 运行时，解压即用
 - AGPL-3.0 开源，仓库不含真实数据，演示数据全部合成
 
+[1.4.1]: https://example.com/chatwork/releases/tag/v1.4.1
 [1.4.0]: https://example.com/chatwork/releases/tag/v1.4.0
 [1.3.8]: https://example.com/chatwork/releases/tag/v1.3.8
 [1.3.7]: https://example.com/chatwork/releases/tag/v1.3.7
