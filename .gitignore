@@ -39,6 +39,7 @@ _audit/
 # ── 本地配置 / 密钥（永远不要提交）──
 config.json
 settings.json
+secrets.json
 .env
 .env.*
 
