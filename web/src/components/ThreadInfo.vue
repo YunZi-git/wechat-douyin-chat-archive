@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { fmtCount, fmtDateTime, initial, avatarColor, PLATFORM_META } from '../lib/format'
 import { toast } from '../lib/store'
+import { t } from '../lib/i18n'
 import Icon from './Icon.vue'
 
 const props = defineProps({
@@ -82,13 +83,13 @@ function shortUid(uid) {
     </div>
 
     <div class="info-block">
-      <h4>概览</h4>
-      <div class="kv"><span>消息总数</span><span>{{ fmtCount(totalMessages) }}</span></div>
-      <div class="kv"><span>平台</span><span>{{ platforms.map((p) => PLATFORM_META[p]?.label).join(' + ') }}</span></div>
+      <h4>{{ t('概览') }}</h4>
+      <div class="kv"><span>{{ t('消息总数') }}</span><span>{{ fmtCount(totalMessages) }}</span></div>
+      <div class="kv"><span>{{ t('平台') }}</span><span>{{ platforms.map((p) => PLATFORM_META[p]?.label).join(' + ') }}</span></div>
       <div class="kv" v-if="thread.thread_kind === 'conv' && conversation.member_count">
-        <span>群成员</span><span>{{ conversation.member_count }}</span>
+        <span>{{ t('群成员') }}</span><span>{{ conversation.member_count }}</span>
       </div>
-      <div class="kv" v-if="isContact"><span>会话数</span><span>{{ conversations.length }}</span></div>
+      <div class="kv" v-if="isContact"><span>{{ t('会话数') }}</span><span>{{ conversations.length }}</span></div>
       <div class="kv" v-if="!isContact && conversation.self_uid">
         <span>所属账号</span>
         <span :title="conversation.self_uid">{{ shortUid(conversation.self_uid) }}</span>
@@ -96,7 +97,7 @@ function shortUid(uid) {
     </div>
 
     <div v-if="identities.length" class="info-block">
-      <h4>平台账号</h4>
+      <h4>{{ t('平台账号') }}</h4>
       <div v-for="i in identities" :key="i.id" class="identity">
         <span class="plat-dot" :class="PLATFORM_META[i.platform]?.cls">{{ PLATFORM_META[i.platform]?.short }}</span>
         <span class="name">{{ i.platform_name || '未命名' }}</span>
@@ -113,7 +114,7 @@ function shortUid(uid) {
     </div>
 
     <div v-if="conversations.length" class="info-block">
-      <h4>来源会话</h4>
+      <h4>{{ t('来源会话') }}</h4>
       <div v-for="c in conversations" :key="c.id" class="identity">
         <span class="plat-dot" :class="PLATFORM_META[c.platform]?.cls">{{ PLATFORM_META[c.platform]?.short }}</span>
         <span class="name">
@@ -150,7 +151,7 @@ function shortUid(uid) {
     </div>
 
     <div class="info-block" style="border-bottom: 0">
-      <button class="btn block" @click="emit('export')"><Icon name="export" :size="14" /> 导出这个会话</button>
+      <button class="btn block" @click="emit('export')"><Icon name="export" :size="14" /> {{ t('导出这个会话') }}</button>
       <button class="btn block ghost mt12" @click="emit('close')"><Icon name="close" :size="14" /> 收起信息栏</button>
     </div>
   </aside>

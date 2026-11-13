@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { api } from '../lib/api'
 import { store, toast, refreshStats, openThread } from '../lib/store'
 import { fmtCount, fmtRelative, initial, avatarColor, PLATFORM_META } from '../lib/format'
+import { t } from '../lib/i18n'
 import Icon from '../components/Icon.vue'
 
 const contacts = ref([])
@@ -103,7 +104,7 @@ onMounted(load)
     <div class="page-head">
       <div class="row">
         <div class="grow">
-          <h1>合并好友</h1>
+          <h1>{{ t('合并好友') }}</h1>
           <p>
             同一个人可能既有微信好友也有抖音好友。选中两条记录，把它们合并成一个人，
             之后两个平台的聊天会交错在同一条时间线上。合并只影响本机数据，可以随时解绑。

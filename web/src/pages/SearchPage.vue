@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { api } from '../lib/api'
 import { store, toast, openThreadAt } from '../lib/store'
 import { fmtCount, fmtTime, PLATFORM_META, kindLabel } from '../lib/format'
+import { t } from '../lib/i18n'
 import Icon from '../components/Icon.vue'
 
 const q = ref('')
@@ -112,9 +113,9 @@ function snippet(item) {
 <template>
   <div class="page">
     <div class="page-head">
-      <h1>搜索</h1>
+      <h1>{{ t('搜索') }}</h1>
       <p>
-        全文检索所有会话（含语音转写）。短词走模糊匹配，3 个字以上走 FTS 索引。
+        {{ t('全文检索所有会话（含语音转写）。短词走模糊匹配，3 个字以上走 FTS 索引。') }}
       </p>
     </div>
 
@@ -124,7 +125,7 @@ function snippet(item) {
           <Icon name="search" :size="15" />
           <input
             v-model="q"
-            placeholder="搜索消息内容，回车开始"
+            :placeholder="t('搜索消息内容，回车开始')"
             @keyup.enter="search(true)"
           />
         </div>
@@ -136,14 +137,14 @@ function snippet(item) {
 
       <div class="filters mt12">
         <div class="filter-row">
-          <span class="hint" style="width: 52px">平台</span>
-          <button class="chip" :class="{ active: platform === '' }" @click="platform = ''">全部</button>
-          <button class="chip" :class="{ active: platform === 'wechat' }" @click="platform = 'wechat'">微信</button>
-          <button class="chip" :class="{ active: platform === 'douyin' }" @click="platform = 'douyin'">抖音</button>
+          <span class="hint" style="width: 52px">{{ t('平台') }}</span>
+          <button class="chip" :class="{ active: platform === '' }" @click="platform = ''">{{ t('全部') }}</button>
+          <button class="chip" :class="{ active: platform === 'wechat' }" @click="platform = 'wechat'">{{ t('微信') }}</button>
+          <button class="chip" :class="{ active: platform === 'douyin' }" @click="platform = 'douyin'">{{ t('抖音') }}</button>
         </div>
 
         <div class="filter-row">
-          <span class="hint" style="width: 52px">类型</span>
+          <span class="hint" style="width: 52px">{{ t('类型') }}</span>
           <button
             v-for="[key, label] in KIND_OPTIONS"
             :key="key"
@@ -156,13 +157,13 @@ function snippet(item) {
         </div>
 
         <div class="filter-row">
-          <span class="hint" style="width: 52px">时间</span>
+          <span class="hint" style="width: 52px">{{ t('时间') }}</span>
           <select v-model="rangeKey" class="select" style="max-width: 130px">
-            <option value="all">全部时间</option>
-            <option value="7">最近 7 天</option>
-            <option value="30">最近 30 天</option>
-            <option value="365">最近一年</option>
-            <option value="custom">自定义…</option>
+            <option value="all">{{ t('全部时间') }}</option>
+            <option value="7">{{ t('最近 7 天') }}</option>
+            <option value="30">{{ t('最近 30 天') }}</option>
+            <option value="365">{{ t('最近一年') }}</option>
+            <option value="custom">{{ t('自定义…') }}</option>
           </select>
           <template v-if="rangeKey === 'custom'">
             <input v-model="customFrom" type="date" class="input" style="max-width: 150px" />
@@ -172,10 +173,10 @@ function snippet(item) {
         </div>
 
         <div class="filter-row">
-          <span class="hint" style="width: 52px">发送者</span>
+          <span class="hint" style="width: 52px">{{ t('发送者') }}</span>
           <input v-model="sender" class="input" style="max-width: 220px" placeholder="昵称（可留空）" />
           <button class="chip" :class="{ active: grouped }" @click="grouped = !grouped; searched && search(true)">
-            按会话分组
+            {{ t('按会话分组') }}
           </button>
         </div>
       </div>
@@ -184,7 +185,7 @@ function snippet(item) {
     <div v-if="searched" class="mt20">
       <div class="row" style="margin-bottom: 10px">
         <span class="grow">
-          <strong>{{ fmtCount(total) }}</strong> 条结果
+          <strong>{{ fmtCount(total) }}</strong> {{ t('条结果') }}
           <span class="hint" style="margin-left: 8px">
             {{ rangeText }} · {{ engine === 'fts' ? 'FTS 索引' : '模糊匹配' }}
           </span>
@@ -235,7 +236,7 @@ function snippet(item) {
         <div v-if="!items.length" class="empty" style="height: 160px">
           <div>
             <div class="icon"><Icon name="search" :size="22" /></div>
-            <p>没有找到匹配的消息</p>
+            <p>{{ t('没有找到匹配的消息') }}</p>
           </div>
         </div>
       </div>
@@ -250,8 +251,8 @@ function snippet(item) {
     <div v-else class="empty" style="height: 260px">
       <div>
         <div class="icon"><Icon name="search" :size="24" /></div>
-        <h3>搜索所有聊天记录</h3>
-        <p>支持按平台、消息类型、时间范围、发送者筛选，也可以按会话分组。</p>
+        <h3>{{ t('搜索所有聊天记录') }}</h3>
+                <p>{{ t('支持按平台、消息类型、时间范围、发送者筛选，也可以按会话分组。') }}</p>
       </div>
     </div>
   </div>

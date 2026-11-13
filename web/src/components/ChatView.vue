@@ -2,6 +2,7 @@
 import { computed, ref, watch, nextTick, onMounted } from 'vue'
 import { api } from '../lib/api'
 import { fmtDay, fmtCount, PLATFORM_META, initial, avatarColor, fmtTime } from '../lib/format'
+import { t } from '../lib/i18n'
 import Icon from './Icon.vue'
 import MessageBubble from './MessageBubble.vue'
 import MediaPanel from './MediaPanel.vue'
@@ -223,19 +224,19 @@ function toggleSearch() {
               @click="emit('update:platform', p)"
             >{{ PLATFORM_META[p]?.label }}</button>
           </div>
-          <button class="icon-btn" :class="{ on: mediaOpen }" title="媒体库" @click="mediaOpen = true">
+          <button class="icon-btn" :class="{ on: mediaOpen }" :title="t('媒体库')" @click="mediaOpen = true">
             <Icon name="image" :size="17" />
           </button>
-          <button class="icon-btn" :class="{ on: calendarOpen }" title="按日期跳转" @click="toggleCalendar">
+          <button class="icon-btn" :class="{ on: calendarOpen }" :title="t('按日期跳转')" @click="toggleCalendar">
             <Icon name="calendar" :size="17" />
           </button>
-          <button class="icon-btn" :class="{ on: searchOpen }" title="在会话内查找" @click="toggleSearch">
+          <button class="icon-btn" :class="{ on: searchOpen }" :title="t('在这个会话里查找')" @click="toggleSearch">
             <Icon name="search" :size="17" />
           </button>
-          <button class="icon-btn" title="导出这个会话" @click="emit('export')">
+          <button class="icon-btn" :title="t('导出这个会话')" @click="emit('export')">
             <Icon name="export" :size="17" />
           </button>
-          <button class="icon-btn" title="会话信息" @click="emit('toggle-info')">
+          <button class="icon-btn" :title="t('会话信息')" @click="emit('toggle-info')">
             <Icon name="panel" :size="17" />
           </button>
         </div>
@@ -282,7 +283,7 @@ function toggleSearch() {
           <input
             id="thread-search"
             v-model="searchQuery"
-            placeholder="在这个会话里搜索…"
+            :placeholder="t('在这个会话里搜索…')"
             @keyup.enter="runSearch"
           />
           <button class="icon-btn" style="width: 24px; height: 24px" @click="searchOpen = false">
@@ -311,7 +312,7 @@ function toggleSearch() {
       <div ref="scroller" class="messages" @scroll.passive="onScroll">
         <div v-if="hasMoreBefore" class="load-more">
           <span v-if="loading" class="spinner" />
-          <span v-else class="hint">向上滚动加载更早的消息</span>
+          <span v-else class="hint">{{ t('加载更早的消息') }}</span>
         </div>
 
         <template v-for="group in dayGroups" :key="group.day">

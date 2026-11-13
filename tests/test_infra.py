@@ -76,6 +76,11 @@ def test_update_check_endpoint(client, library, tmp_path):
     assert data["available"] is True
 
 
+def test_settings_language(client, library):
+    assert client.patch("/api/settings", json={"language": "en"}).json()["language"] == "en"
+    assert client.patch("/api/settings", json={"language": "fr"}).status_code == 400
+
+
 def test_settings_accepts_system_theme(client, library):
     res = client.patch("/api/settings", json={"theme": "system"})
     assert res.status_code == 200

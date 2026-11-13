@@ -96,6 +96,7 @@ class AsrRunBody(BaseModel):
 class SettingsBody(BaseModel):
     theme: str | None = None
     update_url: str | None = None
+    language: str | None = None
     density: Literal["comfortable", "compact"] | None = None
     page_size: int | None = Field(default=None, ge=20, le=300)
     timezone_offset: float | None = Field(default=None, ge=-12, le=14)
@@ -288,6 +289,8 @@ def patch_settings(body: SettingsBody) -> dict[str, Any]:
     patch = {k: v for k, v in body.model_dump().items() if v is not None}
     if "theme" in patch and not themes_mod.is_valid(patch["theme"]):
         raise HTTPException(400, f"未知外观：{patch['theme']}")
+    if "language" in patch and patch["language"] not in ("zh", "en"):
+        raise HTTPException(400, f"不支持的语言：{patch['language']}")
     return settings.save(patch)
 
 

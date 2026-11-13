@@ -1,5 +1,6 @@
 import { reactive } from 'vue'
 import { api } from './api'
+import { setLanguage } from './i18n'
 import {
   BUILTIN_THEMES,
   applyTheme as applyThemeObject,
@@ -113,6 +114,7 @@ export async function boot() {
     await loadThemes()
     const settings = await api.settings()
     Object.assign(store.settings, settings)
+    setLanguage(settings.language || 'zh')
     const initial = settings.theme === 'system'
       ? 'system'
       : (cached || settings.theme || 'dark')

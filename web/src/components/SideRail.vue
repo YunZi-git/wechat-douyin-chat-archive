@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { api } from '../lib/api'
 import { store, currentTheme } from '../lib/store'
+import { t } from '../lib/i18n'
 import Icon from './Icon.vue'
 
 const items = [
@@ -33,7 +34,7 @@ function go(key) {
       :key="item.key"
       class="rail-btn"
       :class="{ active: store.view === item.key }"
-      :title="item.label"
+      :title="t(item.label)"
       @click="go(item.key)"
     >
       <Icon :name="item.icon" :size="20" />
@@ -44,7 +45,7 @@ function go(key) {
 
     <button
       class="rail-btn"
-      :title="`外观：${theme.name}`"
+      :title="`${t('外观')}：${theme.name}`"
       @click="store.view = 'appearance'"
     >
       <Icon :name="theme.dark ? 'moon' : 'sun'" :size="19" />

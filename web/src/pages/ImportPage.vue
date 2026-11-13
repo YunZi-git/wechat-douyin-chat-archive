@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { api } from '../lib/api'
 import { store, toast, refreshStats } from '../lib/store'
 import { fmtBytes, fmtCount, fmtDateTime } from '../lib/format'
+import { t } from '../lib/i18n'
 import Icon from '../components/Icon.vue'
 import JobPanel from '../components/JobPanel.vue'
 
@@ -167,7 +168,7 @@ onMounted(async () => {
 <template>
   <div class="page">
     <div class="page-head">
-      <h1>导入数据</h1>
+      <h1>{{ t('导入数据') }}</h1>
       <p>
         微信和抖音的原始数据分别由内置引擎读取，统一写进本机的
         <code class="mono">{{ sources?.data_dir || 'data/' }}</code>。导入过程不会上传任何内容。
@@ -192,7 +193,7 @@ onMounted(async () => {
               <Icon name="chat" :size="19" />
             </div>
             <div class="grow">
-              <div style="font-weight: 600">微信聊天记录</div>
+              <div style="font-weight: 600">{{ t('微信聊天记录') }}</div>
               <div class="faint small">解密 → 读取 message_*.db → 统一库</div>
             </div>
           </div>
@@ -233,14 +234,14 @@ onMounted(async () => {
 
           <div class="row wrap mt12" style="gap: 8px">
             <button class="btn primary" @click="run('wechatRefresh', '微信：解密并导入')">
-              <Icon name="refresh" :size="14" /> 解密并导入
+              <Icon name="refresh" :size="14" /> {{ t('解密并导入') }}
             </button>
             <button
               class="btn"
               :disabled="!sources.wechat_accounts.length"
               @click="run('wechatImport', '导入已解密的微信数据')"
             >
-              <Icon name="import" :size="14" /> 只导入已解密数据
+              <Icon name="import" :size="14" /> {{ t('只导入已解密数据') }}
             </button>
           </div>
         </div>
@@ -252,7 +253,7 @@ onMounted(async () => {
               <Icon name="video" :size="19" />
             </div>
             <div class="grow">
-              <div style="font-weight: 600">抖音聊天记录</div>
+              <div style="font-weight: 600">{{ t('抖音聊天记录') }}</div>
               <div class="faint small">内置采集引擎 → chat.db → 统一库</div>
             </div>
           </div>
@@ -269,15 +270,15 @@ onMounted(async () => {
           </div>
 
           <div class="field mt12">
-            <label>采集范围</label>
+            <label>{{ t('采集范围') }}</label>
             <div class="row wrap" style="gap: 6px">
-              <button class="chip" :class="{ active: dyMode === 'all' }" @click="dyMode = 'all'">全部会话</button>
-              <button class="chip" :class="{ active: dyMode === 'include' }" @click="dyMode = 'include'">只采集勾选</button>
-              <button class="chip" :class="{ active: dyMode === 'exclude' }" @click="dyMode = 'exclude'">排除勾选</button>
+              <button class="chip" :class="{ active: dyMode === 'all' }" @click="dyMode = 'all'">{{ t('全部会话') }}</button>
+              <button class="chip" :class="{ active: dyMode === 'include' }" @click="dyMode = 'include'">{{ t('只采集勾选') }}</button>
+              <button class="chip" :class="{ active: dyMode === 'exclude' }" @click="dyMode = 'exclude'">{{ t('排除勾选') }}</button>
               <button class="btn sm ghost" :disabled="dyLoading" @click="loadDouyinConversations">
                 <span v-if="dyLoading" class="spinner" />
                 <Icon v-else name="refresh" :size="12" />
-                {{ dyConvReady ? '刷新列表' : '加载会话' }}
+                {{ dyConvReady ? t('刷新列表') : t('加载会话') }}
               </button>
             </div>
             <div class="hint mt12" v-if="dyMode === 'exclude'">
@@ -312,7 +313,7 @@ onMounted(async () => {
 
           <div class="row mt12">
             <div class="grow">
-              <div style="font-weight: 550">增量采集</div>
+              <div style="font-weight: 550">{{ t('增量采集') }}</div>
               <div class="hint">只取新消息；关掉则把整个会话重新抓一遍</div>
             </div>
             <button class="switch" :class="{ on: dyIncremental }" @click="dyIncremental = !dyIncremental" />
@@ -320,7 +321,7 @@ onMounted(async () => {
 
           <div class="row mt12">
             <div class="grow">
-              <div style="font-weight: 550">下载图片 / 表情 / 视频封面</div>
+              <div style="font-weight: 550">{{ t('下载媒体') }}</div>
               <div class="hint">采集时一并保存媒体，会明显变慢</div>
             </div>
             <button class="switch" :class="{ on: dyDownloadImages }" @click="dyDownloadImages = !dyDownloadImages" />
@@ -351,10 +352,10 @@ onMounted(async () => {
               <Icon name="refresh" :size="14" /> 采集并导入
             </button>
             <button class="btn" :disabled="!sources.douyin.exists" @click="run('douyinImport', '导入本地抖音数据库')">
-              <Icon name="import" :size="14" /> 导入本地数据库
+              <Icon name="import" :size="14" /> {{ t('导入本地数据库') }}
             </button>
             <button class="btn ghost" :disabled="!customDb" @click="run('douyinCustom', '导入指定抖音数据库')">
-              导入上面的路径
+              {{ t('导入上面的路径') }}
             </button>
           </div>
         </div>

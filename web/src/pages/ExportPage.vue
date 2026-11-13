@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { api, downloadUrl } from '../lib/api'
 import { toast } from '../lib/store'
 import { fmtBytes, fmtCount, fmtDateTime, fmtRelative, initial, avatarColor, PLATFORM_META, previewText } from '../lib/format'
+import { t } from '../lib/i18n'
 import Icon from '../components/Icon.vue'
 
 const threads = ref([])
@@ -64,7 +65,7 @@ onMounted(load)
 <template>
   <div class="page">
     <div class="page-head">
-      <h1>导出</h1>
+      <h1>{{ t('导出') }}</h1>
       <p>导出成 ChatLab 格式（可以直接喂给分析工具）或可读的 Markdown。合并会话可以分别导出，也可以合成一份。</p>
     </div>
 

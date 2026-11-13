@@ -101,6 +101,19 @@ def test_appearance_switch_changes_css(server, browser):
     page.close()
 
 
+def test_language_switch(server, browser):
+    page = browser.new_page(viewport={"width": 1400, "height": 900})
+    page.goto(server + "/?view=settings", wait_until="networkidle")
+    page.get_by_role("button", name="English").click()
+    page.wait_for_timeout(600)
+    page.goto(server + "/?view=search", wait_until="networkidle")
+    assert page.locator("h1").first.inner_text().strip() == "Search"
+    # 切回中文，避免影响其他用例
+    page.goto(server + "/?view=settings", wait_until="networkidle")
+    page.get_by_role("button", name="中文").click()
+    page.close()
+
+
 def test_settings_loads(server, browser):
     page = browser.new_page(viewport={"width": 1400, "height": 900})
     page.goto(server + "/?view=settings", wait_until="networkidle")

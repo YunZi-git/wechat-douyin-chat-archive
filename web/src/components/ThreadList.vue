@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { fmtCount, fmtRelative, previewText, initial, avatarColor, PLATFORM_META } from '../lib/format'
+import { t } from '../lib/i18n'
 import Icon from './Icon.vue'
 
 const props = defineProps({
@@ -54,7 +55,7 @@ const counts = computed(() => {
         <Icon name="search" :size="14" />
         <input
           :value="query"
-          placeholder="搜索联系人或会话…"
+          :placeholder="t('搜索联系人或会话…')"
           @input="emit('update:query', $event.target.value)"
         />
         <button v-if="query" class="icon-btn" style="width: 22px; height: 22px" @click="emit('update:query', '')">
@@ -65,16 +66,16 @@ const counts = computed(() => {
 
     <div class="filter-row">
       <button class="chip" :class="{ active: !platform }" @click="emit('update:platform', '')">
-        全部 {{ threads.length }}
+        {{ t('全部') }} {{ threads.length }}
       </button>
       <button class="chip plat-wechat" :class="{ active: platform === 'wechat' }" @click="emit('update:platform', 'wechat')">
-        微信 {{ counts.wechat }}
+        {{ t('微信') }} {{ counts.wechat }}
       </button>
       <button class="chip plat-douyin" :class="{ active: platform === 'douyin' }" @click="emit('update:platform', 'douyin')">
-        抖音 {{ counts.douyin }}
+        {{ t('抖音') }} {{ counts.douyin }}
       </button>
       <button class="chip" :class="{ active: mergedOnly }" @click="emit('update:merged-only', !mergedOnly)">
-        已合并 {{ counts.merged }}
+        {{ t('已合并') }} {{ counts.merged }}
       </button>
     </div>
 

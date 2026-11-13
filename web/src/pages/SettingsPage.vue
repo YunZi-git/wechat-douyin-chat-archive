@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { api } from '../lib/api'
 import { store, toast, applyDensity, refreshStats, currentTheme } from '../lib/store'
 import { fmtCount, fmtDateTime, fmtBytes } from '../lib/format'
+import { t, setLanguage, i18n } from '../lib/i18n'
 import Icon from '../components/Icon.vue'
 
 const saving = ref(false)
@@ -61,6 +62,12 @@ async function checkUpdate() {
 }
 const asrTesting = ref(false)
 const asrMessage = ref('')
+
+async function setLang(value) {
+  i18n.lang = value
+  setLanguage(value)
+  await save({ language: value })
+}
 
 async function loadAsr() {
   try {
@@ -184,22 +191,22 @@ onMounted(async () => {
 <template>
   <div class="page">
     <div class="page-head">
-      <h1>设置</h1>
+      <h1>{{ t('设置') }}</h1>
       <p>所有设置只保存在本机 <code class="mono">data/settings.json</code>，不会上传。</p>
     </div>
 
     <div class="section">
-      <h2>外观</h2>
+      <h2>{{ t('外观') }}</h2>
       <div class="card">
         <div class="row">
           <div class="grow">
-            <div style="font-weight: 550">当前外观：{{ themeLabel }}</div>
+            <div style="font-weight: 550">{{ t('当前外观：') }}{{ themeLabel }}</div>
             <div class="hint">
               内置 4 套 + StyleKit 151 套；配色、圆角、边框和阴影都会跟着变
             </div>
           </div>
           <button class="btn" @click="store.view = 'appearance'">
-            <Icon name="sparkles" :size="14" /> 浏览外观库
+            <Icon name="sparkles" :size="14" /> {{ t('浏览外观库') }}
           </button>
         </div>
 
@@ -207,8 +214,29 @@ onMounted(async () => {
 
         <div class="row">
           <div class="grow">
-            <div style="font-weight: 550">紧凑模式</div>
-            <div class="hint">消息行距更小，一屏能看更多</div>
+            <div style="font-weight: 550">{{ t('语言') }}</div>
+            <div class="hint">中文 / English</div>
+          </div>
+          <div class="row" style="gap: 6px">
+            <button
+              class="chip"
+              :class="{ active: (store.settings.language || 'zh') === 'zh' }"
+              @click="setLang('zh')"
+            >中文</button>
+            <button
+              class="chip"
+              :class="{ active: store.settings.language === 'en' }"
+              @click="setLang('en')"
+            >English</button>
+          </div>
+        </div>
+
+        <div class="divider" />
+
+        <div class="row">
+          <div class="grow">
+            <div style="font-weight: 550">{{ t('紧凑模式') }}</div>
+            <div class="hint">{{ t('消息行距更小，一屏能看更多') }}</div>
           </div>
           <button class="switch" :class="{ on: store.settings.density === 'compact' }" @click="setDensity(store.settings.density === 'compact' ? 'comfortable' : 'compact')" />
         </div>
@@ -216,7 +244,7 @@ onMounted(async () => {
     </div>
 
     <div class="section">
-      <h2>阅读</h2>
+      <h2>{{ t('阅读') }}</h2>
       <div class="card">
         <div class="row">
           <div class="grow">
@@ -234,7 +262,7 @@ onMounted(async () => {
     </div>
 
     <div class="section">
-      <h2>语音识别</h2>
+      <h2>{{ t('语音识别') }}</h2>
       <div class="card">
         <div class="field">
           <label>默认引擎</label>
@@ -277,16 +305,16 @@ onMounted(async () => {
           </div>
         </div>
         <div class="field mt12" style="max-width: 220px">
-          <label>地域</label>
+          <label>{{ t('地域') }}</label>
           <input v-model="asrForm.tencent_region" class="input" placeholder="ap-shanghai" />
         </div>
 
         <div class="row wrap" style="gap: 8px">
           <button class="btn sm" :disabled="asrTesting" @click="testAsr">
             <span v-if="asrTesting" class="spinner" />
-            <Icon v-else name="link" :size="13" /> 测试连接
+            <Icon v-else name="link" :size="13" /> {{ t('测试密钥') }}
           </button>
-          <button class="btn sm ghost danger" @click="clearAsrKeys">清除密钥</button>
+          <button class="btn sm ghost danger" @click="clearAsrKeys">{{ t('清除密钥') }}</button>
           <span class="hint">密钥存在 data/secrets.json，不进仓库；云端约 1 元/千次。</span>
         </div>
 
@@ -301,7 +329,7 @@ onMounted(async () => {
 
         <div class="grid two" style="gap: 12px">
           <div class="field" style="margin-bottom: 0">
-            <label>模型大小</label>
+            <label>{{ t('模型大小') }}</label>
             <select v-model="asrForm.whisper_model" class="select">
               <option value="base">base（最快，准确率一般）</option>
               <option value="small">small（推荐）</option>
@@ -309,11 +337,11 @@ onMounted(async () => {
             </select>
           </div>
           <div class="field" style="margin-bottom: 0">
-            <label>模型目录（可选）</label>
+            <label>{{ t('模型目录（可选）') }}</label>
             <input v-model="asrForm.whisper_model_dir" class="input" placeholder="留空用默认缓存目录" />
           </div>
           <div class="field" style="margin-bottom: 0">
-            <label>模型下载镜像（可选）</label>
+            <label>{{ t('模型下载镜像（可选）') }}</label>
             <input
               v-model="asrForm.whisper_endpoint"
               class="input"
@@ -330,7 +358,7 @@ onMounted(async () => {
 
         <div class="row">
           <div class="grow">
-            <div style="font-weight: 550">导入后自动识别新语音</div>
+            <div style="font-weight: 550">{{ t('导入后自动识别') }}</div>
             <div class="hint">每次导入结束自动跑一批待转写语音（最多 200 条）</div>
           </div>
           <button
@@ -342,7 +370,7 @@ onMounted(async () => {
 
         <div class="row mt12">
           <div class="grow">
-            <div style="font-weight: 550">抖音语音兜底</div>
+            <div style="font-weight: 550">{{ t('抖音语音兜底') }}</div>
             <div class="hint">抖音原生识别失败时，导入后用上面的引擎补转写</div>
           </div>
           <button
@@ -354,7 +382,7 @@ onMounted(async () => {
 
         <div class="row mt12">
           <div class="grow">
-            <div style="font-weight: 550">云端并发</div>
+            <div style="font-weight: 550">{{ t('云端并发') }}</div>
             <div class="hint">本地识别固定串行，避免抢 CPU</div>
           </div>
           <select v-model.number="asrForm.concurrency" class="select" style="max-width: 110px">
@@ -367,7 +395,7 @@ onMounted(async () => {
         <div class="row mt20" style="gap: 10px">
           <button class="btn primary" :disabled="asrSaving" @click="saveAsr">
             <span v-if="asrSaving" class="spinner" />
-            保存识别配置
+            {{ t('保存') }}
           </button>
           <span v-if="asrMessage" class="hint">{{ asrMessage }}</span>
         </div>
@@ -375,7 +403,7 @@ onMounted(async () => {
     </div>
 
     <div class="section">
-      <h2>数据</h2>
+      <h2>{{ t('数据') }}</h2>
       <div class="stat-grid" style="margin-bottom: 14px">
         <div class="stat">
           <div class="n">{{ fmtCount(store.stats?.messages) }}</div>
@@ -427,7 +455,7 @@ onMounted(async () => {
     </div>
 
     <div class="section">
-      <h2>关于</h2>
+      <h2>{{ t('关于') }}</h2>
       <div class="card">
         <div class="row" style="margin-bottom: 14px">
           <div class="rail-logo" style="margin: 0; width: 42px; height: 42px">聊</div>

@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { store, currentTheme, setTheme } from '../lib/store'
 import { CATEGORY_LABELS, BUILTIN_THEMES, systemPrefersDark } from '../lib/themes'
+import { t } from '../lib/i18n'
 import Icon from '../components/Icon.vue'
 
 const query = ref('')
@@ -73,7 +74,7 @@ async function pick(t) {
     <div class="page-head">
       <div class="row">
         <div class="grow">
-          <h1>外观</h1>
+          <h1>{{ t('外观') }}</h1>
           <p>
             共 {{ store.themes.length }} 套配色（内置 {{ 4 }} + StyleKit 151）。
             点击任意卡片立即生效，选择会保存在本机。
@@ -86,10 +87,10 @@ async function pick(t) {
     <div class="row wrap" style="gap: 10px; margin-bottom: 16px">
       <div class="search-box" style="max-width: 320px">
         <Icon name="search" :size="14" />
-        <input v-model="query" placeholder="搜索外观名称 / 英文 / 描述…" />
+        <input v-model="query" :placeholder="t('搜索外观名称 / 英文 / 描述…')" />
       </div>
       <button class="chip" :class="{ active: category === 'all' }" @click="category = 'all'">
-        全部 {{ store.themes.length }}
+        {{ t('全部') }} {{ store.themes.length }}
       </button>
       <button
         v-for="c in categories"
@@ -98,10 +99,10 @@ async function pick(t) {
         :class="{ active: category === c.key }"
         @click="category = c.key"
       >
-        {{ c.label }} {{ c.n }}
+        {{ t(c.label) }} {{ c.n }}
       </button>
       <button class="chip" :class="{ active: onlyDark }" @click="onlyDark = !onlyDark">
-        只看深色
+        {{ t('只看深色') }}
       </button>
     </div>
 
