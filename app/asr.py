@@ -83,7 +83,7 @@ def engine_info() -> dict[str, Any]:
         "current": cfg.get("asr_engine", "off"),
         "auto": bool(cfg.get("asr_auto_after_import")),
         "douyin_fallback": bool(cfg.get("asr_douyin_fallback", True)),
-        "concurrency": int(cfg.get("asr_concurrency", 2)),
+        "concurrency": int(cfg.get("asr_concurrency", 10)),
     }
 
 
@@ -392,7 +392,7 @@ def run_batch(
 
     job.write(f"[i] 引擎 {engine}，范围 {scope}，共 {total} 条")
     cfg = settings.load()
-    concurrency = max(1, min(int(cfg.get("asr_concurrency", 2)), 100))
+    concurrency = max(1, min(int(cfg.get("asr_concurrency", 10)), 100))
     if engine == "local":
         concurrency = 1  # 本地模型串行，避免抢占 CPU / 线程安全问题
 

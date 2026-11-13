@@ -2,6 +2,14 @@
 
 本项目的所有调整都记录在这里；更细的逐次改动可以用 `git log --oneline` 查。
 
+## [1.4.7] - 2026-11-13
+
+### 调整
+
+- 云端并发选项按需求收敛为 **10 / 25 / 50 / 100**，默认 10
+- 旧设置里的 1 / 2 / 4 在界面加载时归一到 10；保存后生效
+- 后端仍接受 1–100，上限 100
+
 ## [1.4.6] - 2026-11-13
 
 ### 调整
@@ -306,6 +314,7 @@
 - 便携包：内嵌 Python 运行时，解压即用
 - AGPL-3.0 开源，仓库不含真实数据，演示数据全部合成
 
+[1.4.7]: https://example.com/chatwork/releases/tag/v1.4.7
 [1.4.6]: https://example.com/chatwork/releases/tag/v1.4.6
 [1.4.5]: https://example.com/chatwork/releases/tag/v1.4.5
 [1.4.4]: https://example.com/chatwork/releases/tag/v1.4.4

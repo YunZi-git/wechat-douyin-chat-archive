@@ -112,7 +112,7 @@ const asrForm = ref({
   engine: 'off',
   auto_after_import: false,
   douyin_fallback: true,
-  concurrency: 2,
+  concurrency: 10,
   whisper_model: 'small',
   whisper_model_dir: '',
   whisper_endpoint: '',
@@ -168,7 +168,9 @@ async function loadAsr() {
     asrForm.value.engine = engines.current || 'off'
     asrForm.value.auto_after_import = !!engines.auto
     asrForm.value.douyin_fallback = engines.douyin_fallback !== false
-    asrForm.value.concurrency = engines.concurrency || 2
+    const allowed = [10, 25, 50, 100]
+    const current = Number(engines.concurrency)
+    asrForm.value.concurrency = allowed.includes(current) ? current : 10
     asrForm.value.whisper_model = engines.local?.model || 'small'
     asrForm.value.whisper_endpoint = asr.value.engines?.local?.endpoint || ''
     asrForm.value.tencent_region = asr.value.secrets?.tencent?.region || 'ap-shanghai'
@@ -496,9 +498,6 @@ onMounted(async () => {
             <div class="hint">最高 100；太大容易触发腾讯云限流。本地识别固定串行</div>
           </div>
           <select v-model.number="asrForm.concurrency" class="select" style="max-width: 110px">
-            <option :value="1">1</option>
-            <option :value="2">2</option>
-            <option :value="4">4</option>
             <option :value="10">10</option>
             <option :value="25">25</option>
             <option :value="50">50</option>
