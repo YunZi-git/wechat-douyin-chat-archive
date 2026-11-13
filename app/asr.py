@@ -162,6 +162,14 @@ def _tencent_call(secret_id: str, secret_key: str, region: str,
         return json.load(response).get("Response", {})
 
 
+def _tencent_result_text(response: dict[str, Any]) -> str:
+    """兼容腾讯云 Result 为字符串（官方文档）和旧版对象两种返回。"""
+    result = response.get("Result")
+    if isinstance(result, dict):
+        result = result.get("Text")
+    return str(result or "").strip()
+
+
 def _tencent_recognize(wav_path: Path, *, retries: int = 3) -> str:
     """返回识别文本；空字符串表示这段音频没有语音。"""
     secret_id, secret_key, region = secrets.tencent_credentials()
@@ -192,7 +200,7 @@ def _tencent_recognize(wav_path: Path, *, retries: int = 3) -> str:
             time.sleep(1 + attempt * 2)
             continue
         if "Result" in response:
-            return str((response.get("Result") or {}).get("Text") or "").strip()
+            return _tencent_result_text(response)
         error = response.get("Error") or {}
         code = str(error.get("Code") or "")
         message = str(error.get("Message") or "")

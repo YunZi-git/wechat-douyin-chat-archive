@@ -159,3 +159,10 @@ def test_asr_concurrency_max_100(client, library):
     assert res.status_code == 200, res.text
     assert res.json()["engines"]["concurrency"] == 100
     assert client.put("/api/asr/config", json={"concurrency": 101}).status_code == 422
+
+def test_tencent_result_accepts_string():
+    from app.asr import _tencent_result_text
+
+    assert _tencent_result_text({"Result": "你好世界"}) == "你好世界"
+    assert _tencent_result_text({"Result": {"Text": "对象格式"}}) == "对象格式"
+    assert _tencent_result_text({"Result": None}) == ""

@@ -2,6 +2,16 @@
 
 本项目的所有调整都记录在这里；更细的逐次改动可以用 `git log --oneline` 查。
 
+## [1.4.8] - 2026-11-13
+
+### 修复
+
+- **腾讯云识别全部失败**：一句话识别接口返回的 `Result` 是**字符串**，
+  代码却按对象调用 `.get("Text")`，每条都抛
+  `AttributeError: 'str' object has no attribute 'get'`；
+  现在同时兼容字符串和对象，正常返回识别文本
+- 新增 `_tencent_result_text` 单元测试
+
 ## [1.4.7] - 2026-11-13
 
 ### 调整
@@ -314,6 +324,7 @@
 - 便携包：内嵌 Python 运行时，解压即用
 - AGPL-3.0 开源，仓库不含真实数据，演示数据全部合成
 
+[1.4.8]: https://example.com/chatwork/releases/tag/v1.4.8
 [1.4.7]: https://example.com/chatwork/releases/tag/v1.4.7
 [1.4.6]: https://example.com/chatwork/releases/tag/v1.4.6
 [1.4.5]: https://example.com/chatwork/releases/tag/v1.4.5
