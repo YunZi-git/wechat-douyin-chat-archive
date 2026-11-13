@@ -2,6 +2,24 @@
 
 本项目的所有调整都记录在这里；更细的逐次改动可以用 `git log --oneline` 查。
 
+## [1.3.3] - 2026-11-13
+
+### 修复
+
+- 分享卡片点击改为调用 `/api/open-external`，由后端在系统默认浏览器打开；
+  即使 WebView2 的新窗口事件失效也能点开（失败再回退 `window.open`）
+- 后端只接受 http/https，拒绝 `javascript:`/`file:` 等协议
+
+## [1.3.2] - 2026-11-13
+
+### 修复
+
+- **微信分享卡片点不开**：模板里用了 `share.url`，而微信分享的 `share` 对象只有标题、
+  没有 `url`，链接地址在 `meta.url` 上，导致 `<a>` 渲染成没有 href 的卡片
+- 现在统一用 `shareUrl`（`share.url` → `meta.url` 兜底），微信文章/群邀请和
+  抖音视频卡片都能点开；无 URL 的纯分享仍显示为普通文本
+- 标题字段改为可选链，避免 `share` 为空时渲染报错
+
 ## [1.3.1] - 2026-11-13
 
 ### 首次启动加固
@@ -169,6 +187,8 @@
 - 便携包：内嵌 Python 运行时，解压即用
 - AGPL-3.0 开源，仓库不含真实数据，演示数据全部合成
 
+[1.3.3]: https://example.com/chatwork/releases/tag/v1.3.3
+[1.3.2]: https://example.com/chatwork/releases/tag/v1.3.2
 [1.3.1]: https://example.com/chatwork/releases/tag/v1.3.1
 [1.3.0]: https://example.com/chatwork/releases/tag/v1.3.0
 [1.2.2]: https://example.com/chatwork/releases/tag/v1.2.2

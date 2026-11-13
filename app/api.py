@@ -9,6 +9,9 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from . import contacts as contacts_mod
+import webbrowser
+from urllib.parse import urlsplit
+
 from . import asr
 from . import autosync
 from . import identity
@@ -268,6 +271,27 @@ def rename_contact(contact_id: int, body: RenameBody) -> dict[str, Any]:
 class SelfIdentityBody(BaseModel):
     platform: str
     uid: str
+
+
+class OpenUrlBody(BaseModel):
+    url: str
+
+
+@router.post("/open-external")
+def open_external(body: OpenUrlBody) -> dict[str, Any]:
+    """在系统默认浏览器里打开链接（桌面 WebView 的兜底）。"""
+    url = (body.url or "").strip()
+    if len(url) > 2048:
+        raise HTTPException(400, "链接过长")
+    parsed = urlsplit(url)
+    if parsed.scheme not in ("http", "https") or not parsed.netloc:
+        raise HTTPException(400, "只允许打开 http/https 链接")
+    try:
+        # Windows 的 webbrowser.open 成功时可能返回 None，不能拿返回值判断
+        webbrowser.open(url)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(500, f"打开链接失败：{exc}") from exc
+    return {"ok": True}
 
 
 @router.get("/self-identity")

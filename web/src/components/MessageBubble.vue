@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { fmtTime, fmtBytes, initial, avatarColor, PLATFORM_META, kindLabel } from '../lib/format'
 import Icon from './Icon.vue'
+import { api } from '../lib/api'
 
 const props = defineProps({
   message: { type: Object, required: true },
@@ -47,7 +48,22 @@ const locMeta = computed(() => meta.value.location || null)
 const cardMeta = computed(() => meta.value.card || null)
 const miniMeta = computed(() => meta.value.miniprogram || null)
 const share = computed(() => meta.value.share || null)
-const shareUrl = computed(() => share.value?.url || meta.value.url || '')
+const shareUrl = computed(() => {
+  const raw = String(share.value?.url || meta.value.url || '').trim()
+  // 数据来自聊天记录，只允许 http(s)，避免 javascript:/file: 被渲染成可点链接
+  return /^https?:\/\//i.test(raw) ? raw : ''
+})
+async function openShare(event) {
+  event.preventDefault()
+  const url = shareUrl.value
+  if (!/^https?:\/\//i.test(url)) return
+  try {
+    await api.openExternal(url)
+  } catch {
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+}
+
 const shareHost = computed(() => {
   try {
     return new URL(shareUrl.value).hostname.replace(/^www\./, '')
@@ -192,7 +208,13 @@ const previewText = computed(() => (m.value.text || '').slice(0, 300))
 
         <!-- 分享卡片（抖音视频/图文，可点开） -->
         <template v-else-if="shareUrl">
-          <a class="share-card" :href="share.url" target="_blank" rel="noopener noreferrer">
+          <a
+            class="share-card"
+            :href="shareUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            @click="openShare"
+          >
             <img
               v-if="share.cover && !coverBroken"
               :src="share.cover"
@@ -202,7 +224,7 @@ const previewText = computed(() => (m.value.text || '').slice(0, 300))
               @error="coverBroken = true"
             />
             <span class="share-body">
-              <span class="share-title">{{ share.title || m.text || '抖音分享' }}</span>
+              <span class="share-title">{{ share?.title || m.text || '分享' }}</span>
               <span class="share-meta">
                 {{ share?.author || shareHost || '外部链接' }} · 点开查看
               </span>

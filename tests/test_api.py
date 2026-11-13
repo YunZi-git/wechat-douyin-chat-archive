@@ -146,3 +146,15 @@ def test_jobs_list(client):
     data = client.get("/api/jobs").json()
     assert "items" in data
     assert client.get("/api/jobs/deadbeef").status_code == 404
+
+def test_open_external(client, library, monkeypatch):
+    import app.api as api_mod
+
+    opened = []
+    monkeypatch.setattr(api_mod.webbrowser, "open", lambda url: opened.append(url) or True)
+    res = client.post("/api/open-external", json={"url": "https://example.com/a?b=1"})
+    assert res.status_code == 200
+    assert opened == ["https://example.com/a?b=1"]
+
+    assert client.post("/api/open-external", json={"url": "javascript:alert(1)"}).status_code == 400
+    assert client.post("/api/open-external", json={"url": "file:///C:/x"}).status_code == 400

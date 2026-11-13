@@ -94,6 +94,7 @@ export const api = {
   themes: () => get('/api/themes'),
   version: () => get('/api/version'),
   selfIdentity: () => get('/api/self-identity'),
+  openExternal: (url) => post('/api/open-external', { url }),
   setSelfIdentity: (body) => patch('/api/self-identity', body),
   autosyncStatus: () => get('/api/autosync/status'),
   autosyncRun: () => post('/api/autosync/run'),

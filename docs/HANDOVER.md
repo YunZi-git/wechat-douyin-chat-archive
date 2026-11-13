@@ -76,7 +76,7 @@
 | `web/src/components/ChatView.vue` | 消息流、会话内搜索、跳转 | |
 | `scripts/make_demo_data.py` | 生成合成演示数据（可 `--import`） | demo 数据全靠它 |
 | `scripts/build_portable.py` | 嵌入式 Python + 依赖 + 启动脚本 | |
-| `tests/` | 185 个 pytest 用例 + 6 个 E2E（默认跳过） | 全用合成数据 |
+| `tests/` | 186 个 pytest 用例 + 6 个 E2E（默认跳过） | 全用合成数据 |
 
 ---
 
@@ -455,7 +455,7 @@ git grep -n -I -E "wxid_[a-z0-9]{10,}|sk-[A-Za-z0-9]{20,}|AKID[A-Za-z0-9]{10,}|C
 ## 10. 验收清单（改完代码跑一遍）
 
 ```bash
-.venv\Scripts\python -m pytest -q          # 185 passed, 6 skipped（E2E 需 CHATWORK_E2E=1）
+.venv\Scripts\python -m pytest -q          # 186 passed, 6 skipped（E2E 需 CHATWORK_E2E=1）
 python scripts/build_portable.py --no-build-web   # 能打包
 ```
 
