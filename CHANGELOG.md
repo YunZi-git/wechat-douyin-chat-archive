@@ -2,6 +2,18 @@
 
 本项目的所有调整都记录在这里；更细的逐次改动可以用 `git log --oneline` 查。
 
+## [1.4.2] - 2026-11-13
+
+### 修复
+
+- **打开会话不跳到底部**：切换会话时先清空旧消息，ChatView 按 thread_id 重新挂载；
+  消息到达后贴底，图片/头像异步加载后继续贴底，用户主动上滑后不再强制
+- **文字对比度**：`--text-faint` 提升为 text/textDim 混合，预览、时间、提示等
+  统一改用 `--text-dim`；小字不再灰到看不清
+- **Windows 原生标题栏不跟主题**：新增 `/api/titlebar`，前端按当前主题把
+  bg/text 发给后端，后端通过 pywebview 窗口句柄调用 DWM 重绘标题栏/文字
+  （Win11 caption color，Win10 回退深色模式）
+
 ## [1.4.1] - 2026-11-13
 
 ### 修复
@@ -259,6 +271,7 @@
 - 便携包：内嵌 Python 运行时，解压即用
 - AGPL-3.0 开源，仓库不含真实数据，演示数据全部合成
 
+[1.4.2]: https://example.com/chatwork/releases/tag/v1.4.2
 [1.4.1]: https://example.com/chatwork/releases/tag/v1.4.1
 [1.4.0]: https://example.com/chatwork/releases/tag/v1.4.0
 [1.3.8]: https://example.com/chatwork/releases/tag/v1.3.8

@@ -101,7 +101,7 @@ const previewText = computed(() => (m.value.text || '').slice(0, 300))
         v-if="senderAvatar && !avatarBroken"
         :src="`/media/${senderAvatar}`"
         alt=""
-        loading="lazy"
+        decoding="async"
         @error="avatarBroken = true"
       />
       <template v-else>{{ m.is_self ? '我' : initial(m.sender_name) }}</template>
@@ -132,7 +132,7 @@ const previewText = computed(() => (m.value.text || '').slice(0, 300))
             class="media"
             :class="{ sticker: m.kind === 'sticker' }"
             :src="imageSrc"
-            loading="lazy"
+            decoding="async"
             @error="imgBroken = true"
             @click="emit('open-image', imageSrc)"
           />

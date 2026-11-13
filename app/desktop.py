@@ -21,6 +21,121 @@ APP_TITLE = "聊天信息工作台"
 _instance_handle = None
 
 
+def _colorref(value: str):
+    """#rrggbb → Windows COLORREF (0x00bbggrr)。"""
+    text = (value or "").strip().lstrip("#")
+    if len(text) == 3:
+        text = "".join(ch * 2 for ch in text)
+    if len(text) != 6:
+        return None
+    try:
+        r, g, b = (int(text[i:i + 2], 16) for i in (0, 2, 4))
+    except ValueError:
+        return None
+    return (b << 16) | (g << 8) | r
+
+
+def _native_hwnd(user32) -> int:
+    """优先从 pywebview 的窗口对象拿 HWND，找不到再用 EnumWindows。"""
+    try:
+        import webview
+
+        window = webview.windows[0]
+        native = getattr(window, "native", None)
+        handle = getattr(native, "Handle", None)
+        if handle is not None:
+            raw = handle.ToInt32() if hasattr(handle, "ToInt32") else int(handle)
+            # BrowserView 可能是子控件，取 root 才是带标题栏的窗口
+            root = user32.GetAncestor(raw, 2)
+            return int(root or raw)
+    except Exception:  # noqa: BLE001
+        pass
+    return 0
+
+
+def paint_titlebar(bg: str, text: str, dark: bool) -> bool:
+    """把 Windows 原生标题栏重绘成当前主题色（Win11 caption color）。"""
+    if os.name != "nt":
+        return False
+    try:
+        import ctypes
+
+        user32 = ctypes.windll.user32
+        dwm = ctypes.windll.dwmapi
+        hwnd = _native_hwnd(user32)
+        user32.FindWindowW.argtypes = [ctypes.c_wchar_p, ctypes.c_wchar_p]
+        user32.FindWindowW.restype = ctypes.c_void_p
+        if not hwnd:
+            hwnd = user32.FindWindowW(None, APP_TITLE)
+        if not hwnd:
+            # FindWindowW 对 pywebview 的窗口偶尔找不到，按 PID + 可见窗口兜底
+            matches = []
+            fallback = []
+            pid = os.getpid()
+
+            class _Rect(ctypes.Structure):
+                _fields_ = [("left", ctypes.c_long), ("top", ctypes.c_long),
+                            ("right", ctypes.c_long), ("bottom", ctypes.c_long)]
+
+            def _area(win):
+                rect = _Rect()
+                if user32.GetWindowRect(win, ctypes.byref(rect)):
+                    return max(0, rect.right - rect.left) * max(0, rect.bottom - rect.top)
+                return 0
+
+            @ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)
+            def _enum(win, _lparam):
+                wpid = ctypes.c_ulong()
+                user32.GetWindowThreadProcessId(win, ctypes.byref(wpid))
+                if wpid.value != pid or not user32.IsWindowVisible(win):
+                    return True
+                buf = ctypes.create_unicode_buffer(256)
+                user32.GetWindowTextW(win, buf, 256)
+                title = buf.value.strip()
+                item = (_area(win), win)
+                if title == APP_TITLE or APP_TITLE in title:
+                    matches.append(item)
+                else:
+                    fallback.append(item)
+                return True
+
+            user32.EnumWindows(_enum, 0)
+            # 同进程可能还有 WebView/消息窗口，选面积最大的那个才是主窗口
+            hwnd = max(matches or fallback or [(0, 0)], key=lambda item: item[0])[1]
+        if not hwnd:
+            print("[titlebar] 找不到主窗口", file=sys.stderr)
+            return False
+        flag = ctypes.c_int(1 if dark else 0)
+        # DWMWA_USE_IMMERSIVE_DARK_MODE
+        dwm.DwmSetWindowAttribute(hwnd, 20, ctypes.byref(flag), ctypes.sizeof(flag))
+        try:
+            build = sys.getwindowsversion().build
+        except Exception:  # noqa: BLE001
+            build = 0
+        if build >= 22000:
+            for attr, raw in ((35, bg), (36, text)):
+                color = _colorref(raw)
+                if color is not None:
+                    value = ctypes.c_uint(color)
+                    dwm.DwmSetWindowAttribute(hwnd, attr, ctypes.byref(value), 4)
+        # 强制重绘非客户区
+        user32.SetWindowPos(
+            hwnd, 0, 0, 0, 0, 0,
+            0x0002 | 0x0001 | 0x0004 | 0x0020,  # NOMOVE|NOSIZE|NOZORDER|FRAMECHANGED
+        )
+        return True
+    except Exception as exc:  # noqa: BLE001 - 老系统/无 DWM 时静默降级
+        print(f"[titlebar] 重绘失败: {exc}", file=sys.stderr)
+        return False
+
+
+class _WindowApi:
+    """暴露给网页的最小窗口 API。"""
+
+    def set_titlebar(self, bg: str, text: str, dark: bool = True) -> bool:
+        return paint_titlebar(bg, text, bool(dark))
+
+
 def _single_instance() -> bool:
     """Windows 命名互斥量：防止双击两次开出两个实例抢同一个 SQLite。"""
     global _instance_handle
@@ -152,6 +267,7 @@ def run() -> int:
             min_size=(1000, 640),
             background_color="#12141a",
             text_select=True,
+            js_api=_WindowApi(),
         )
         webview.start()
     except Exception as exc:  # noqa: BLE001 - WebView2 缺失 / 初始化失败

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch, nextTick, onMounted } from 'vue'
+import { computed, ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { api } from '../lib/api'
 import { fmtDay, fmtCount, PLATFORM_META, initial, avatarColor, fmtTime } from '../lib/format'
 import { t } from '../lib/i18n'
@@ -17,6 +17,7 @@ const props = defineProps({
 const emit = defineEmits(['load-older', 'toggle-info', 'update:platform', 'export', 'open-image', 'jump-to'])
 
 const scroller = ref(null)
+const contentRef = ref(null)
 const searchOpen = ref(false)
 const searchQuery = ref('')
 const searchResults = ref([])
@@ -29,6 +30,11 @@ const dayList = ref([])
 const prevHeight = ref(0)
 const pendingRestore = ref(false)
 const firstLoad = ref(true)
+const stickToBottom = ref(true)
+let resizeObserver = null
+let suppressScroll = false
+let settleTimer = null
+let settling = false
 
 const info = computed(() => props.thread)
 const platforms = computed(() => info.value?.platforms || [])
@@ -79,7 +85,9 @@ const dayGroups = computed(() => {
 
 function onScroll() {
   const el = scroller.value
-  if (!el) return
+  if (!el || suppressScroll || settling) return
+  const distance = el.scrollHeight - el.scrollTop - el.clientHeight
+  stickToBottom.value = distance < 80
   if (el.scrollTop < 80 && props.hasMoreBefore && !props.loading) {
     prevHeight.value = el.scrollHeight
     pendingRestore.value = true
@@ -90,7 +98,36 @@ function onScroll() {
 function scrollToBottom(smooth = false) {
   const el = scroller.value
   if (!el) return
+  stickToBottom.value = true
+  suppressScroll = true
   el.scrollTo({ top: el.scrollHeight, behavior: smooth ? 'smooth' : 'auto' })
+  requestAnimationFrame(() => { suppressScroll = false })
+}
+
+// 图片是 lazy 的，贴底过程中会分批加载、不断把 scrollHeight 撑大；
+// 首屏/切会话后用短轮询把视口稳定在最新一条。
+function settleToBottom(times = 26) {
+  clearTimeout(settleTimer)
+  settling = true
+  let left = times
+  const tick = () => {
+    if (!scroller.value) { settling = false; return }
+    stickToBottom.value = true
+    scrollToBottom()
+    if (--left > 0) {
+      settleTimer = setTimeout(tick, 100)
+    } else {
+      settling = false
+    }
+  }
+  tick()
+}
+
+// 图片/头像异步加载会改变高度；只要用户还停在底部，就继续贴底
+function onMediaLoad(event) {
+  if (event?.target?.tagName === 'IMG' && stickToBottom.value) {
+    requestAnimationFrame(() => scrollToBottom())
+  }
 }
 
 watch(
@@ -100,7 +137,9 @@ watch(
     const el = scroller.value
     if (!el) return
     if (firstLoad.value && props.messages.length) {
+      stickToBottom.value = true
       scrollToBottom()
+      settleToBottom()
       firstLoad.value = false
     } else if (pendingRestore.value) {
       el.scrollTop = el.scrollHeight - prevHeight.value
@@ -119,7 +158,26 @@ watch(
   }
 )
 
-onMounted(() => nextTick(() => scrollToBottom()))
+onMounted(() => {
+  scroller.value?.addEventListener('load', onMediaLoad, true)
+  if (typeof ResizeObserver !== 'undefined' && contentRef.value) {
+    resizeObserver = new ResizeObserver(() => {
+      if (stickToBottom.value) requestAnimationFrame(() => scrollToBottom())
+    })
+    resizeObserver.observe(contentRef.value)
+  }
+  nextTick(() => requestAnimationFrame(() => {
+    scrollToBottom()
+    settleToBottom()
+  }))
+})
+
+onBeforeUnmount(() => {
+  scroller.value?.removeEventListener('load', onMediaLoad, true)
+  resizeObserver?.disconnect()
+  resizeObserver = null
+  clearTimeout(settleTimer)
+})
 
 async function runSearch() {
   const q = searchQuery.value.trim()
@@ -310,6 +368,7 @@ function toggleSearch() {
       </div>
 
       <div ref="scroller" class="messages" @scroll.passive="onScroll">
+        <div ref="contentRef" class="messages-inner">
         <div v-if="hasMoreBefore" class="load-more">
           <span v-if="loading" class="spinner" />
           <span v-else class="hint">{{ t('加载更早的消息') }}</span>
@@ -333,6 +392,7 @@ function toggleSearch() {
             <p>可能是导入时被过滤了，或者该账号的消息还没同步。</p>
           </div>
         </div>
+        </div>
       </div>
 
       <button v-if="messages.length" class="jump-bottom" title="回到最新" @click="scrollToBottom(true)">
@@ -343,6 +403,7 @@ function toggleSearch() {
 </template>
 
 <style scoped>
+.messages-inner { min-height: 100%; }
 .search-pop {
   position: relative;
   border-bottom: 1px solid var(--border);

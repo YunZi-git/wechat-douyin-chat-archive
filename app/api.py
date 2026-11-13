@@ -277,6 +277,19 @@ class SelfIdentityBody(BaseModel):
     uid: str
 
 
+class TitlebarBody(BaseModel):
+    bg: str
+    text: str
+    dark: bool = True
+
+
+@router.post("/titlebar")
+def titlebar(body: TitlebarBody) -> dict[str, Any]:
+    from .desktop import paint_titlebar
+
+    return {"ok": paint_titlebar(body.bg, body.text, body.dark)}
+
+
 class OpenUrlBody(BaseModel):
     url: str
 

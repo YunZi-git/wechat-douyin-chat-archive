@@ -101,6 +101,24 @@ def test_scope_checkbox_toggles(server, browser):
     page.close()
 
 
+def test_chat_opens_at_latest(server, browser):
+    page = browser.new_page(viewport={"width": 1200, "height": 420})
+    page.goto(server + "/?view=chats&thread=conv:1", wait_until="networkidle")
+    page.wait_for_timeout(1400)
+
+    def distance():
+        return page.evaluate(
+            "() => { const e = document.querySelector('.messages');"
+            " return e ? e.scrollHeight - e.scrollTop - e.clientHeight : -1 }"
+        )
+
+    assert 0 <= distance() <= 6
+    page.locator(".thread-item").nth(2).click()
+    page.wait_for_timeout(1200)
+    assert 0 <= distance() <= 6
+    page.close()
+
+
 def test_message_bubbles_show_sender_avatar(server, browser):
     page = browser.new_page(viewport={"width": 1300, "height": 900})
     page.goto(server + "/?view=chats&thread=conv:1", wait_until="networkidle")

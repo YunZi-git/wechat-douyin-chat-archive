@@ -82,6 +82,9 @@ async function loadThread(id) {
   try {
     const info = await api.thread(id)
     if (token !== loadToken) return
+    // 清空上一个会话的消息，避免消息条数相同导致滚动 watcher 不触发
+    messages.value = []
+    hasMoreBefore.value = false
     thread.value = info
     messagePlatform.value = ''
     await loadMessages(id)
@@ -299,6 +302,7 @@ onMounted(async () => {
     />
 
     <ChatView
+      :key="thread?.thread_id || 'empty'"
       :thread="thread"
       :messages="messages"
       :has-more-before="hasMoreBefore"

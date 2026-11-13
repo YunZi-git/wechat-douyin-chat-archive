@@ -166,6 +166,27 @@ export function cssVars(theme) {
   }
 }
 
+function scheduleNativeTitlebar(dark) {
+  // pywebview 可能先创建隐藏窗口、再重建主窗口；窗口句柄会变，重试几次
+  for (const delay of [0, 300, 900, 1800, 3500]) {
+    setTimeout(() => syncNativeTitlebar(dark), delay)
+  }
+}
+
+function syncNativeTitlebar(dark) {
+  const css = getComputedStyle(document.documentElement)
+  const bg = css.getPropertyValue('--bg').trim()
+  const text = css.getPropertyValue('--text').trim()
+  if (!bg || !text) return
+  fetch('/api/titlebar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ bg, text, dark: !!dark }),
+  }).catch(() => {
+    /* 浏览器预览/服务未启动时忽略 */
+  })
+}
+
 export function applyTheme(theme, cacheSlug) {
   const root = document.documentElement
   const vars = cssVars(theme)
@@ -174,6 +195,7 @@ export function applyTheme(theme, cacheSlug) {
   }
   root.setAttribute('data-theme', 'custom')
   root.style.colorScheme = theme.dark ? 'dark' : 'light'
+  scheduleNativeTitlebar(theme.dark)
   try {
     localStorage.setItem('chatwork.theme', cacheSlug || theme.slug)
     localStorage.setItem('chatwork.palette', JSON.stringify(theme))
@@ -194,4 +216,13 @@ export function restoreThemeFromCache() {
   } catch {
     return null
   }
+}
+
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('pywebviewready', () => {
+    const raw = document.documentElement.style.getPropertyValue('--bg').trim()
+    const dark = document.documentElement.style.colorScheme === 'dark'
+    if (raw) scheduleNativeTitlebar(dark)
+  })
 }

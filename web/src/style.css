@@ -1108,3 +1108,24 @@ body .identity-tip {
 #app .rail-logo { box-shadow: var(--shadow-control, var(--shadow-sm)); }
 #app .avatar { box-shadow: var(--shadow-control, none); }
 #app .switch { box-shadow: var(--shadow-control, none); }
+
+
+/* ── Readability: raise secondary text contrast above theme minimum ── */
+#app {
+  --text-faint: color-mix(in srgb, var(--text) 45%, var(--text-dim));
+}
+#app .thread-preview,
+#app .thread-meta,
+#app .hint,
+#app .chat-sub,
+#app .msg-time,
+#app .msg-top,
+#app .kv span:first-child,
+#app .info-block h4,
+#app .row-sub {
+  color: var(--text-dim);
+}
+#app .thread-preview,
+#app .hint,
+#app .row-sub { font-weight: 450; }
+#app .msg-time { font-size: 11px; }
