@@ -2,6 +2,15 @@
 
 本项目的所有调整都记录在这里；更细的逐次改动可以用 `git log --oneline` 查。
 
+## [1.2.2] - 2026-11-13
+
+### 修复
+
+- **拉到的抖音会话名单没有显示**：之前引擎库里只要有 1 个会话就直接返回，
+  不再读 `conversations_list.json`。现在优先展示 discovery 名单（116 个），
+  并从统一库补齐每个会话的消息数；引擎库只作为回退
+- 真实包数据验证：`/api/douyin/conversations` 从 1 个会话恢复到 116 个
+
 ## [1.2.1] - 2026-11-13
 
 ### 修复
@@ -131,6 +140,7 @@
 - 便携包：内嵌 Python 运行时，解压即用
 - AGPL-3.0 开源，仓库不含真实数据，演示数据全部合成
 
+[1.2.2]: https://example.com/chatwork/releases/tag/v1.2.2
 [1.2.1]: https://example.com/chatwork/releases/tag/v1.2.1
 [1.2.0]: https://example.com/chatwork/releases/tag/v1.2.0
 [1.1.4]: https://example.com/chatwork/releases/tag/v1.1.4

@@ -203,12 +203,41 @@ def browser_status() -> dict[str, Any]:
     }
 
 
+def _douyin_unified_counts() -> dict[str, dict[str, Any]]:
+    with db.session(readonly=True) as conn:
+        try:
+            rows = conn.execute(
+                """SELECT c.title AS name, c.kind AS kind,
+                          COUNT(m.id) AS message_count,
+                          COALESCE(MAX(m.ts), 0) AS last_message_time
+                     FROM conversations c
+                     LEFT JOIN messages m ON m.conversation_id = c.id
+                    WHERE c.platform = 'douyin'
+                    GROUP BY c.id
+                    ORDER BY last_message_time DESC, name"""
+            ).fetchall()
+        except Exception:  # noqa: BLE001 - 统一库可能还没建好
+            rows = []
+    out: dict[str, dict[str, Any]] = {}
+    for r in rows:
+        name = (r["name"] or "").strip()
+        if name:
+            out[name] = {
+                "name": name,
+                "message_count": int(r["message_count"] or 0),
+                "last_message_time": int(r["last_message_time"] or 0),
+                "kind": "group" if r["kind"] == "group" else "private",
+            }
+    return out
+
+
 def douyin_conversations() -> dict[str, Any]:
     """给「采集范围」勾选用的抖音会话列表。
 
-    优先读引擎自己的 `data/douyin/chat.db`（采集过就有）；没有的话退回统一库
-    里已经导入过的抖音会话——这样「先导入 chat.db、再补采集」也能选范围。
+    优先级：discovery 拉到的完整名单（最新，含未采集的会话）→ 引擎 chat.db →
+    统一库里已导入的会话。discovery 名单里的会话计数会从统一库补齐。
     """
+    engine_items: list[dict[str, Any]] = []
     db_path = paths.DOUYIN_DB
     if db_path.exists():
         try:
@@ -225,22 +254,20 @@ def douyin_conversations() -> dict[str, Any]:
                 con.close()
         except Exception as exc:  # noqa: BLE001 - 库可能正在被采集写入
             return {"items": [], "total": 0, "available": False, "error": str(exc)}
-        items = []
         for row in rows:
             name = (row["name"] or "").strip()
-            if not name:
-                continue
-            items.append({
-                "name": name,
-                "message_count": int(row["message_count"] or 0),
-                "last_message_time": int(row["last_message_time"] or 0),
-                "kind": "group" if str(row["conv_id"]).isdigit() else "private",
-            })
-        if items:
-            return {"items": items, "total": len(items), "available": True,
-                    "source": "engine"}
+            if name:
+                engine_items.append({
+                    "name": name,
+                    "message_count": int(row["message_count"] or 0),
+                    "last_message_time": int(row["last_message_time"] or 0),
+                    "kind": "group" if str(row["conv_id"]).isdigit() else "private",
+                })
 
-    # 第一次采集前：引擎 discovery 写下的会话列表
+    counts = _douyin_unified_counts()
+    engine_by_name = {item["name"]: item for item in engine_items}
+
+    # 最新拉到的完整名单优先；否则采集后会只剩引擎库里已采集的 1 个会话
     discovered = paths.DOUYIN_DIR / "conversations_list.json"
     if discovered.is_file():
         try:
@@ -253,16 +280,25 @@ def douyin_conversations() -> dict[str, Any]:
             if name and name not in names:
                 names.append(name)
         if names:
-            return {
-                "items": [
-                    {"name": name, "message_count": 0, "last_message_time": 0,
-                     "kind": "unknown"}
-                    for name in names
-                ],
-                "total": len(names),
-                "available": True,
-                "source": "discovered",
-            }
+            items = []
+            for name in names:
+                base = counts.get(name) or engine_by_name.get(name) or {}
+                items.append({
+                    "name": name,
+                    "message_count": int(base.get("message_count") or 0),
+                    "last_message_time": int(base.get("last_message_time") or 0),
+                    "kind": base.get("kind") or "unknown",
+                })
+            return {"items": items, "total": len(items), "available": True,
+                    "source": "discovered"}
+
+    if engine_items:
+        for item in engine_items:
+            base = counts.get(item["name"])
+            if base:
+                item["message_count"] = max(item["message_count"], base["message_count"])
+        return {"items": engine_items, "total": len(engine_items),
+                "available": True, "source": "engine"}
 
     # 回退：统一库里已经导入的抖音会话
     with db.session(readonly=True) as conn:

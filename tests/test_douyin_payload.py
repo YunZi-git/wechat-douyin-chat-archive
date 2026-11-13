@@ -97,3 +97,25 @@ def test_discovered_conversations_fallback(library, tmp_path, monkeypatch):
     assert data["source"] == "discovered"
     names = [item["name"] for item in data["items"]]
     assert names == ["小林", "阿杰"]
+
+def test_discovered_list_wins_over_engine_db(library, tmp_path, monkeypatch):
+    """引擎库里只有 1 个会话时，拉到的完整名单仍然要显示出来。"""
+    import sqlite3
+
+    engine = tmp_path / "engine.db"
+    con = sqlite3.connect(engine)
+    con.execute("CREATE TABLE conversations (conv_id TEXT, name TEXT,"
+                " message_count INTEGER, last_message_time INTEGER, conv_type INTEGER)")
+    con.execute("INSERT INTO conversations VALUES ('1', '小南梁喵', 0, 0, 0)")
+    con.commit()
+    con.close()
+    monkeypatch.setattr(paths, "DOUYIN_DB", engine)
+    monkeypatch.setattr(paths, "DOUYIN_DIR", tmp_path)
+    (tmp_path / "conversations_list.json").write_text(
+        json.dumps({"items": [{"nickname": "安心."}, {"nickname": "听风逝夜"}]},
+                   ensure_ascii=False),
+        encoding="utf-8",
+    )
+    data = services.douyin_conversations()
+    assert data["source"] == "discovered"
+    assert [item["name"] for item in data["items"]] == ["安心.", "听风逝夜"]
