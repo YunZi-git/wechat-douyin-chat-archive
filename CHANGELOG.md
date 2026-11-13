@@ -2,6 +2,15 @@
 
 本项目的所有调整都记录在这里；更细的逐次改动可以用 `git log --oneline` 查。
 
+## [1.4.5] - 2026-11-13
+
+### 修复
+
+- **语音识别条数超限报原始 422**：输入框最大值 5000，但手输 15000 时仍会提交；
+  点击「开始识别」前自动夹到 1–5000，并提示「已按 5000 条执行」
+- API 客户端把 FastAPI 的校验错误数组格式化成「字段: 原因」，不再把整段
+  JSON `[{"type":"less_than_equal"...}]` 直接弹给用户
+
 ## [1.4.4] - 2026-11-13
 
 ### 修复
@@ -289,6 +298,7 @@
 - 便携包：内嵌 Python 运行时，解压即用
 - AGPL-3.0 开源，仓库不含真实数据，演示数据全部合成
 
+[1.4.5]: https://example.com/chatwork/releases/tag/v1.4.5
 [1.4.4]: https://example.com/chatwork/releases/tag/v1.4.4
 [1.4.3]: https://example.com/chatwork/releases/tag/v1.4.3
 [1.4.2]: https://example.com/chatwork/releases/tag/v1.4.2

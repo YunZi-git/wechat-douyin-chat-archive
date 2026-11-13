@@ -51,16 +51,28 @@ async function load() {
   }
 }
 
+const MAX_ASR_LIMIT = 5000
+
+function normalizeLimit() {
+  const n = Number(limit.value)
+  const safe = Number.isFinite(n) ? Math.min(MAX_ASR_LIMIT, Math.max(1, Math.round(n))) : 500
+  const clamped = safe !== n
+  limit.value = safe
+  return clamped
+}
+
 async function run() {
   if (!runnable.value) {
     toast('这个引擎还不可用，先去设置里配置', 'err')
     return
   }
+  const clamped = normalizeLimit()
+  if (clamped) toast(`本次最多处理 ${MAX_ASR_LIMIT} 条，已按 ${MAX_ASR_LIMIT} 条执行`, 'ok')
   try {
     const res = await api.runAsr({
       engine: engine.value,
       scope: scope.value,
-      limit: Number(limit.value) || null,
+      limit: limit.value || null,
     })
     runningJob.value = res.job.id
     toast('已开始识别', 'ok')
@@ -181,7 +193,14 @@ onMounted(load)
 
           <div class="field">
             <label>{{ t('本次最多处理（条）') }}</label>
-            <input v-model.number="limit" class="input" type="number" min="1" max="5000" />
+            <input
+              v-model.number="limit"
+              class="input"
+              type="number"
+              min="1"
+              max="5000"
+              @change="normalizeLimit"
+            />
           </div>
 
           <div class="row wrap" style="gap: 8px">

@@ -13,7 +13,16 @@ async function request(path, options = {}) {
     data = { raw: text }
   }
   if (!res.ok) {
-    const detail = data?.detail || data?.error || `HTTP ${res.status}`
+    let detail = data?.detail || data?.error || `HTTP ${res.status}`
+    if (Array.isArray(detail)) {
+      // FastAPI/Pydantic 的校验错误是数组，不要整段 JSON 甩给用户
+      detail = detail
+        .map((item) => {
+          const loc = Array.isArray(item?.loc) ? item.loc.slice(1).join('.') : ''
+          return `${loc ? `${loc}: ` : ''}${item?.msg || '参数不合法'}`
+        })
+        .join('；')
+    }
     throw new Error(typeof detail === 'string' ? detail : JSON.stringify(detail))
   }
   return data
