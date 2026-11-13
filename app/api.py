@@ -300,6 +300,7 @@ def self_identity() -> dict[str, Any]:
 
 
 @router.post("/self-identity")
+@router.patch("/self-identity")
 def set_self_identity(body: SelfIdentityBody) -> dict[str, Any]:
     try:
         return identity.set_identity(body.platform, body.uid)

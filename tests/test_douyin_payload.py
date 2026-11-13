@@ -119,3 +119,57 @@ def test_discovered_list_wins_over_engine_db(library, tmp_path, monkeypatch):
     data = services.douyin_conversations()
     assert data["source"] == "discovered"
     assert [item["name"] for item in data["items"]] == ["安心.", "听风逝夜"]
+
+def test_parse_content_json_with_item_and_cover():
+    parsed = parse_payload({
+        "itemId": "7707289066601894223",
+        "content_title": "标题",
+        "content_name": "作者",
+        "cover_url": {"url_list": ["https://p3.douyinpic.com/cover.webp"]},
+    })
+    assert parsed["kind"] == "share"
+    assert parsed["meta"]["share"]["url"].endswith("/video/7707289066601894223")
+    assert parsed["meta"]["share"]["cover"].endswith("cover.webp")
+
+
+def test_backfill_from_engine_content_json(library, tmp_path):
+    import sqlite3
+    from app.douyin_backfill import backfill_from_engine
+
+    source = tmp_path / "engine.db"
+    con = sqlite3.connect(source)
+    con.execute("CREATE TABLE messages (msg_id TEXT, content TEXT, raw_data TEXT)")
+    con.execute(
+        "INSERT INTO messages VALUES (?, ?, ?)",
+        (
+            "srv_backfill_1",
+            "[分享]",
+            json.dumps({"content_json": {
+                "itemId": "7000000000000000009",
+                "content_title": "回填视频",
+                "content_name": "作者",
+                "cover_url": {"url_list": ["https://p3.douyinpic.com/c.webp"]},
+            }}, ensure_ascii=False),
+        ),
+    )
+    con.commit()
+    con.close()
+
+    with db.session() as conn:
+        conv = conn.execute(
+            "SELECT id FROM conversations WHERE platform='douyin' LIMIT 1"
+        ).fetchone()["id"]
+        db.add_message(
+            conn, conv, "douyin", "srv_backfill_1",
+            sender_uid="dy", sender_name="阿杰", is_self=False,
+            ts=1_700_000_100, kind="share", text="[分享]",
+            extra=json.dumps({"msg_type": 4}),
+        )
+        result = backfill_from_engine(conn, source)
+    assert result["updated"] == 1
+    with db.session(readonly=True) as conn:
+        row = conn.execute(
+            "SELECT text, extra FROM messages WHERE platform_msg_id='srv_backfill_1'"
+        ).fetchone()
+    assert row["text"] == "回填视频"
+    assert "www.douyin.com/video/7000000000000000009" in row["extra"]

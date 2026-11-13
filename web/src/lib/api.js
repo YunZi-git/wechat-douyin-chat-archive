@@ -95,7 +95,7 @@ export const api = {
   version: () => get('/api/version'),
   selfIdentity: () => get('/api/self-identity'),
   openExternal: (url) => post('/api/open-external', { url }),
-  setSelfIdentity: (body) => patch('/api/self-identity', body),
+  setSelfIdentity: (body) => post('/api/self-identity', body),
   autosyncStatus: () => get('/api/autosync/status'),
   autosyncRun: () => post('/api/autosync/run'),
   updateCheck: (url) => get('/api/update/check' + (url ? `?url=${encodeURIComponent(url)}` : '')),

@@ -19,7 +19,7 @@ from typing import Any, Iterable, Iterator, Sequence
 
 from . import paths
 
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 7
 
 SCHEMA_SQL = """
 PRAGMA journal_mode=WAL;
@@ -417,6 +417,14 @@ def _migrate(conn: sqlite3.Connection, version: int) -> None:
         if any(stats.values()):
             print(f"[i] 修复原始载荷消息: 微信 {stats['wechat']} / 抖音 {stats['douyin']}",
                   file=sys.stderr)
+    if version < 7:
+        # v7：从引擎 raw_data.content_json 回填分享的链接/封面
+        from .douyin_backfill import backfill_from_engine
+
+        result = backfill_from_engine(conn, paths.DOUYIN_DB)
+        if result["updated"]:
+            print(f"[i] 抖音分享回填: {result['updated']} 条", file=sys.stderr)
+            refresh_conversation_stats(conn, result["conversations"])
     if version < 5:
         # v5：全文索引需要重建；v6 会统一做一次 rowid 对齐，这里不再重复
         pass

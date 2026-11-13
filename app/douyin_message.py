@@ -31,17 +31,20 @@ def _cover(obj: dict[str, Any]) -> str:
     return ""
 
 
-def parse_payload(content: str | None) -> dict[str, Any] | None:
-    """content 是 JSON 对象时返回结构化消息，否则 None。"""
-    text = (content or "").strip()
-    if not text.startswith("{"):
-        return None
-    try:
-        obj = json.loads(text)
-    except json.JSONDecodeError:
-        return None
-    if not isinstance(obj, dict):
-        return None
+def parse_payload(content: str | dict[str, Any] | None) -> dict[str, Any] | None:
+    """content 是 JSON 字符串/对象时返回结构化消息，否则 None。"""
+    if isinstance(content, dict):
+        obj = content
+    else:
+        text = (content or "").strip()
+        if not text.startswith("{"):
+            return None
+        try:
+            obj = json.loads(text)
+        except json.JSONDecodeError:
+            return None
+        if not isinstance(obj, dict):
+            return None
 
     # 表情包/贴纸
     stickers = obj.get("stickers")
@@ -58,7 +61,9 @@ def parse_payload(content: str | None) -> dict[str, Any] | None:
             },
         }
 
-    item_id = obj.get("itemId") or obj.get("item_id") or obj.get("aweme_id")
+    related = obj.get("related_share_video")
+    item_id = (obj.get("itemId") or obj.get("item_id") or obj.get("aweme_id")
+               or (related.get("itemId") if isinstance(related, dict) else None))
     if not item_id:
         # 兜底：share_id 末段通常就是作品 ID（<uid>_<ts>_<itemId>）
         share_id = str(obj.get("share_id") or "")
@@ -66,7 +71,12 @@ def parse_payload(content: str | None) -> dict[str, Any] | None:
         if tail.isdigit() and len(tail) >= 10:
             item_id = tail
     author = str(obj.get("content_name") or "").strip()
-    title = str(obj.get("content_title") or "").strip()
+    title = str(
+        obj.get("content_title") or obj.get("aweme_title")
+        or obj.get("push_detail") or ""
+    ).strip()
+    if not title and isinstance(obj.get("comment"), str):
+        title = obj["comment"].strip()
     cover = _cover(obj)
     if item_id or author or cover:
         item = str(item_id).strip()

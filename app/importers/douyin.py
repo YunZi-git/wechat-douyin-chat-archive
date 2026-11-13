@@ -44,6 +44,8 @@ IMAGE_EXT = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".heic", ".bmp"}
 
 
 def _json_obj(raw: Any) -> dict | None:
+    if isinstance(raw, dict):
+        return raw
     if not raw or not isinstance(raw, str):
         return None
     s = raw.strip()
@@ -379,9 +381,10 @@ def import_chat_db(
                     if transcript:
                         text = transcript
 
-                # content 是一段 JSON（分享卡片/表情/系统卡）时，不能整段当文本
-                parsed = parse_payload(row["content"])
-                if parsed and not row["media_local_path"]:
+                # 优先用引擎 raw_data.content_json：content 经常只有 "[分享]"
+                structured = _json_obj(raw.get("content_json"))
+                parsed = parse_payload(structured) or parse_payload(row["content"])
+                if parsed and (parsed["kind"] == "share" or not row["media_local_path"]):
                     kind = parsed["kind"]
                     text = parsed["text"]
 

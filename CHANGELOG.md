@@ -2,6 +2,19 @@
 
 本项目的所有调整都记录在这里；更细的逐次改动可以用 `git log --oneline` 查。
 
+## [1.3.5] - 2026-11-13
+
+### 修复
+
+- **「确认是我」报 Method Not Allowed**：前端用了 PATCH，后端只注册了 POST；
+  前端改回 POST，后端同时兼容 PATCH（旧缓存前端也不会 405）
+- **抖音分享链接/封面大量缺失**：引擎的 `content` 经常只有 `[分享]`，
+  真正的 `itemId` / `cover_url` 在 `raw_data.content_json` 里（上游导出器读的就是
+  这个字段）。导入器现在优先解析 `content_json`，并按上游规则生成
+  `https://www.douyin.com/video/<itemId>`、取 `cover_url.url_list[0]` 作封面
+- schema v7：从引擎库回填已导入的分享，真实包回填 **4,632 条**，
+  有链接的抖音分享从 171 条增加到 4,686 条
+
 ## [1.3.4] - 2026-11-13
 
 ### 修复
@@ -194,6 +207,7 @@
 - 便携包：内嵌 Python 运行时，解压即用
 - AGPL-3.0 开源，仓库不含真实数据，演示数据全部合成
 
+[1.3.5]: https://example.com/chatwork/releases/tag/v1.3.5
 [1.3.4]: https://example.com/chatwork/releases/tag/v1.3.4
 [1.3.3]: https://example.com/chatwork/releases/tag/v1.3.3
 [1.3.2]: https://example.com/chatwork/releases/tag/v1.3.2
