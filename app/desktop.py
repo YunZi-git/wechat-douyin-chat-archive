@@ -13,6 +13,7 @@ import time
 import urllib.request
 
 from . import paths
+from .version import VERSION
 
 APP_TITLE = "聊天信息工作台"
 
@@ -87,7 +88,8 @@ def run() -> int:
     _ensure_stdio()
     port = _free_port()
     _start_server(port)
-    url = f"http://127.0.0.1:{port}"
+    # 带版本号：升级后 WebView2 不会继续用旧 index.html 的缓存
+    url = f"http://127.0.0.1:{port}/?v={VERSION}"
     if not _wait_ready(f"{url}/api/health"):
         print("[x] 后端没有启动成功", file=sys.stderr)
         return 1

@@ -2,6 +2,15 @@
 
 本项目的所有调整都记录在这里；更细的逐次改动可以用 `git log --oneline` 查。
 
+## [1.2.1] - 2026-11-13
+
+### 修复
+
+- 抖音采集范围的会话行改为原生 `<button>`，整行点击必定触发；
+  入口 `index.html` 加 `Cache-Control: no-store`，桌面端 URL 带版本号，
+  避免 WebView2 缓存旧前端导致升级后 UI 行为还是旧的
+- 已验证：E2E 点击会话行能稳定看到「已选 1」
+
 ## [1.2.0] - 2026-11-13
 
 ### 新增
@@ -122,6 +131,7 @@
 - 便携包：内嵌 Python 运行时，解压即用
 - AGPL-3.0 开源，仓库不含真实数据，演示数据全部合成
 
+[1.2.1]: https://example.com/chatwork/releases/tag/v1.2.1
 [1.2.0]: https://example.com/chatwork/releases/tag/v1.2.0
 [1.1.4]: https://example.com/chatwork/releases/tag/v1.1.4
 [1.1.3]: https://example.com/chatwork/releases/tag/v1.1.3

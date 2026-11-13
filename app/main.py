@@ -82,7 +82,8 @@ if paths.WEB_DIST.is_dir():
 
     @app.get("/", include_in_schema=False)
     def _index():
-        return FileResponse(_index_file)
+        # 前端更新后 WebView 可能缓存旧 index.html；入口禁缓存，静态资源仍走 hash
+        return FileResponse(_index_file, headers={"Cache-Control": "no-store"})
 
     @app.get("/{full_path:path}", include_in_schema=False)
     def _spa(full_path: str):

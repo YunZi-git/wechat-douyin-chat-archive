@@ -310,11 +310,11 @@ onMounted(async () => {
               <button class="btn sm ghost" @click="clearConvs">清空</button>
             </div>
             <div class="conv-list">
-              <div
+              <button
                 v-for="c in filteredConvs"
                 :key="c.name"
+                type="button"
                 class="conv-row"
-                role="checkbox"
                 :aria-checked="dySelected.includes(c.name)"
                 @click="toggleConv(c.name)"
               >
@@ -324,7 +324,7 @@ onMounted(async () => {
                 <span class="grow conv-name">{{ c.name }}</span>
                 <span v-if="c.kind === 'group'" class="group-tag">群</span>
                 <span class="faint small nowrap">{{ fmtCount(c.message_count) }}</span>
-              </div>
+              </button>
               <div v-if="!filteredConvs.length" class="hint" style="padding: 10px">
                 还没有会话列表。点「从抖音拉列表」扫码登录，只读取会话名单
                 （不会采集消息），然后就能勾选范围了。
@@ -423,10 +423,16 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
   padding: 6px 8px;
+  border: 0;
   border-radius: 7px;
-  cursor: pointer;
+  background: transparent;
+  color: inherit;
+  font: inherit;
   font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
   margin: 0;
 }
 .conv-row:hover { background: var(--panel-2); }
