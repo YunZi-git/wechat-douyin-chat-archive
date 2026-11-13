@@ -13,6 +13,7 @@ const asr = ref(null)
 const asrForm = ref({
   engine: 'off',
   auto_after_import: false,
+  douyin_fallback: true,
   concurrency: 2,
   whisper_model: 'small',
   whisper_model_dir: '',
@@ -31,6 +32,7 @@ async function loadAsr() {
     const engines = asr.value.engines
     asrForm.value.engine = engines.current || 'off'
     asrForm.value.auto_after_import = !!engines.auto
+    asrForm.value.douyin_fallback = engines.douyin_fallback !== false
     asrForm.value.concurrency = engines.concurrency || 2
     asrForm.value.whisper_model = engines.local?.model || 'small'
     asrForm.value.whisper_endpoint = asr.value.engines?.local?.endpoint || ''
@@ -47,6 +49,7 @@ async function saveAsr() {
     const body = {
       engine: asrForm.value.engine,
       auto_after_import: asrForm.value.auto_after_import,
+      asr_douyin_fallback: asrForm.value.douyin_fallback,
       concurrency: Number(asrForm.value.concurrency) || 2,
       whisper_model: asrForm.value.whisper_model,
       whisper_model_dir: asrForm.value.whisper_model_dir,
@@ -297,6 +300,18 @@ onMounted(async () => {
             class="switch"
             :class="{ on: asrForm.auto_after_import }"
             @click="asrForm.auto_after_import = !asrForm.auto_after_import"
+          />
+        </div>
+
+        <div class="row mt12">
+          <div class="grow">
+            <div style="font-weight: 550">抖音语音兜底</div>
+            <div class="hint">抖音原生识别失败时，导入后用上面的引擎补转写</div>
+          </div>
+          <button
+            class="switch"
+            :class="{ on: asrForm.douyin_fallback }"
+            @click="asrForm.douyin_fallback = !asrForm.douyin_fallback"
           />
         </div>
 

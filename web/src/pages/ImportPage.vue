@@ -23,12 +23,23 @@ const dyMode = ref('all')
 const dySelected = ref([])
 const dyQuery = ref('')
 const dyIncremental = ref(true)
+const dyDownloadImages = ref(false)
+const dyFailures = ref([])
 
 const filteredConvs = computed(() => {
   const q = dyQuery.value.trim().toLowerCase()
   if (!q) return dyConvs.value
   return dyConvs.value.filter((c) => (c.name || '').toLowerCase().includes(q))
 })
+
+async function loadDouyinFailures() {
+  try {
+    const res = await api.douyinFailures()
+    dyFailures.value = res.items || []
+  } catch {
+    dyFailures.value = []
+  }
+}
 
 async function loadDouyinConversations() {
   dyLoading.value = true
@@ -98,11 +109,19 @@ async function run(kind, title, arg) {
       incremental: dyIncremental.value,
       mode: dyMode.value,
       conversations: dySelected.value,
+      download_images: dyDownloadImages.value,
     }),
     douyinCollectOnly: () => api.douyinCollect({
       incremental: dyIncremental.value,
       mode: dyMode.value,
       conversations: dySelected.value,
+      download_images: dyDownloadImages.value,
+    }),
+    douyinRetry: () => api.douyinCollect({
+      incremental: true,
+      mode: 'include',
+      conversations: dyFailures.value,
+      download_images: dyDownloadImages.value,
     }),
     douyinImport: () => api.importDouyin({ copy_media: true }),
     douyinCustom: () => api.importDouyin({ chat_db: customDb.value.trim(), copy_media: true }),
@@ -132,10 +151,12 @@ async function importVoice() {
 async function onJobDone() {
   await refresh()
   await refreshStats()
+  await loadDouyinFailures()
   activeJob.value = null
 }
 
 onMounted(async () => {
+  loadDouyinFailures()
   const scope = new URLSearchParams(location.search).get('scope')
   if (scope === 'include' || scope === 'exclude') dyMode.value = scope
   await refresh()
@@ -295,6 +316,24 @@ onMounted(async () => {
               <div class="hint">只取新消息；关掉则把整个会话重新抓一遍</div>
             </div>
             <button class="switch" :class="{ on: dyIncremental }" @click="dyIncremental = !dyIncremental" />
+          </div>
+
+          <div class="row mt12">
+            <div class="grow">
+              <div style="font-weight: 550">下载图片 / 表情 / 视频封面</div>
+              <div class="hint">采集时一并保存媒体，会明显变慢</div>
+            </div>
+            <button class="switch" :class="{ on: dyDownloadImages }" @click="dyDownloadImages = !dyDownloadImages" />
+          </div>
+
+          <div v-if="dyFailures.length" class="row mt12" style="gap: 8px">
+            <div class="grow">
+              <div style="font-weight: 550">上次失败的会话：{{ dyFailures.length }} 个</div>
+              <div class="hint">{{ dyFailures.slice(0, 3).join('、') }}{{ dyFailures.length > 3 ? '…' : '' }}</div>
+            </div>
+            <button class="btn sm" @click="run('douyinRetry', '抖音：重试失败会话')">
+              <Icon name="refresh" :size="13" /> 重试
+            </button>
           </div>
 
           <div class="field mt12">

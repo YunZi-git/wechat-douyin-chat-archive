@@ -63,7 +63,8 @@ def _heavy_slot(job: jobs.Job, label: str) -> Iterator[None]:
         _HEAVY_LOCK.release()
 
 
-def _run_stream(cmd: list[str], *, cwd: Path, env: dict[str, str], job: jobs.Job) -> int:
+def _run_stream(cmd: list[str], *, cwd: Path, env: dict[str, str], job: jobs.Job,
+                on_line: Callable[[str], None] | None = None) -> int:
     job.write("$ " + " ".join(cmd))
     proc = subprocess.Popen(
         cmd,
@@ -79,7 +80,13 @@ def _run_stream(cmd: list[str], *, cwd: Path, env: dict[str, str], job: jobs.Job
     assert proc.stdout is not None
     try:
         for line in proc.stdout:
-            job.write(_clean(line))
+            cleaned = _clean(line)
+            job.write(cleaned)
+            if on_line:
+                try:
+                    on_line(cleaned)
+                except Exception:  # noqa: BLE001 - 进度解析不能影响采集
+                    pass
             if job.cancelled():
                 proc.terminate()
                 break
@@ -445,7 +452,50 @@ def _douyin_env() -> dict[str, str]:
     return env
 
 
-def _douyin_collect_cmd(filters: str | None, incremental: bool) -> list[str]:
+class DouyinProgress:
+    """从引擎 stdout 里解析「第几个会话 / 失败会话」。"""
+
+    PATTERN = re.compile(r"^\[(\d+)/(\d+)\]\s+(.+?)(?:\s+\(最后活跃|$)")
+
+    def __init__(self, job: jobs.Job) -> None:
+        self.job = job
+        self.total = 0
+        self.done = 0
+        self.current: str | None = None
+        self.failed: list[str] = []
+        self.messages = 0
+
+    def __call__(self, line: str) -> None:
+        match = self.PATTERN.match(line.strip())
+        if match:
+            self.done = int(match.group(1))
+            self.total = int(match.group(2))
+            self.current = match.group(3).strip()
+            self.job.update({
+                "stage": "抖音采集",
+                "done": self.done,
+                "total": self.total,
+                "current": self.current,
+                "failed": len(self.failed),
+            })
+            return
+        if "错误:" in line and self.current:
+            self.failed.append(self.current)
+            self.job.update({"failed": len(self.failed)})
+        m = re.search(r"会话:\s*(\d+)", line)
+        if m:
+            self.messages = int(m.group(1))
+
+
+_last_douyin_failures: list[str] = []
+
+
+def douyin_last_failures() -> list[str]:
+    return list(_last_douyin_failures)
+
+
+def _douyin_collect_cmd(filters: str | None, incremental: bool,
+                        download_images: bool = False) -> list[str]:
     script = paths.DOUYIN_ENGINE_DIR / "extract.py"
     if not script.exists():
         raise FileNotFoundError("内置的抖音采集组件缺失")
@@ -465,6 +515,8 @@ def _douyin_collect_cmd(filters: str | None, incremental: bool) -> list[str]:
         cmd += ["--filter", filters]
     if incremental:
         cmd.append("--incremental")
+    if download_images:
+        cmd.append("--download-images")
     return cmd
 
 
@@ -565,7 +617,7 @@ def start_transcription(
 
 
 def start_douyin_collect(*, filters: str | None = None, incremental: bool = True,
-                         mode: str = "all",
+                         mode: str = "all", download_images: bool = False,
                          conversations: list[str] | None = None) -> jobs.Job:
     # 先同步校验，参数不合法直接 400，不要等到任务线程里才报错
     resolved = _douyin_filter(mode, conversations) if mode != "all" else filters
@@ -574,20 +626,24 @@ def start_douyin_collect(*, filters: str | None = None, incremental: bool = True
     def target(job: jobs.Job) -> dict[str, Any]:
         with _heavy_slot(job, "抖音采集"):
             job.write(f"[i] 采集范围：{scope_text}")
-            cmd = _douyin_collect_cmd(resolved, incremental)
+            cmd = _douyin_collect_cmd(resolved, incremental, download_images)
+            progress = DouyinProgress(job)
             job.write("[i] 会弹出浏览器，请在窗口里扫码登录抖音")
             code = _run_stream(
-                cmd, cwd=paths.DOUYIN_ENGINE_DIR, env=_douyin_env(), job=job
+                cmd, cwd=paths.DOUYIN_ENGINE_DIR, env=_douyin_env(), job=job,
+                on_line=progress,
             )
-            job.write(f"[i] 采集结束（退出码 {code}）")
-            return {"exit_code": code}
+            global _last_douyin_failures
+            _last_douyin_failures = list(progress.failed)
+            job.write(f"[i] 采集结束（退出码 {code}），失败会话 {len(progress.failed)} 个")
+            return {"exit_code": code, "failed_conversations": progress.failed}
 
     return jobs.start("douyin-collect", "采集抖音聊天记录", target)
 
 
 def start_douyin_refresh(*, filters: str | None = None,
                          incremental: bool = True,
-                         mode: str = "all",
+                         mode: str = "all", download_images: bool = False,
                          conversations: list[str] | None = None) -> jobs.Job:
     """采集完顺手导入统一库。"""
     resolved = _douyin_filter(mode, conversations) if mode != "all" else filters
@@ -596,10 +652,12 @@ def start_douyin_refresh(*, filters: str | None = None,
     def target(job: jobs.Job) -> dict[str, Any]:
         with _heavy_slot(job, "抖音采集并导入"):
             job.write(f"[i] 采集范围：{scope_text}")
-            cmd = _douyin_collect_cmd(resolved, incremental)
+            cmd = _douyin_collect_cmd(resolved, incremental, download_images)
+            progress = DouyinProgress(job)
             job.write("[i] 第一步：打开浏览器采集（需要扫码登录）")
             code = _run_stream(
-                cmd, cwd=paths.DOUYIN_ENGINE_DIR, env=_douyin_env(), job=job
+                cmd, cwd=paths.DOUYIN_ENGINE_DIR, env=_douyin_env(), job=job,
+                on_line=progress,
             )
             if code != 0:
                 raise RuntimeError(f"采集失败（退出码 {code}），详见上方日志")
@@ -616,7 +674,10 @@ def start_douyin_refresh(*, filters: str | None = None,
             job.write(
                 f"[✓] 会话 +{report['conversations_added']}, 消息 +{report['messages_added']}"
             )
+            global _last_douyin_failures
+            _last_douyin_failures = list(progress.failed)
             auto = asr.auto_transcribe(job)
-            return {"exit_code": code, "report": report, "auto_transcribe": auto}
+            return {"exit_code": code, "report": report, "auto_transcribe": auto,
+                    "failed_conversations": progress.failed}
 
     return jobs.start("douyin-refresh", "抖音：采集并导入", target)

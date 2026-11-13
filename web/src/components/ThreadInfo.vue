@@ -138,7 +138,10 @@ function shortUid(uid) {
           class="mini-avatar"
           :style="{ background: avatarColor(m.uid || m.name || String(idx)) }"
         >{{ initial(m.name || m.uid) }}</span>
-        <span class="grow name">{{ m.name || m.uid }}</span>
+        <span class="grow name">
+          {{ m.name || m.uid }}
+          <span v-if="m.unique_id" class="faint" style="font-size: 10px">· 抖音号 {{ m.unique_id }}</span>
+        </span>
         <span class="uid">{{ fmtCount(m.n) }}</span>
       </button>
       <button v-if="members.length > 10" class="btn sm ghost" @click="showAllMembers = !showAllMembers">

@@ -246,6 +246,35 @@ def thread_info(thread_id: str) -> dict[str, Any] | None:
                     if pv else None
                 )
                 member_list.append(item)
+
+            # 抖音采集时把 users 表里的资料一并存在 conversations.extra.members
+            try:
+                conv_extra = json.loads(conv["extra"] or "{}")
+            except (TypeError, ValueError):
+                conv_extra = {}
+            profiles = {
+                str(p.get("uid")): p for p in conv_extra.get("members") or []
+                if p.get("uid")
+            }
+            for item in member_list:
+                profile = profiles.get(str(item["uid"])) or {}
+                item["unique_id"] = profile.get("unique_id") or ""
+                item["avatar_url"] = profile.get("avatar_url") or ""
+            seen = {str(item["uid"]) for item in member_list}
+            for uid, profile in profiles.items():
+                if uid in seen:
+                    continue
+                member_list.append({
+                    "uid": uid,
+                    "name": profile.get("nickname") or uid,
+                    "platform": "douyin",
+                    "n": 0,
+                    "first_ts": None,
+                    "last_ts": None,
+                    "thread_id": None,
+                    "unique_id": profile.get("unique_id") or "",
+                    "avatar_url": profile.get("avatar_url") or "",
+                })
             return {
                 "thread_id": thread_id,
                 "thread_kind": "conv",

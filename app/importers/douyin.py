@@ -191,6 +191,18 @@ def _copy_media_tree(src: Path, dst: Path, progress: Progress) -> int:
     return copied
 
 
+def _participant_uids(raw: Any) -> list[str]:
+    if not raw:
+        return []
+    if isinstance(raw, (list, tuple)):
+        return [str(x) for x in raw]
+    try:
+        parsed = json.loads(raw)
+        return [str(x) for x in parsed] if isinstance(parsed, list) else []
+    except (TypeError, json.JSONDecodeError):
+        return []
+
+
 def import_chat_db(
     chat_db: Path | str,
     *,
@@ -287,9 +299,22 @@ def import_chat_db(
                 conn, "douyin", conv_id,
                 kind=kind, title=title, contact_id=contact_id, avatar_url=avatar,
                 self_uid=self_uid,
-                extra=json.dumps({"conv_type": conv_type,
-                                  "participant_uids": row["participant_uids"]},
-                                 ensure_ascii=False),
+                extra=json.dumps(
+                    {
+                        "conv_type": conv_type,
+                        "participant_uids": row["participant_uids"],
+                        "members": [
+                            {
+                                "uid": uid,
+                                "nickname": (users.get(uid) or {}).get("nickname"),
+                                "unique_id": (users.get(uid) or {}).get("unique_id"),
+                                "avatar_url": (users.get(uid) or {}).get("avatar_url"),
+                            }
+                            for uid in _participant_uids(row["participant_uids"])[:300]
+                        ],
+                    },
+                    ensure_ascii=False,
+                ),
             )
             if not existed:
                 report["conversations_added"] += 1

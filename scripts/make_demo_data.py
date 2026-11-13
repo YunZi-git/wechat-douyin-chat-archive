@@ -446,10 +446,13 @@ def build_douyin(out: Path) -> Path:
 
     # 一个抖音群
     group_conv = "7649000000000000001"
+    member_uids = [r[0] for r in con.execute(
+        "SELECT uid FROM users WHERE uid != ? LIMIT 3", (SELF_DY_UID,)
+    )]
     con.execute(
         "INSERT INTO conversations(conv_id, conv_type, name, participant_uids,"
-        " last_message_time, message_count, avatar_url) VALUES (?,1,?,'[]',?,?,NULL)",
-        (group_conv, "剪辑互助群", 0, 0),
+        " last_message_time, message_count, avatar_url) VALUES (?,1,?,?,?,?,NULL)",
+        (group_conv, "剪辑互助群", json.dumps(member_uids), 0, 0),
     )
     ts = day + 4000
     for i, line in enumerate(GROUP_LINES):

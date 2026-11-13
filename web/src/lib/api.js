@@ -102,6 +102,7 @@ export const api = {
     post('/api/import/wechat', { account_dir: accountDir || null, incremental }),
   importDouyin: (body) => post('/api/import/douyin', body || {}),
   douyinConversations: () => get('/api/douyin/conversations'),
+  douyinFailures: () => get('/api/douyin/failures'),
   douyinCollect: (body) => post('/api/douyin/collect', body || {}),
   douyinRefresh: (body) => post('/api/douyin/refresh', body || {}),
 

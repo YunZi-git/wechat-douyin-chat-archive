@@ -25,7 +25,7 @@ import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Any, Callable, Iterable
+from typing import Sequence, Any, Callable, Iterable
 
 from . import db, paths, secrets, settings
 from . import voice as voice_mod
@@ -82,6 +82,7 @@ def engine_info() -> dict[str, Any]:
         },
         "current": cfg.get("asr_engine", "off"),
         "auto": bool(cfg.get("asr_auto_after_import")),
+        "douyin_fallback": bool(cfg.get("asr_douyin_fallback", True)),
         "concurrency": int(cfg.get("asr_concurrency", 2)),
     }
 
@@ -287,10 +288,14 @@ def select_messages(
     scope: str = "pending",
     conversation_id: int | None = None,
     message_ids: Iterable[int] | None = None,
+    platforms: Sequence[str] | None = None,
     limit: int | None = None,
 ) -> list[dict[str, Any]]:
     where = ["m.kind='voice'", "m.media_path IS NOT NULL"]
     args: list[Any] = []
+    if platforms:
+        where.append(f"m.platform IN ({','.join('?' for _ in platforms)})")
+        args.extend(platforms)
     if message_ids is not None:
         ids = [int(i) for i in message_ids]
         if not ids:
@@ -338,6 +343,7 @@ def run_batch(
     scope: str = "pending",
     conversation_id: int | None = None,
     message_ids: Iterable[int] | None = None,
+    platforms: Sequence[str] | None = None,
     limit: int | None = None,
     should_cancel: Callable[[], bool] | None = None,
 ) -> dict[str, Any]:
@@ -346,7 +352,7 @@ def run_batch(
         raise AsrError(f"未知引擎：{engine}")
     messages = select_messages(
         scope=scope, conversation_id=conversation_id,
-        message_ids=message_ids, limit=limit,
+        message_ids=message_ids, platforms=platforms, limit=limit,
     )
     total = len(messages)
     stats = {"engine": engine, "scope": scope, "total": total,
@@ -423,10 +429,12 @@ def auto_transcribe(job: Any, *, limit: int = 200) -> dict[str, Any] | None:
     if not info.get(engine, {}).get("available"):
         job.write(f"[!] 自动转写跳过：{engine} 不可用（检查设置）")
         return None
+    # 抖音语音优先用采集时的 native 转写；失败的（没有记录）由这里兜底
+    platforms = None if cfg.get("asr_douyin_fallback", True) else ["wechat"]
     job.write(f"[i] 自动转写新语音（{engine}，最多 {limit} 条）")
     try:
         return run_batch(job, engine=engine, scope="pending", limit=limit,
-                         should_cancel=job.cancelled)
+                         platforms=platforms, should_cancel=job.cancelled)
     except JobCancelled:
         raise
     except Exception as exc:  # noqa: BLE001 - 自动任务失败不应让导入显示失败

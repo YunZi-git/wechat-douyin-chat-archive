@@ -56,6 +56,7 @@ class CollectBody(BaseModel):
     incremental: bool = True
     mode: Literal["all", "include", "exclude"] = "all"
     conversations: list[str] | None = None
+    download_images: bool = False
 
 
 class ExportBody(BaseModel):
@@ -335,12 +336,18 @@ def douyin_conversations() -> dict[str, Any]:
     return services.douyin_conversations()
 
 
+@router.get("/douyin/failures")
+def douyin_failures() -> dict[str, Any]:
+    return {"items": services.douyin_last_failures()}
+
+
 @router.post("/douyin/collect")
 def douyin_collect(body: CollectBody) -> dict[str, Any]:
     try:
         job = services.start_douyin_collect(
             filters=body.filters, incremental=body.incremental,
             mode=body.mode, conversations=body.conversations,
+            download_images=body.download_images,
         )
     except (ValueError, RuntimeError) as exc:
         raise HTTPException(400, str(exc)) from exc
@@ -353,6 +360,7 @@ def douyin_refresh(body: CollectBody) -> dict[str, Any]:
         job = services.start_douyin_refresh(
             filters=body.filters, incremental=body.incremental,
             mode=body.mode, conversations=body.conversations,
+            download_images=body.download_images,
         )
     except (ValueError, RuntimeError) as exc:
         raise HTTPException(400, str(exc)) from exc

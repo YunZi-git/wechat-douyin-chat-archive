@@ -76,7 +76,7 @@
 | `web/src/components/ChatView.vue` | 消息流、会话内搜索、跳转 | |
 | `scripts/make_demo_data.py` | 生成合成演示数据（可 `--import`） | demo 数据全靠它 |
 | `scripts/build_portable.py` | 嵌入式 Python + 依赖 + 启动脚本 | |
-| `tests/` | 137 个 pytest 用例 | 全用合成数据 |
+| `tests/` | 143 个 pytest 用例 | 全用合成数据 |
 
 ---
 
@@ -163,12 +163,24 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
   `kNonStoreEmoticonTable` 有说明文字；导入时按 md5 写入 `meta.sticker.caption`，
   取不到图片时显示「狗头」这类说明而不是干巴巴的 `[表情]`
 
-### 4.7 合并 / 解绑
+### 4.7 抖音采集增强
+
+- 进度：`services.DouyinProgress` 解析引擎输出 `[i/N] 名称`，写 job.progress
+  （done/total/current/failed），界面任务面板直接显示
+- 失败重试：同一行解析 `[!] 错误:`，按当前会话名记入失败列表；结果与
+  `GET /api/douyin/failures` 暴露，界面可一键把失败会话作为 include 范围重采
+- 媒体开关：采集命令追加 `--download-images`（图片/表情/视频封面）
+- 群成员资料：导入时把 `users` 表资料写进 `conversations.extra.members`，
+  thread_info 合并进成员列表（昵称/抖音号/头像）
+- 语音兜底：`asr_douyin_fallback`（默认开）控制自动转写是否包含抖音语音；
+  原生识别失败 = 没有 voice_transcriptions 记录 = 属于 pending
+
+### 4.8 合并 / 解绑
 
 合并 = 把 `identities` 和 `conversations` 的 `contact_id` 改到主联系人 + 删掉次联系人；
 解绑 = 给指定平台新建一个联系人并迁走。**不动任何消息**。
 
-### 4.8 语音播放
+### 4.9 语音播放
 
 `GET /api/messages/{id}/audio`：
 
@@ -176,7 +188,7 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 - `.silk` → `voice.transcode_silk()`：剥掉 `\x02` 前缀 → pilk 转 16 kHz WAV → 缓存到 `data/media/voice_cache/<id>.wav` → 回填 `messages.duration`
 - 并发安全靠「唯一临时文件 + `os.replace`」
 
-### 4.9 语音识别
+### 4.10 语音识别
 
 统一表 `voice_transcriptions(message_id, engine, status, text, error)`，
 `engine` 取值 `legacy | native_douyin | tencent | local_whisper`。
@@ -189,7 +201,7 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 
 导入完成后如果开了「自动识别」，会再跑一批 pending（最多 200 条）。
 
-### 4.10 微信图片 / 表情 / 视频
+### 4.11 微信图片 / 表情 / 视频
 
 导入时只记 md5（`messages.extra`），显示时按需取：
 
@@ -197,18 +209,18 @@ import_runs(...)  meta(k,v)  candidates/processed_msgs/groups（历史遗留）
 - 视频：`/api/messages/{id}/video` → 在账号目录 `msg/video`、`msg/attach` 里按 md5 找
 - 失败返回 404 + 原因，前端显示占位（不会出现坏图）
 
-### 4.11 导出
+### 4.12 导出
 ### 4.7 导出
 
 `exporters/chatlab.py` 全流式：先写 header/members，再逐条写消息，几十万条也不吃内存。
 语音内容优先用转写文本，没有才写 `[语音 X秒]`。图片内嵌有总量上限（120 MB）。
 
-### 4.12 后台任务
+### 4.13 后台任务
 
 `jobs.start()` 起线程，前端轮询 `/api/jobs/{id}`。
 重任务（解密/采集/导入）共用一把进程内锁，排队时也能取消。
 
-### 4.13 打包
+### 4.14 打包
 
 `scripts/build_portable.py`：
 
@@ -346,7 +358,7 @@ git grep -n -I -E "wxid_[a-z0-9]{10,}|sk-[A-Za-z0-9]{20,}|AKID[A-Za-z0-9]{10,}|C
 ## 10. 验收清单（改完代码跑一遍）
 
 ```bash
-.venv\Scripts\python -m pytest -q          # 137 passed
+.venv\Scripts\python -m pytest -q          # 143 passed
 python scripts/build_portable.py --no-build-web   # 能打包
 ```
 
